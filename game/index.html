@@ -1,0 +1,1748 @@
+<title>ONE CAREER</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   ONE CAREER — playable prototype
+   Light "Matchday Paper" shell. No blue anywhere in the chrome.
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  color-scheme:light;
+  --paper:#EFEBE3; --surface:#FFFFFF; --sunken:#F5F2EC; --hover:#F2EEE6;
+  --ink:#17150F; --ink2:#514B41; --ink3:#6E6659;
+  --line:#DFD8CB; --line2:#C4BAA8; --ctrl:#8E8474;
+  --accent:#1F6F43; --accent-h:#175434; --accent-soft:#E3EFE7; --accent-ink:#12452A;
+  --warn:#9A5400; --warn-soft:#FBEBD3; --warn-ink:#6F3C00;
+  --bad:#AE2318; --bad-soft:#FBE6E3; --bad-ink:#851A12;
+  --gold:#9A7212; --gold-soft:#FAF0D4;
+  --turf:#3F8A52; --turf2:#48975B; --turf-line:rgba(255,255,255,.55);
+  --sh:0 1px 0 rgba(80,68,48,.06),0 1px 3px rgba(80,68,48,.08);
+  --sh2:0 18px 50px rgba(50,42,30,.22);
+  --f:"Segoe UI","Noto Sans Hebrew","Arial Hebrew",system-ui,-apple-system,sans-serif;
+  --club:#008D36;
+}
+:root[data-theme=dark]{
+  color-scheme:dark;
+  --paper:#141311; --surface:#1E1C19; --sunken:#191714; --hover:#272420;
+  --ink:#F4F1EA; --ink2:#C4BDB0; --ink3:#948C7E;
+  --line:#2E2A25; --line2:#433D35; --ctrl:#6B6357;
+  --accent:#4FA97A; --accent-h:#63BC8D; --accent-soft:#1A2C22; --accent-ink:#9AD8B5;
+  --warn:#D2953A; --warn-soft:#2F230E; --warn-ink:#EDC382;
+  --bad:#E0736A; --bad-soft:#321B18; --bad-ink:#F0A69E;
+  --gold:#D6AC4A; --gold-soft:#2E2612;
+  --turf:#2C6039; --turf2:#336B41; --turf-line:rgba(255,255,255,.4);
+  --sh:0 1px 3px rgba(0,0,0,.45);
+  --sh2:0 18px 50px rgba(0,0,0,.6);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme=light]){
+    color-scheme:dark;
+    --paper:#141311; --surface:#1E1C19; --sunken:#191714; --hover:#272420;
+    --ink:#F4F1EA; --ink2:#C4BDB0; --ink3:#948C7E;
+    --line:#2E2A25; --line2:#433D35; --ctrl:#6B6357;
+    --accent:#4FA97A; --accent-h:#63BC8D; --accent-soft:#1A2C22; --accent-ink:#9AD8B5;
+    --warn:#D2953A; --warn-soft:#2F230E; --warn-ink:#EDC382;
+    --bad:#E0736A; --bad-soft:#321B18; --bad-ink:#F0A69E;
+    --gold:#D6AC4A; --gold-soft:#2E2612;
+    --turf:#2C6039; --turf2:#336B41; --turf-line:rgba(255,255,255,.4);
+    --sh:0 1px 3px rgba(0,0,0,.45);
+    --sh2:0 18px 50px rgba(0,0,0,.6);
+  }
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--f);
+  font-size:14px;line-height:1.5;overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:none;box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--accent);border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+.n{font-variant-numeric:tabular-nums lining-nums}
+.lbl{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);font-weight:800}
+
+/* ── app shell ─────────────────────────────────────────────────── */
+#app{height:100vh;height:100dvh;display:flex;flex-direction:column}
+
+.hdr{
+  display:flex;align-items:center;gap:14px;padding:0 16px;height:58px;flex:0 0 58px;
+  background:var(--surface);border-bottom:1px solid var(--line2);position:relative;z-index:5;
+}
+.hdr::before{content:"";position:absolute;inset-inline:0;top:0;height:3px;background:var(--club)}
+.crest{
+  width:36px;height:36px;border-radius:8px;background:var(--club);color:#fff;
+  display:grid;place-items:center;font-weight:900;font-size:12px;letter-spacing:.02em;flex:0 0 auto;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.18);
+}
+.hdr .who{line-height:1.15;min-width:0}
+.hdr .who b{display:block;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .who span{font-size:11px;color:var(--ink3)}
+.hdr .pill{
+  display:flex;align-items:center;gap:7px;background:var(--sunken);border:1px solid var(--line);
+  border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;
+}
+.hdr .pill i{font-style:normal;color:var(--ink3);font-weight:800;font-size:10px;letter-spacing:.1em}
+.grow{flex:1 1 auto}
+.iconbtn{
+  background:var(--surface);border:1px solid var(--line2);border-radius:8px;
+  width:34px;height:34px;display:grid;place-items:center;cursor:pointer;font-size:15px;
+}
+.iconbtn:hover{background:var(--hover)}
+
+.main{flex:1 1 auto;display:flex;min-height:0}
+
+.rail{
+  flex:0 0 84px;background:var(--surface);border-inline-end:1px solid var(--line2);
+  display:flex;flex-direction:column;padding:10px 8px;gap:4px;overflow-y:auto;
+}
+.rail button{
+  background:none;border:none;cursor:pointer;border-radius:10px;padding:9px 4px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink3);
+  font-size:10.5px;font-weight:700;position:relative;transition:background .15s,color .15s;
+}
+.rail button em{font-style:normal;font-size:19px;line-height:1}
+.rail button:hover{background:var(--hover);color:var(--ink)}
+.rail button.on{background:var(--accent-soft);color:var(--accent-ink)}
+.rail button.on::before{
+  content:"";position:absolute;inset-inline-start:-8px;top:50%;transform:translateY(-50%);
+  width:3px;height:24px;border-radius:0 3px 3px 0;background:var(--club);
+}
+.rail .badge{
+  position:absolute;top:5px;inset-inline-end:9px;min-width:16px;height:16px;border-radius:9px;
+  background:var(--bad);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px;
+}
+
+.stage{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:18px 20px 28px;min-width:0}
+.stage::-webkit-scrollbar{width:10px}
+.stage::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px;border:3px solid var(--paper)}
+
+@media (max-width:720px){
+  .rail{flex:0 0 62px}
+  .rail button em{font-size:17px}
+  .rail button span{display:none}
+  .stage{padding:14px 12px 24px}
+}
+
+/* ── panels ────────────────────────────────────────────────────── */
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1.5fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+
+.p{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:hidden}
+.p>h3{
+  margin:0;padding:11px 14px;font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink3);font-weight:800;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;background:var(--sunken);
+}
+.p>h3 .r{margin-inline-start:auto;letter-spacing:0;text-transform:none;font-size:12px;color:var(--ink2);font-weight:700}
+.pb{padding:14px}
+.pb.tight{padding:8px}
+
+/* matchday hero */
+.hero{overflow:hidden}
+.heroband{
+  display:flex;align-items:center;gap:14px;padding:16px 18px;
+  background:linear-gradient(135deg,var(--sunken),var(--surface));
+  border-bottom:1px solid var(--line);position:relative;
+}
+.heroband::before{content:"";position:absolute;inset-inline:0;top:0;height:4px;background:var(--club)}
+.hb{display:flex;align-items:center;gap:11px;flex:1 1 0;min-width:0}
+.hb.away{flex-direction:row-reverse;text-align:end}
+.hb b{display:block;font-size:15px;font-weight:850;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb span{display:block;font-size:11px;color:var(--ink3);font-weight:700}
+.hbc{
+  width:46px;height:46px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;
+  font-size:13px;font-weight:900;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2);
+}
+.hvs{display:flex;flex-direction:column;align-items:center;gap:2px;flex:0 0 auto;padding-inline:8px}
+.hvs b{font-size:19px;font-weight:900;letter-spacing:.04em;color:var(--ink3)}
+@media (max-width:560px){.hb b{font-size:13px}.hbc{width:38px;height:38px}}
+
+.stat{display:flex;flex-direction:column;gap:3px}
+.stat b{font-size:26px;font-weight:850;line-height:1;letter-spacing:-.02em}
+.stat span{font-size:11px;color:var(--ink3);font-weight:700}
+
+.bar{height:7px;border-radius:99px;background:var(--sunken);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s cubic-bezier(.2,0,.1,1)}
+.bar>i.w{background:var(--warn)} .bar>i.b{background:var(--bad)}
+
+.kv{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;padding:5px 0}
+.kv+.kv{border-top:1px solid var(--line)}
+
+.tag{
+  display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:3px 9px;
+  font-size:11px;font-weight:800;background:var(--sunken);color:var(--ink2);white-space:nowrap;
+}
+.tag.ok{background:var(--accent-soft);color:var(--accent-ink)}
+.tag.w{background:var(--warn-soft);color:var(--warn-ink)}
+.tag.b{background:var(--bad-soft);color:var(--bad-ink)}
+.tag.g{background:var(--gold-soft);color:var(--gold)}
+
+.btn{
+  border:1px solid var(--ctrl);background:var(--surface);border-radius:9px;padding:9px 15px;
+  font-size:13.5px;font-weight:750;cursor:pointer;transition:background .15s,transform .06s;
+}
+.btn:hover{background:var(--hover)}
+.btn:active{transform:translateY(1px)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:inset 0 -2px 0 rgba(0,0,0,.16)}
+.btn.pri:hover{background:var(--accent-h)}
+.btn.big{padding:13px 24px;font-size:15px;border-radius:11px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.pri:disabled{background:var(--ctrl);border-color:var(--ctrl)}
+
+/* ── week planner ──────────────────────────────────────────────── */
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{
+  border:1px solid var(--line);border-radius:9px;padding:8px 4px;text-align:center;
+  font-size:11px;min-height:62px;display:flex;flex-direction:column;gap:3px;justify-content:center;
+}
+.day b{font-size:10px;letter-spacing:.08em;color:var(--ink3);font-weight:800}
+.day.f{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:800}
+.day.d{background:var(--sunken);color:var(--ink3)}
+
+.acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:9px}
+.act{
+  border:1px solid var(--line2);background:var(--surface);border-radius:11px;padding:11px 12px;
+  cursor:pointer;text-align:start;display:flex;flex-direction:column;gap:5px;
+  transition:border-color .15s,background .15s,transform .06s;position:relative;
+}
+.act:hover:not(:disabled){background:var(--hover);border-color:var(--ctrl)}
+.act:active:not(:disabled){transform:translateY(1px)}
+.act.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.act:disabled{opacity:.42;cursor:not-allowed}
+.act .t{font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:7px}
+.act .t em{font-style:normal;font-size:16px}
+.act .d{font-size:11.5px;color:var(--ink3);line-height:1.4}
+.act .fx{display:flex;gap:5px;flex-wrap:wrap;margin-top:1px}
+.act .fx span{font-size:10.5px;font-weight:800;padding:2px 6px;border-radius:5px;background:var(--sunken);color:var(--ink2)}
+.act.on .fx span{background:rgba(255,255,255,.55)}
+:root[data-theme=dark] .act.on .fx span{background:rgba(0,0,0,.28)}
+.act .n{position:absolute;top:9px;inset-inline-end:10px;font-size:11px;font-weight:900;color:var(--accent)}
+
+.slots{display:flex;gap:5px}
+.slot{width:22px;height:7px;border-radius:99px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)}
+.slot.f{background:var(--accent);box-shadow:none}
+
+/* ── attributes ────────────────────────────────────────────────── */
+.attrs{display:flex;flex-direction:column;gap:11px}
+.attr{display:grid;grid-template-columns:1fr auto;gap:3px 8px;align-items:center}
+.attr .an{font-size:12.5px;font-weight:700}
+.attr .av{font-size:13px;font-weight:850}
+.attr .bar{grid-column:1/-1}
+
+/* ── table ─────────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:6px 9px;text-align:start;border-bottom:1px solid var(--line)}
+th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:800}
+td.r{text-align:end;font-variant-numeric:tabular-nums}
+tr.me{background:var(--accent-soft)}
+tr.me td{font-weight:850;color:var(--accent-ink)}
+tr.cl{box-shadow:inset 3px 0 0 var(--gold)}
+tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
+.sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-inline-end:7px}
+
+/* ── boot / character creation ─────────────────────────────────── */
+.boot{
+  position:fixed;inset:0;z-index:60;background:var(--paper);
+  display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;
+}
+.bootcard{
+  width:min(760px,100%);background:var(--surface);border:1px solid var(--line2);
+  border-radius:18px;box-shadow:var(--sh2);overflow:hidden;
+}
+.boothd{padding:26px 28px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--sunken),var(--surface))}
+.boothd h1{margin:0;font-size:clamp(30px,5vw,44px);font-weight:900;letter-spacing:-.035em;line-height:1}
+.boothd h1 span{color:var(--accent)}
+.boothd p{margin:9px 0 0;color:var(--ink2);font-size:14px;max-width:56ch}
+.bootbd{padding:22px 28px 26px;display:flex;flex-direction:column;gap:20px}
+.field label{display:block;margin-bottom:7px}
+.field input{
+  width:100%;padding:11px 13px;border:1px solid var(--ctrl);border-radius:9px;
+  background:var(--surface);color:var(--ink);font:inherit;font-size:15px;font-weight:700;
+}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px}
+.opt{
+  border:1px solid var(--line2);background:var(--surface);border-radius:10px;padding:11px 10px;
+  cursor:pointer;text-align:start;transition:all .15s;
+}
+.opt:hover{background:var(--hover)}
+.opt.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt b{display:block;font-size:13.5px;font-weight:850}
+.opt span{display:block;font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.35}
+.opt.on span{color:var(--accent-ink);opacity:.9}
+
+/* ── MATCH ─────────────────────────────────────────────────────── */
+.match{position:fixed;inset:0;z-index:50;background:var(--paper);display:flex;flex-direction:column}
+.scorebug{
+  flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--line2);
+  display:flex;align-items:center;gap:14px;padding:12px 18px;position:relative;
+}
+.sbteam{display:flex;align-items:center;gap:11px;flex:1 1 0;min-width:0}
+.sbteam.away{flex-direction:row-reverse;text-align:end}
+.sbteam b{font-size:16px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
+.sbmini{
+  width:40px;height:40px;border-radius:10px;display:grid;place-items:center;
+  font-size:12px;font-weight:900;flex:0 0 auto;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2);
+}
+.sbscore{
+  display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--paper);
+  border-radius:12px;padding:7px 20px;flex:0 0 auto;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);
+}
+.sbscore .g{font-size:32px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.sbclk{
+  display:flex;flex-direction:column;align-items:center;gap:2px;min-width:44px;
+}
+.sbclk .m{font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+.sbclk .l{font-size:8.5px;font-weight:800;letter-spacing:.16em;opacity:.6}
+.sbclk.live .l{color:#7BE0A4;opacity:1}
+.sbclk.live .m::after{
+  content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:#7BE0A4;margin-inline-start:5px;vertical-align:middle;animation:blip 1s infinite;
+}
+@keyframes blip{0%,100%{opacity:1}50%{opacity:.25}}
+.sbstats{display:flex;gap:14px;flex:0 0 auto;padding-inline:6px}
+.sbstat{text-align:center;min-width:42px}
+.sbstat b{display:block;font-size:14px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+.sbstat span{font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--ink3)}
+@media (max-width:900px){.sbstats{display:none}.sbteam b{font-size:13px}}
+
+.field2{
+  flex:1 1 auto;display:grid;grid-template-columns:1fr 320px;gap:1px;background:var(--line);min-height:0;
+}
+@media (max-width:840px){.field2{grid-template-columns:1fr;grid-template-rows:1fr auto}}
+.pitchwrap{background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:11px;min-height:0}
+.pitch{
+  flex:1 1 auto;border-radius:12px;overflow:hidden;min-height:190px;
+  background:repeating-linear-gradient(90deg,var(--turf) 0 8.33%,var(--turf2) 8.33% 16.66%);
+  border:1px solid rgba(0,0,0,.18);position:relative;box-shadow:inset 0 2px 14px rgba(0,0,0,.18);
+}
+.pitch svg{position:absolute;inset:0;width:100%;height:100%}
+.feed{background:var(--surface);padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;min-height:0}
+.ev{
+  display:flex;gap:9px;align-items:flex-start;font-size:12.5px;padding:7px 9px;
+  border-radius:8px;background:var(--sunken);border:1px solid var(--line);line-height:1.4;
+  animation:pop .28s cubic-bezier(.2,0,.1,1);
+}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ev .m{font-weight:900;color:var(--ink3);font-size:11px;flex:0 0 30px;padding-top:1px;font-variant-numeric:tabular-nums}
+.ev.goal{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:750}
+.ev.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad-ink)}
+.ev.you{background:var(--gold-soft);border-color:var(--gold);color:var(--gold);font-weight:750}
+.matchfoot{
+  flex:0 0 auto;background:var(--surface);border-top:1px solid var(--line2);
+  padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+
+/* ── MOMENT overlay ────────────────────────────────────────────── */
+.moment{
+  position:fixed;inset:0;z-index:70;background:rgba(20,17,12,.62);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  backdrop-filter:blur(3px);animation:fade .2s;
+}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.mcard{
+  width:min(880px,100%);max-height:100%;overflow-y:auto;background:var(--surface);
+  border-radius:16px;box-shadow:var(--sh2);border:1px solid var(--line2);
+  animation:rise .28s cubic-bezier(.2,0,.1,1);
+}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+.mhd{
+  padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;
+  background:var(--sunken);
+}
+.mhd .t{font-size:14px;font-weight:850}
+.mhd .s{font-size:11.5px;color:var(--ink3)}
+.ring{width:44px;height:44px;flex:0 0 auto;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring b{
+  position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:900;
+  font-variant-numeric:tabular-nums;
+}
+.mbd{padding:14px 16px 16px;display:grid;grid-template-columns:1fr 300px;gap:14px}
+@media (max-width:760px){.mbd{grid-template-columns:1fr}}
+.mpitch{
+  border-radius:11px;overflow:hidden;aspect-ratio:16/10;
+  background:repeating-linear-gradient(90deg,var(--turf) 0 8.33%,var(--turf2) 8.33% 16.66%);
+  border:1px solid rgba(0,0,0,.2);box-shadow:inset 0 2px 14px rgba(0,0,0,.2);position:relative;
+}
+.mpitch svg{position:absolute;inset:0;width:100%;height:100%}
+
+.choices{display:flex;flex-direction:column;gap:7px}
+.ch{
+  border:1px solid var(--line2);background:var(--surface);border-radius:10px;padding:10px 12px;
+  cursor:pointer;text-align:start;transition:all .13s;position:relative;
+}
+.ch:hover:not(:disabled){background:var(--hover);border-color:var(--ctrl)}
+.ch.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.ch:disabled{opacity:.5;cursor:not-allowed}
+.ch b{display:block;font-size:13px;font-weight:800}
+.ch span{display:block;font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.35}
+.ch.on span{color:var(--accent-ink);opacity:.9}
+.ch.unl{border-inline-start:4px solid var(--gold)}
+.ch .u{
+  position:absolute;top:-8px;inset-inline-end:9px;font-size:9.5px;font-weight:900;
+  background:var(--gold);color:#fff;padding:2px 7px;border-radius:99px;letter-spacing:.03em;
+}
+
+.power{
+  position:relative;height:36px;border-radius:9px;background:var(--sunken);
+  border:1px solid var(--line2);overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,.07);
+}
+.power .zone{position:absolute;inset-block:0;background:var(--accent-soft);border-inline:2px solid var(--accent)}
+.power .zone.perf{position:absolute;inset-block:0;background:var(--accent);opacity:.28;border:none}
+.power .ndl{position:absolute;inset-block:2px;width:4px;background:var(--ink);border-radius:3px;box-shadow:0 0 0 1px var(--surface)}
+.power .ticks{position:absolute;inset:0;display:flex;justify-content:space-between;padding:0 4px;align-items:flex-end;pointer-events:none}
+.power .ticks i{width:1px;height:7px;background:var(--line2)}
+
+.res{
+  border-radius:10px;padding:11px 13px;font-size:13px;line-height:1.45;
+  border:1px solid var(--line);background:var(--sunken);min-height:56px;
+}
+.res.great{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+.res.good{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.res.poor{background:var(--warn-soft);border-color:var(--warn);color:var(--warn-ink)}
+.res.fail{background:var(--bad-soft);border-color:var(--bad);color:var(--bad-ink)}
+.res b{display:block;font-size:14px;font-weight:900;margin-bottom:2px}
+
+/* ── post-match ────────────────────────────────────────────────── */
+.ratebig{
+  display:flex;align-items:center;gap:16px;padding:16px;border-radius:12px;
+  background:var(--sunken);border:1px solid var(--line);
+}
+.ratebig .num{
+  width:78px;height:78px;border-radius:16px;display:grid;place-items:center;flex:0 0 auto;
+  font-size:30px;font-weight:900;color:#fff;background:var(--accent);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);font-variant-numeric:tabular-nums;
+}
+.ratebig .num.w{background:var(--warn)} .ratebig .num.b{background:var(--bad)} .ratebig .num.g{background:var(--gold)}
+
+.delta{font-size:12px;font-weight:850}
+.delta.up{color:var(--accent)} .delta.dn{color:var(--bad)}
+
+.toast{
+  position:fixed;inset-block-end:18px;inset-inline-start:50%;transform:translateX(50%);
+  background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:99px;
+  font-size:13px;font-weight:750;z-index:90;box-shadow:var(--sh2);animation:tin .3s;
+}
+@keyframes tin{from{opacity:0;transform:translateX(50%) translateY(10px)}to{opacity:1}}
+
+.empty{padding:26px 14px;text-align:center;color:var(--ink3);font-size:13px}
+.hint{font-size:11.5px;color:var(--ink3);line-height:1.45}
+</style>
+
+<div id="app" dir="rtl" lang="he">
+  <header class="hdr">
+    <div class="crest" id="hCrest">—</div>
+    <div class="who">
+      <b id="hClub">—</b>
+      <span id="hMeta">—</span>
+    </div>
+    <div class="grow"></div>
+    <div class="pill n"><i>עונה</i><span id="hSeason">1</span></div>
+    <div class="pill n"><i>מחזור</i><span id="hWeek">1</span></div>
+    <div class="pill n" id="hAgeWrap"><i>גיל</i><span id="hAge">18</span></div>
+    <button class="iconbtn" id="hTheme" title="ערכת נושא" aria-label="החלף ערכת נושא">◐</button>
+  </header>
+
+  <div class="main">
+    <nav class="rail" id="rail"></nav>
+    <div class="stage" id="stage"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════════════
+   DATA — real clubs, trimmed from data/leagues/*.json
+   ════════════════════════════════════════════════════════════════ */
+var LIGAT = [
+  {id:"mta", n:"מכבי תל אביב",       ab:"MTA", c:"#FFDD00", t:"#3A3000", rep:53},
+  {id:"mha", n:"מכבי חיפה",          ab:"MHA", c:"#008D36", t:"#fff",    rep:52},
+  {id:"hbs", n:"הפועל באר שבע",      ab:"HBS", c:"#E4002B", t:"#fff",    rep:48},
+  {id:"bei", n:"בית\"ר ירושלים",     ab:"BEI", c:"#FFDD00", t:"#3A3000", rep:43},
+  {id:"hta", n:"הפועל תל אביב",      ab:"HTA", c:"#E4002B", t:"#fff",    rep:38},
+  {id:"hha", n:"הפועל חיפה",         ab:"HHA", c:"#E4002B", t:"#fff",    rep:36},
+  {id:"mne", n:"מכבי נתניה",         ab:"MNE", c:"#FFDD00", t:"#3A3000", rep:35},
+  {id:"sak", n:"בני סכנין",          ab:"SAK", c:"#E4002B", t:"#fff",    rep:32},
+  {id:"iks", n:"עירוני קרית שמונה",  ab:"IKS", c:"#E4002B", t:"#fff",    rep:32},
+  {id:"ash", n:"מ.ס. אשדוד",         ab:"ASH", c:"#FFDD00", t:"#3A3000", rep:31},
+  {id:"hje", n:"הפועל ירושלים",      ab:"HJE", c:"#E4002B", t:"#fff",    rep:30},
+  {id:"hpt", n:"הפועל פתח תקווה",    ab:"HPT", c:"#008D36", t:"#fff",    rep:29},
+  {id:"itb", n:"עירוני טבריה",       ab:"ITB", c:"#0A3A7A", t:"#fff",    rep:27},
+  {id:"mbr", n:"מכבי בני ריינה",     ab:"MBR", c:"#008D36", t:"#fff",    rep:27}
+];
+var EURO = [
+  {n:"LOSC ליל",        ab:"LIL", c:"#E4002B", lg:"ליג 1",       rep:74},
+  {n:"פיינורד",         ab:"FEY", c:"#E4002B", lg:"ארדיוויזי",   rep:66},
+  {n:"אאוקסר",          ab:"AJA", c:"#0055A5", lg:"ליג 1",       rep:56},
+  {n:"קיילקו וניציה",   ab:"VEN", c:"#F58220", lg:"סריה B",      rep:44},
+  {n:"הנובר 96",        ab:"H96", c:"#009641", lg:"בונדסליגה 2", rep:47},
+  {n:"קווינס פארק",     ab:"QPR", c:"#1D5BA4", lg:"צ'מפיונשיפ",  rep:52}
+];
+
+var POS = {
+  ST:{n:"חלוץ",        k:"טכני",  kpi:["xG","נגיחות","לחץ ראשון"],   at:"fin"},
+  W :{n:"כנף",         k:"טכני",  kpi:["דריבל","הזנות","עומק"],       at:"pac"},
+  CM:{n:"קשר מרכזי",   k:"טקטי",  kpi:["קידום כדור","שבירת קווים","שמירה בלחץ"], at:"pas"},
+  CB:{n:"בלם",         k:"טקטי",  kpi:["מניעת קבלה","דו־קרב","יציאה מלחץ"], at:"def"},
+  GK:{n:"שוער",        k:"מנטלי", kpi:["PSxG","יציאות","בנייה"],      at:"gk"}
+};
+
+var STARTS = [
+  {id:"mha", nm:"אקדמיית מכבי חיפה", d:"מועדון־על מקומי. הבעיה אינה יכולת — אלא דקות.", trust:34, status:"נער", diff:"קשה"},
+  {id:"itb", nm:"עירוני טבריה",       d:"מועדון קטן שצריך אותך. דקות מהיום הראשון.",     trust:52, status:"סגל",  diff:"רגיל"},
+  {id:"hpt", nm:"הפועל פתח תקווה",    d:"אמצע הטבלה. תחרות אמיתית, דלת פתוחה.",           trust:44, status:"רוטציה", diff:"רגיל"}
+];
+
+/* ══════════════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════════════ */
+var S = null;
+
+function newState(name, pos, startId){
+  var st = STARTS.filter(function(s){return s.id===startId})[0];
+  var base = {tec:44,tac:44,phy:46,men:42};
+  if(pos==="ST"){base.tec=52;base.phy=48;base.tac=38}
+  if(pos==="W"){base.tec=50;base.phy=52;base.tac=38}
+  if(pos==="CM"){base.tac=50;base.tec=47;base.phy=42}
+  if(pos==="CB"){base.tac=49;base.phy=52;base.tec=36}
+  if(pos==="GK"){base.men=52;base.phy=48;base.tec=40;base.tac=44}
+
+  var table = {};
+  LIGAT.forEach(function(c){ table[c.id]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
+
+  return {
+    screen:"hub", name:name, pos:pos, age:18, club:st.id,
+    season:1, week:1, maxWeek:14,
+    a:base,
+    fit:86, sharp:48, load:22, morale:58,
+    trust:st.trust, status:st.status,
+    apps:0, minutes:0, goals:0, assists:0, ratings:[],
+    picked:[], slots:4,
+    prep:{video:0, analyst:0, coach:0, unit:0, sp:0},
+    prepTarget:null,
+    table:table, fixtures:buildFixtures(st.id),
+    interest:[], inbox:[], seen:0,
+    lastMatch:null, contractYears:2, wage:4,
+    seed: (Date.now()%100000)
+  };
+}
+
+function buildFixtures(myId){
+  var others = LIGAT.filter(function(c){return c.id!==myId}).map(function(c){return c.id});
+  var fx = [];
+  for(var i=0;i<14;i++){
+    fx.push({opp: others[i % others.length], home: i%2===0});
+  }
+  return fx;
+}
+
+/* deterministic-ish rng */
+function rnd(){ S.seed = (S.seed*1103515245 + 12345) & 0x7fffffff; return S.seed/0x7fffffff; }
+function ri(a,b){ return Math.floor(rnd()*(b-a+1))+a; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function club(id){ return LIGAT.filter(function(c){return c.id===id})[0]; }
+
+/* ══════════════════════════════════════════════════════════════════
+   WEEKLY ACTIONS
+   ════════════════════════════════════════════════════════════════ */
+var ACTIONS = [
+  {id:"tec", i:"⚽", t:"אימון טכני",       d:"נגיעה, מסירה וסיום. שיפור איטי, חדות מיידית.",
+   fx:["טכני ‎+", "חדות ‎+", "עומס ‎+"], run:function(){ S.a.tec+=0.8; S.sharp+=7; S.load+=9; }},
+  {id:"tac", i:"◱", t:"אימון טקטי ווידאו", d:"הבנת תפקיד וכימיה עם היחידה.",
+   fx:["טקטי ‎+", "אמון ‎+", "עומס נמוך"], run:function(){ S.a.tac+=0.9; S.trust+=3; S.load+=4; }},
+  {id:"phy", i:"⚡", t:"כוח ומהירות",      d:"שיפור גופני אמיתי — במחיר עומס גבוה.",
+   fx:["פיזי ‎++", "עומס ‎++"], run:function(){ S.a.phy+=1.1; S.load+=17; S.sharp+=3; }},
+  {id:"rec", i:"♻", t:"התאוששות ופיזיו",  d:"מוריד עומס ומעלה כשירות. מוותר על התקדמות.",
+   fx:["עומס ‎−−", "כשירות ‎+"], run:function(){ S.load-=22; S.fit+=13; }},
+  {id:"video", i:"▶", t:"ניתוח וידאו על היריב", d:"‎+0.4 שנייה לזמן הקריאה מול היריב הקרוב.",
+   fx:["זמן קריאה ‎+"], prep:"video", run:function(){ S.prep.video=1; S.load+=2; }},
+  {id:"analyst", i:"◈", t:"ישיבת אנליסט אישית", d:"פותח אפשרות בחירה נוספת בחלק מהמצבים.",
+   fx:["אפשרות נוספת"], prep:"analyst", run:function(){ S.prep.analyst=1; }},
+  {id:"coach", i:"☰", t:"שיחה עם מאמן העמדה", d:"מסמן את החולשה של המקביל שלך.",
+   fx:["אזור מתוק ‎+", "אמון ‎+"], prep:"coach", run:function(){ S.prep.coach=1; S.trust+=2; }},
+  {id:"agent", i:"✎", t:"פגישה עם הסוכן",  d:"בודק מי מתעניין ומה שווה כרגע כוח המיקוח.",
+   fx:["מודיעין שוק"], run:function(){ agentMeeting(); }},
+  {id:"life", i:"◉", t:"חיים אישיים",      d:"משפחה, חברים, ראש נקי. מוריד לחץ.",
+   fx:["מורל ‎++", "עומס ‎−"], run:function(){ S.morale+=13; S.load-=6; }}
+];
+
+function agentMeeting(){
+  var r = avgRating();
+  var chance = (r-6.2)*0.5 + (S.minutes/900)*0.4;
+  if(rnd() < clamp(chance,0.05,0.8)){
+    var e = EURO[ri(0,EURO.length-1)];
+    if(!S.interest.some(function(x){return x.n===e.n})){
+      S.interest.push({n:e.n, ab:e.ab, c:e.c, lg:e.lg, rep:e.rep, lvl:1});
+      push("הסוכן: " + e.n + " (" + e.lg + ") ביקשו דוח עליך.", "ok");
+      return;
+    }
+  }
+  if(S.interest.length){
+    S.interest[0].lvl = Math.min(3, S.interest[0].lvl+1);
+    push("הסוכן: " + S.interest[0].n + " העמיקו את הבירור.", "ok");
+  } else {
+    push("הסוכן: אין תנועה. \"תן לי דקות ואני אתן לך שוק.\"", "");
+  }
+}
+
+function push(txt, kind){ S.inbox.unshift({t:txt, k:kind||"", w:S.week}); if(S.inbox.length>40) S.inbox.pop(); }
+function avgRating(){ if(!S.ratings.length) return 6.0; return S.ratings.reduce(function(a,b){return a+b},0)/S.ratings.length; }
+function ovr(){ return Math.round((S.a.tec+S.a.tac+S.a.phy+S.a.men)/4); }
+
+/* ══════════════════════════════════════════════════════════════════
+   RENDER — shell
+   ════════════════════════════════════════════════════════════════ */
+var stage = document.getElementById("stage");
+var rail  = document.getElementById("rail");
+
+var NAV = [
+  {id:"hub",    i:"◧", t:"היום"},
+  {id:"player", i:"◉", t:"השחקן"},
+  {id:"squad",  i:"▤", t:"הסגל"},
+  {id:"league", i:"≡", t:"הליגה"},
+  {id:"career", i:"✦", t:"קריירה"}
+];
+
+function renderShell(){
+  var c = club(S.club);
+  document.documentElement.style.setProperty("--club", c.c);
+  var cr = document.getElementById("hCrest");
+  cr.textContent = c.ab; cr.style.background = c.c; cr.style.color = c.t;
+  document.getElementById("hClub").textContent = S.name + " · " + POS[S.pos].n;
+  document.getElementById("hMeta").textContent = c.n + " · ליגת העל";
+  document.getElementById("hSeason").textContent = S.season;
+  document.getElementById("hWeek").textContent = S.week + "/" + S.maxWeek;
+  document.getElementById("hAge").textContent = S.age;
+
+  rail.innerHTML = "";
+  NAV.forEach(function(n){
+    var b = document.createElement("button");
+    b.className = S.screen===n.id ? "on" : "";
+    b.innerHTML = "<em>"+n.i+"</em><span>"+n.t+"</span>";
+    if(n.id==="hub" && S.inbox.length>S.seen)
+      b.innerHTML += '<span class="badge">'+(S.inbox.length-S.seen)+'</span>';
+    b.onclick = function(){ S.screen=n.id; if(n.id==="hub") S.seen=S.inbox.length; render(); };
+    rail.appendChild(b);
+  });
+}
+
+function render(){
+  renderShell();
+  if(S.screen==="hub")    stage.innerHTML = viewHub();
+  if(S.screen==="player") stage.innerHTML = viewPlayer();
+  if(S.screen==="squad")  stage.innerHTML = viewSquad();
+  if(S.screen==="league") stage.innerHTML = viewLeague();
+  if(S.screen==="career") stage.innerHTML = viewCareer();
+  bind();
+  stage.scrollTop = 0;
+}
+
+/* ── HUB ───────────────────────────────────────────────────────── */
+function viewHub(){
+  var fx = S.fixtures[S.week-1];
+  var opp = club(fx.opp);
+  var me = club(S.club);
+  var loadCls = S.load>72 ? "b" : (S.load>52 ? "w" : "");
+  var expect = expectedMinutes();
+
+  var days = ["ב׳","ג׳","ד׳","ה׳","ו׳","ש׳","א׳"];
+  var dayHtml = days.map(function(d,i){
+    if(i===5) return '<div class="day f"><b>'+d+'</b>'+opp.ab+'</div>';
+    if(i===6) return '<div class="day d"><b>'+d+'</b>מנוחה</div>';
+    var a = S.picked[i]!==undefined ? ACTIONS.filter(function(x){return x.id===S.picked[i]})[0] : null;
+    return '<div class="day'+(a?"":" d")+'"><b>'+d+'</b>'+(a?a.i:"—")+'</div>';
+  }).join("");
+
+  var actsHtml = ACTIONS.map(function(a){
+    var on = S.picked.indexOf(a.id)>=0;
+    var idx = S.picked.indexOf(a.id);
+    var full = S.picked.length>=S.slots && !on;
+    return '<button class="act'+(on?" on":"")+'" data-act="'+a.id+'"'+(full?" disabled":"")+'>'
+      + (on?'<span class="n">'+(idx+1)+'</span>':'')
+      + '<span class="t"><em>'+a.i+'</em>'+a.t+'</span>'
+      + '<span class="d">'+a.d+'</span>'
+      + '<span class="fx">'+a.fx.map(function(f){return "<span>"+f+"</span>"}).join("")+'</span>'
+      + '</button>';
+  }).join("");
+
+  var slotsHtml = "";
+  for(var i=0;i<S.slots;i++) slotsHtml += '<div class="slot'+(i<S.picked.length?" f":"")+'"></div>';
+
+  var inboxHtml = S.inbox.length ? S.inbox.slice(0,6).map(function(m){
+    return '<div class="kv"><span>'+m.t+'</span><span class="tag '+(m.k)+'">מ׳'+m.w+'</span></div>';
+  }).join("") : '<div class="empty">שקט. זה גם מצב.</div>';
+
+  return ''
+  + '<div class="grid g2">'
+
+  + '<div style="display:flex;flex-direction:column;gap:14px">'
+
+    + '<div class="p hero">'
+      + '<div class="heroband">'
+        + '<div class="hb"><div class="hbc" style="background:'+me.c+';color:'+me.t+'">'+me.ab+'</div>'
+          + '<div><b>'+me.n+'</b><span>'+(fx.home?"בית":"חוץ")+'</span></div></div>'
+        + '<div class="hvs"><span class="lbl">מחזור '+S.week+'</span><b>VS</b><span class="lbl">ליגת העל</span></div>'
+        + '<div class="hb away"><div class="hbc" style="background:'+opp.c+';color:'+opp.t+'">'+opp.ab+'</div>'
+          + '<div><b>'+opp.n+'</b><span>מקום '+oppPlace(opp.id)+' בטבלה</span></div></div>'
+      + '</div>'
+      + '<div class="pb"><div class="days">'+dayHtml+'</div></div></div>'
+
+    + '<div class="p"><h3>תוכנית שבועית'
+      + '<span class="r" style="display:flex;align-items:center;gap:9px">'
+      + '<span class="lbl">'+S.picked.length+'/'+S.slots+'</span><span class="slots">'+slotsHtml+'</span></span></h3>'
+    + '<div class="pb"><div class="acts">'+actsHtml+'</div>'
+    + '<div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap">'
+      + '<button class="btn pri big" id="play"'+(S.picked.length===0?" disabled":"")+'>שחק את המחזור ▸</button>'
+      + '<button class="btn" id="clear">נקה</button>'
+      + '<span class="hint">צפי דקות: <b>'+expect.label+'</b></span>'
+    + '</div></div></div>'
+
+  + '</div>'
+
+  + '<div style="display:flex;flex-direction:column;gap:14px">'
+
+    + '<div class="p"><h3>מצב גוף</h3><div class="pb" style="display:flex;flex-direction:column;gap:12px">'
+      + meter("כשירות", S.fit, S.fit<60?"b":(S.fit<75?"w":""))
+      + meter("חדות", S.sharp, S.sharp<45?"w":"")
+      + meter("עומס מצטבר", S.load, loadCls)
+      + meter("מורל", S.morale, S.morale<40?"w":"")
+      + (S.load>72 ? '<div class="tag b">▲ סיכון פציעה מוגבר — שקול התאוששות</div>' : '')
+    + '</div></div>'
+
+    + '<div class="p"><h3>מעמד בסגל</h3><div class="pb">'
+      + '<div class="kv"><span>מעמד</span><b>'+S.status+'</b></div>'
+      + '<div class="kv"><span>אמון המאמן</span><b class="n">'+Math.round(S.trust)+'</b></div>'
+      + '<div style="margin:8px 0 2px"><div class="bar"><i style="width:'+clamp(S.trust,0,100)+'%" class="'+(S.trust<35?"b":(S.trust<55?"w":""))+'"></i></div></div>'
+      + '<div class="kv"><span>הופעות · דקות</span><b class="n">'+S.apps+' · '+S.minutes+'׳</b></div>'
+      + '<div class="kv"><span>ציון ממוצע</span><b class="n">'+avgRating().toFixed(2)+'</b></div>'
+    + '</div></div>'
+
+    + '<div class="p"><h3>הודעות</h3><div class="pb">'+inboxHtml+'</div></div>'
+
+  + '</div></div>';
+}
+
+function oppPlace(id){
+  var rows = LIGAT.map(function(c){ return {id:c.id, t:S.table[c.id]}; })
+    .sort(function(a,b){ return b.t.pts-a.t.pts || (b.t.gf-b.t.ga)-(a.t.gf-a.t.ga); });
+  return rows.findIndex(function(r){return r.id===id}) + 1;
+}
+
+function meter(label, val, cls){
+  return '<div><div class="kv" style="padding:0 0 5px"><span>'+label+'</span>'
+    + '<b class="n">'+Math.round(clamp(val,0,100))+'%</b></div>'
+    + '<div class="bar"><i class="'+(cls||"")+'" style="width:'+clamp(val,0,100)+'%"></i></div></div>';
+}
+
+function expectedMinutes(){
+  var t = S.trust + (S.fit-70)*0.3 + (S.sharp-50)*0.2;
+  if(t>=68) return {label:"הרכב פותח", start:true, mins:90};
+  if(t>=48) return {label:"הרכב / חילוף מוקדם", start:true, mins:ri(60,90)};
+  if(t>=32) return {label:"ספסל · כניסה סבירה", start:false, mins:ri(18,35)};
+  return {label:"ספסל · כניסה לא בטוחה", start:false, mins:rnd()<0.5?ri(6,16):0};
+}
+
+/* ── PLAYER ────────────────────────────────────────────────────── */
+function viewPlayer(){
+  var p = POS[S.pos];
+  var atts = [
+    {k:"tec", n:"טכני", v:S.a.tec},
+    {k:"tac", n:"טקטי", v:S.a.tac},
+    {k:"phy", n:"גופני", v:S.a.phy},
+    {k:"men", n:"מנטלי", v:S.a.men}
+  ];
+  var last = S.ratings.slice(-8);
+  var spark = last.length ? last.map(function(r){
+    var h = Math.round(((r-4)/6)*38)+6;
+    var col = r>=7.2?"var(--accent)":(r>=6.4?"var(--gold)":"var(--bad)");
+    return '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px">'
+      + '<div style="width:100%;max-width:22px;height:'+h+'px;background:'+col+';border-radius:4px 4px 0 0"></div>'
+      + '<span class="n" style="font-size:10px;font-weight:800;color:var(--ink3)">'+r.toFixed(1)+'</span></div>';
+  }).join("") : '<div class="empty">אין עדיין משחקים</div>';
+
+  return ''
+  + '<div class="grid g2">'
+  + '<div style="display:flex;flex-direction:column;gap:14px">'
+
+    + '<div class="p"><h3>כרטיס שחקן</h3><div class="pb">'
+      + '<div class="ratebig" style="margin-bottom:14px">'
+        + '<div class="num">'+ovr()+'</div>'
+        + '<div style="flex:1">'
+          + '<div style="font-size:20px;font-weight:900;letter-spacing:-.02em">'+S.name+'</div>'
+          + '<div style="color:var(--ink3);font-size:13px;margin-top:2px">'+p.n+' · גיל '+S.age+' · '+club(S.club).n+'</div>'
+          + '<div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">'
+            + '<span class="tag">'+S.status+'</span>'
+            + '<span class="tag '+(avgRating()>=7?"ok":"")+'">ציון '+avgRating().toFixed(2)+'</span>'
+            + (S.goals?'<span class="tag g">'+S.goals+' שערים</span>':'')
+            + (S.assists?'<span class="tag g">'+S.assists+' בישולים</span>':'')
+          + '</div>'
+        + '</div>'
+      + '</div>'
+      + '<div class="attrs">' + atts.map(function(a){
+          return '<div class="attr"><span class="an">'+a.n+'</span><span class="av n">'+Math.round(a.v)+'</span>'
+            + '<span class="bar"><i style="width:'+clamp(a.v,0,100)+'%"></i></span></div>';
+        }).join("") + '</div>'
+    + '</div></div>'
+
+    + '<div class="p"><h3>מגמת ציונים <span class="r">8 אחרונים</span></h3>'
+    + '<div class="pb"><div style="display:flex;gap:5px;align-items:flex-end;min-height:58px">'+spark+'</div></div></div>'
+
+  + '</div>'
+
+  + '<div style="display:flex;flex-direction:column;gap:14px">'
+    + '<div class="p"><h3>KPI לפי תפקיד</h3><div class="pb">'
+      + p.kpi.map(function(k,i){
+          var pct = clamp(Math.round(30 + (avgRating()-6)*28 + (i===2?-14:i*7) + S.a.tac/6), 5, 97);
+          return '<div style="margin-bottom:11px"><div class="kv" style="padding:0 0 5px"><span>'+k+'</span>'
+            + '<b class="n">אחוזון '+pct+'</b></div><div class="bar"><i class="'+(pct<40?"w":"")+'" style="width:'+pct+'%"></i></div></div>';
+        }).join("")
+      + '<p class="hint" style="margin:6px 0 0">מדדים לפי התפקיד שלך. בלם אינו נמדד בשערים, ושוער אינו נמדד ב-xG.</p>'
+    + '</div></div>'
+
+    + '<div class="p"><h3>מודיעין שנצבר</h3><div class="pb">'
+      + '<div class="kv"><span>▶ ניתוח וידאו</span>'+(S.prep.video?'<span class="tag ok">פעיל</span>':'<span class="tag">—</span>')+'</div>'
+      + '<div class="kv"><span>◈ ישיבת אנליסט</span>'+(S.prep.analyst?'<span class="tag ok">פעיל</span>':'<span class="tag">—</span>')+'</div>'
+      + '<div class="kv"><span>☰ מאמן עמדה</span>'+(S.prep.coach?'<span class="tag ok">פעיל</span>':'<span class="tag">—</span>')+'</div>'
+      + '<p class="hint" style="margin:9px 0 0">המודיעין נצרך במשחק הקרוב. יריב שהחליף מאמן מאפס אותו.</p>'
+    + '</div></div>'
+  + '</div></div>';
+}
+
+/* ── SQUAD (depth chart) ───────────────────────────────────────── */
+function viewSquad(){
+  var rivals = depthChart();
+  return '<div class="grid g2"><div class="p"><h3>מפת עומק · '+POS[S.pos].n+'</h3><div class="pb tight">'
+    + '<table><thead><tr><th>#</th><th>שחקן</th><th class="r">גיל</th><th class="r">יכולת</th><th>מעמד</th></tr></thead><tbody>'
+    + rivals.map(function(r,i){
+        return '<tr'+(r.me?' class="me"':'')+'><td class="n">'+(i+1)+'</td><td>'+r.n+'</td>'
+          + '<td class="r">'+r.age+'</td><td class="r">'+r.ovr+'</td>'
+          + '<td><span class="tag '+(i===0?"ok":(i===1?"w":""))+'">'+r.role+'</span></td></tr>';
+      }).join("")
+    + '</tbody></table></div></div>'
+    + '<div class="p"><h3>למה אתה שם</h3><div class="pb">'
+      + '<p style="margin:0 0 10px;font-size:13.5px;line-height:1.5">'+depthReason()+'</p>'
+      + '<div class="kv"><span>אמון המאמן</span><b class="n">'+Math.round(S.trust)+'/100</b></div>'
+      + '<div class="kv"><span>התאמה טקטית</span><b class="n">'+Math.round(clamp(S.a.tac+8,0,100))+'/100</b></div>'
+      + '<div class="kv"><span>חדות</span><b class="n">'+Math.round(S.sharp)+'%</b></div>'
+      + '<p class="hint" style="margin:11px 0 0">אמון והתאמה טקטית הם שני ציונים נפרדים. מאמן יכול לכבד אותך ועדיין להעדיף מישהו שמתאים יותר לשיטה.</p>'
+    + '</div></div></div>';
+}
+
+function depthChart(){
+  var names = ["דניאל אבוקסיס","ליאור חדד","עומרי כהן","איתי בן־חיים","רועי לוי"];
+  var list = [];
+  var myOvr = ovr();
+  for(var i=0;i<3;i++){
+    list.push({n:names[i], age:ri(22,30), ovr: clamp(myOvr + (i===0?ri(3,9):(i===1?ri(-2,4):ri(-8,-1))),30,90), me:false, role:""});
+  }
+  list.push({n:S.name+" (אתה)", age:S.age, ovr:myOvr, me:true, role:""});
+  list.sort(function(a,b){ return (b.ovr + (b.me?S.trust*0.14:0)) - (a.ovr + (a.me?S.trust*0.14:0)); });
+  list.forEach(function(r,i){ r.role = i===0?"מפתח":(i===1?"מסובב":(i===2?"רוטציה":"מחוץ לרוטציה")); });
+  return list;
+}
+
+function depthReason(){
+  if(S.trust>=68) return "אתה בחירה ראשונה. המאמן סומך עליך גם כשהמשחק לא הולך — זה מה שמייצר רצף.";
+  if(S.trust>=48) return "אתה בגבול ההרכב. עמידה בהוראות ודוח תפקיד טוב שווים כאן יותר משער בודד.";
+  if(S.trust>=32) return "אתה אופציה מהספסל. הדרך פנימה עוברת דרך אימון טקטי, אמינות, ושתי כניסות טובות ברצף.";
+  return "אתה מחוץ לתוכניות. או שינוי עמדה, או השאלה, או שיחה עם המאמן — אבל לא עוד שבוע של אותו דבר.";
+}
+
+/* ── LEAGUE ────────────────────────────────────────────────────── */
+function viewLeague(){
+  var rows = LIGAT.map(function(c){
+    var t = S.table[c.id];
+    return {c:c, t:t, gd:t.gf-t.ga};
+  }).sort(function(a,b){ return b.t.pts-a.t.pts || b.gd-a.gd || b.t.gf-a.t.gf; });
+
+  return '<div class="grid g2"><div class="p"><h3>ליגת העל <span class="r">מחזור '+(S.week-1)+'</span></h3><div class="pb tight">'
+  + '<table><thead><tr><th>#</th><th>מועדון</th><th class="r">מש׳</th><th class="r">נצ׳</th><th class="r">תק׳</th><th class="r">הפ׳</th><th class="r">הפרש</th><th class="r">נק׳</th></tr></thead><tbody>'
+  + rows.map(function(r,i){
+      var cls = r.c.id===S.club ? "me" : (i<2 ? "cl" : (i>=12 ? "rel" : ""));
+      return '<tr class="'+cls+'"><td class="n">'+(i+1)+'</td>'
+        + '<td><span class="sw" style="background:'+r.c.c+'"></span>'+r.c.n+'</td>'
+        + '<td class="r">'+r.t.p+'</td><td class="r">'+r.t.w+'</td><td class="r">'+r.t.d+'</td><td class="r">'+r.t.l+'</td>'
+        + '<td class="r">'+(r.gd>0?"+":"")+r.gd+'</td><td class="r"><b>'+r.t.pts+'</b></td></tr>';
+    }).join("")
+  + '</tbody></table></div></div>'
+  + '<div class="p"><h3>לוח משחקים</h3><div class="pb tight"><table><tbody>'
+  + S.fixtures.map(function(f,i){
+      var o = club(f.opp);
+      var done = i < S.week-1;
+      return '<tr'+(i===S.week-1?' class="me"':'')+'><td class="n">'+(i+1)+'</td>'
+        + '<td><span class="sw" style="background:'+o.c+'"></span>'+o.n+'</td>'
+        + '<td>'+(f.home?"בית":"חוץ")+'</td>'
+        + '<td class="r">'+(done?(f.res||"—"):(i===S.week-1?'<span class="tag ok">הבא</span>':""))+'</td></tr>';
+    }).join("")
+  + '</tbody></table></div></div></div>';
+}
+
+/* ── CAREER ────────────────────────────────────────────────────── */
+function viewCareer(){
+  var intHtml = S.interest.length ? S.interest.map(function(x){
+    var lv = ["","בירור ראשוני","סקאוט בדרך","הצעה אפשרית"][x.lvl];
+    var cls = ["","","w","ok"][x.lvl];
+    return '<div class="kv"><span><span class="sw" style="background:'+x.c+'"></span><b>'+x.n+'</b> · '+x.lg+'</span>'
+      + '<span class="tag '+cls+'">'+lv+'</span></div>';
+  }).join("") : '<div class="empty">אף אחד לא מסתכל עדיין.<br>דקות ודוחות תפקיד הם מה שפותח את השוק.</div>';
+
+  return '<div class="grid g2">'
+  + '<div class="p"><h3>עניין ממועדונים</h3><div class="pb">'+intHtml
+  + '<p class="hint" style="margin:11px 0 0">מסדרונות ההעברות אמיתיים: מליגת העל לדרג שני של טופ־5 זו קפיצה סבירה. דרג ראשון דורש דקות ביבשת או נבחרת.</p>'
+  + '</div></div>'
+  + '<div class="p"><h3>חוזה</h3><div class="pb">'
+    + '<div class="kv"><span>מועדון</span><b>'+club(S.club).n+'</b></div>'
+    + '<div class="kv"><span>שנים שנותרו</span><b class="n">'+S.contractYears+'</b></div>'
+    + '<div class="kv"><span>שכר שבועי</span><b class="n">₪'+S.wage+'k</b></div>'
+    + '<div class="kv"><span>מעמד מובטח</span><b>'+S.status+'</b></div>'
+    + '<div class="kv"><span>עונה</span><b class="n">'+S.season+'</b></div>'
+    + '<p class="hint" style="margin:11px 0 0">לוח המו״מ המלא (12 סעיפים, תקציב מתח, מידע חלקי) מפורט ב-GDD §10א.2 — באב־הטיפוס החוזה מוצג בלבד.</p>'
+  + '</div></div></div>';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   BINDINGS
+   ════════════════════════════════════════════════════════════════ */
+function bind(){
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-act]"), function(b){
+    b.onclick = function(){
+      var id = b.getAttribute("data-act");
+      var i = S.picked.indexOf(id);
+      if(i>=0) S.picked.splice(i,1);
+      else if(S.picked.length < S.slots) S.picked.push(id);
+      render();
+    };
+  });
+  var pl = document.getElementById("play"); if(pl) pl.onclick = startWeek;
+  var cl = document.getElementById("clear"); if(cl) cl.onclick = function(){ S.picked=[]; render(); };
+}
+
+document.getElementById("hTheme").onclick = function(){
+  var cur = document.documentElement.getAttribute("data-theme");
+  var next = cur==="dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   WEEK → MATCH
+   ════════════════════════════════════════════════════════════════ */
+function startWeek(){
+  S.picked.forEach(function(id){
+    var a = ACTIONS.filter(function(x){return x.id===id})[0];
+    if(a) a.run();
+  });
+  S.fit   = clamp(S.fit - S.load*0.06 + 4, 25, 100);
+  S.sharp = clamp(S.sharp - 3, 0, 100);
+  S.load  = clamp(S.load, 0, 100);
+  S.morale= clamp(S.morale - 1, 0, 100);
+
+  if(S.load > 82 && rnd() < 0.28){
+    var wks = ri(1,3);
+    push("פציעה: מתיחה בירך. " + wks + " שבועות בחוץ. העומס לא היה סוד.", "b");
+    S.load = 30; S.fit = 55; S.sharp = 30; S.trust -= 2;
+    S.picked = [];
+    for(var i=0;i<wks && S.week<=S.maxWeek;i++){ simRound(null); S.week++; }
+    S.prep = {video:0,analyst:0,coach:0,unit:0,sp:0};
+    if(S.week>S.maxWeek) return endSeason();
+    render();
+    toast("פציעה — דילגת על " + wks + " מחזורים");
+    return;
+  }
+  openMatch();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MATCH ENGINE
+   ════════════════════════════════════════════════════════════════ */
+var M = null;
+
+function openMatch(){
+  var fx = S.fixtures[S.week-1];
+  var opp = club(fx.opp);
+  var me  = club(S.club);
+  var exp = expectedMinutes();
+
+  M = {
+    fx:fx, opp:opp, me:me,
+    home: fx.home ? me : opp,
+    away: fx.home ? opp : me,
+    hg:0, ag:0, min:0,
+    events:[], moments:[], mi:0,
+    onPitch: exp.start, entryMin: exp.start ? 0 : ri(55,75),
+    mins: exp.mins, playing: exp.mins>0,
+    score:0, count:0, keyActs:[],
+    running:false, timer:null
+  };
+
+  M.moments = buildMoments(exp);
+
+  var el = document.createElement("div");
+  el.className = "match"; el.id = "matchLayer";
+  el.innerHTML = matchHtml();
+  document.body.appendChild(el);
+  paintPitch();
+  document.getElementById("mStart").onclick = runClock;
+  document.getElementById("mSkip").onclick = function(){ while(M.min<90 && M.running===false){ } skipToEnd(); };
+}
+
+function buildMoments(exp){
+  if(exp.mins<=0) return [];
+  var n = exp.start ? ri(6,9) : ri(3,5);
+  var out = [];
+  var from = exp.start ? 4 : M.entryMin+3;
+  var to   = 89;
+  for(var i=0;i<n;i++){
+    var m = Math.round(from + (to-from) * ((i+0.5)/n) + ri(-3,3));
+    out.push({min:clamp(m,3,89), done:false});
+  }
+  return out.sort(function(a,b){return a.min-b.min});
+}
+
+function matchHtml(){
+  var h = M.home, a = M.away;
+  return ''
+  + '<div class="scorebug">'
+    + '<div class="sbteam"><div class="sbmini" style="background:'+h.c+';color:'+h.t+'">'+h.ab+'</div><b>'+h.n+'</b></div>'
+    + '<div class="sbscore"><span class="g" id="mHG">0</span>'
+      + '<span class="sbclk" id="mClkBox"><span class="m" id="mClk">0׳</span><span class="l">טרם החל</span></span>'
+      + '<span class="g" id="mAG">0</span></div>'
+    + '<div class="sbteam away"><div class="sbmini" style="background:'+a.c+';color:'+a.t+'">'+a.ab+'</div><b>'+a.n+'</b></div>'
+  + '</div>'
+  + '<div class="field2">'
+    + '<div class="pitchwrap">'
+      + '<div class="pitch" id="mPitch"></div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+        + '<span class="tag" id="mRole">'+(M.playing ? (M.onPitch?"על המגרש":"ספסל · כניסה בדקה "+M.entryMin) : "לא בסגל להיום")+'</span>'
+        + '<span class="tag" id="mTouch">מגעים 0</span>'
+        + '<span class="tag" id="mRate">ציון —</span>'
+        + '<span class="tag" id="mPoss">החזקה 50%</span>'
+      + '</div>'
+    + '</div>'
+    + '<div class="feed" id="mFeed"></div>'
+  + '</div>'
+  + '<div class="matchfoot">'
+    + '<button class="btn pri big" id="mStart">שרוק לפתיחה ▸</button>'
+    + '<button class="btn" id="mSkip">דלג לסיום</button>'
+    + '<span class="hint" id="mHint">' + (M.playing ? "המשחק ייעצר בכל רגע שאתה מעורב בו." : "אתה לא בסגל. המשחק ירוץ עד הסוף.") + '</span>'
+  + '</div>';
+}
+
+/* ── live pitch: 22 players + ball ─────────────────────────────── */
+var P = null;
+var FORM = [
+  {x:7,  y:50},                                            // GK
+  {x:24, y:16},{x:22, y:38},{x:22, y:62},{x:24, y:84},     // back 4
+  {x:44, y:26},{x:42, y:50},{x:44, y:74},                  // mid 3
+  {x:66, y:18},{x:68, y:50},{x:66, y:82}                   // front 3
+];
+
+function initPitch(){
+  var p = document.getElementById("mPitch");
+  if(!p) return;
+  p.innerHTML = '<svg viewBox="0 0 1000 620" preserveAspectRatio="none" id="pSvg">'
+    + '<g fill="none" stroke="var(--turf-line)" stroke-width="3">'
+    + '<rect x="16" y="16" width="968" height="588" rx="4"/>'
+    + '<line x1="500" y1="16" x2="500" y2="604"/><circle cx="500" cy="310" r="80"/>'
+    + '<rect x="16" y="156" width="132" height="308"/><rect x="852" y="156" width="132" height="308"/>'
+    + '<rect x="16" y="236" width="50" height="148"/><rect x="934" y="236" width="50" height="148"/>'
+    + '</g><circle cx="500" cy="310" r="5" fill="var(--turf-line)"/>'
+    + '<g id="pPlayers"></g>'
+    + '<circle id="pBall" cx="500" cy="310" r="8" fill="#fff" stroke="#17150F" stroke-width="2.5"/>'
+    + '</svg>';
+
+  var g = document.getElementById("pPlayers");
+  var myIdx = {GK:0, CB:2, W:8, CM:6, ST:9}[S.pos];
+  P = {ball:{x:50,y:50}, bt:{x:50,y:50}, poss:"h", men:[], possH:50, t:0};
+
+  for(var side=0; side<2; side++){
+    for(var i=0;i<11;i++){
+      var f = FORM[i];
+      var bx = side===0 ? f.x : 100-f.x;
+      var by = side===0 ? f.y : 100-f.y;
+      var team = side===0 ? M.home : M.away;
+      var isMe = (side === (M.home===M.me ? 0 : 1)) && i===myIdx;
+      var el = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      el.setAttribute("r", isMe ? 13 : 9);
+      el.setAttribute("fill", team.c);
+      el.setAttribute("stroke", isMe ? "#17150F" : "rgba(255,255,255,.85)");
+      el.setAttribute("stroke-width", isMe ? 4 : 2);
+      g.appendChild(el);
+      var lbl = null;
+      if(isMe){
+        lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
+        lbl.setAttribute("text-anchor","middle");
+        lbl.setAttribute("font-size","11");
+        lbl.setAttribute("font-weight","900");
+        lbl.setAttribute("fill", team.t);
+        lbl.textContent = S.pos;
+        g.appendChild(lbl);
+      }
+      P.men.push({bx:bx, by:by, x:bx, y:by, el:el, lbl:lbl, side:side, me:isMe, gk:i===0});
+    }
+  }
+  pitchFrame();
+}
+
+function pickBallTarget(){
+  // possession drifts toward the stronger side; ball roams toward that goal
+  var hs = M.home.rep + (M.home===M.me ? 5 : 0);
+  var as = M.away.rep + (M.away===M.me ? 5 : 0);
+  if(rnd() < 0.35) P.poss = rnd() < hs/(hs+as) ? "h" : "a";
+  var bias = P.poss==="h" ? 1 : -1;
+  P.bt.x = clamp(50 + bias*(10 + rnd()*36) + (rnd()-0.5)*14, 8, 92);
+  P.bt.y = clamp(15 + rnd()*70, 8, 92);
+  P.possH = clamp(P.possH + (P.poss==="h" ? 0.6 : -0.6), 28, 72);
+}
+
+function pitchFrame(){
+  if(!P || !document.getElementById("pSvg")) return;
+  P.t++;
+  if(P.t % 34 === 0) pickBallTarget();
+
+  P.ball.x += (P.bt.x - P.ball.x) * 0.055;
+  P.ball.y += (P.bt.y - P.ball.y) * 0.055;
+
+  var b = document.getElementById("pBall");
+  if(b){ b.setAttribute("cx", 16 + P.ball.x*9.68); b.setAttribute("cy", 16 + P.ball.y*5.88); }
+
+  var shift = (P.ball.x - 50) * 0.30;
+  for(var i=0;i<P.men.length;i++){
+    var m = P.men[i];
+    var tx = m.gk ? m.bx + shift*0.12 : m.bx + shift;
+    var ty = m.gk ? 50 + (P.ball.y-50)*0.16 : m.by + (P.ball.y - 50) * 0.20;
+    // nearest outfielder of the possessing side presses the ball
+    m.x += (clamp(tx,3,97) - m.x) * 0.045;
+    m.y += (clamp(ty,5,95) - m.y) * 0.045;
+    var px = 16 + m.x*9.68, py = 16 + m.y*5.88;
+    m.el.setAttribute("cx", px); m.el.setAttribute("cy", py);
+    if(m.lbl){ m.lbl.setAttribute("x", px); m.lbl.setAttribute("y", py+4); }
+  }
+
+  var pv = document.getElementById("mPoss");
+  if(pv) pv.textContent = "החזקה " + Math.round(M.me===M.home ? P.possH : 100-P.possH) + "%";
+
+  P.raf = requestAnimationFrame(pitchFrame);
+}
+
+function stopPitch(){ if(P && P.raf) cancelAnimationFrame(P.raf); }
+
+function paintPitch(){ initPitch(); }
+
+function addEv(min, txt, kind){
+  M.events.unshift({min:min, t:txt, k:kind||""});
+  var f = document.getElementById("mFeed");
+  if(!f) return;
+  var d = document.createElement("div");
+  d.className = "ev " + (kind||"");
+  d.innerHTML = '<span class="m">'+min+'׳</span><span>'+txt+'</span>';
+  f.insertBefore(d, f.firstChild);
+}
+
+function runClock(){
+  var b = document.getElementById("mStart");
+  if(b) b.style.display = "none";
+  var cb = document.getElementById("mClkBox");
+  if(cb){ cb.className = "sbclk live"; cb.querySelector(".l").textContent = "חי"; }
+  M.running = true;
+  addEv(0, "שריקת פתיחה ב" + (M.fx.home ? club(S.club).n : M.opp.n) + ".", "");
+  tickMatch();
+}
+
+function tickMatch(){
+  if(M.min>=90) return finishMatch();
+
+  M.min += 1;
+  var c = document.getElementById("mClk");
+  if(c) c.textContent = M.min + "׳";
+
+  if(!M.onPitch && M.playing && M.min===M.entryMin){
+    M.onPitch = true;
+    var r = document.getElementById("mRole"); if(r) r.textContent = "על המגרש";
+    addEv(M.min, "חילוף: אתה נכנס. המאמן: \"לחץ את הבלם השמאלי, אל תרדוף אחרי שער.\"", "you");
+  }
+
+  var nm = M.moments.filter(function(m){return !m.done && m.min===M.min})[0];
+  if(nm && M.onPitch){
+    nm.done = true;
+    M.timer = null;
+    openMoment(nm);
+    return;
+  }
+
+  if(rnd() < 0.055){
+    var homeStr = (M.home.rep + (M.home===M.me?6:0));
+    var awayStr = (M.away.rep + (M.away===M.me?6:0));
+    var hs = rnd() < homeStr/(homeStr+awayStr);
+    if(hs){ M.hg++; document.getElementById("mHG").textContent = M.hg; }
+    else  { M.ag++; document.getElementById("mAG").textContent = M.ag; }
+    var scorer = hs ? M.home : M.away;
+    var good = (scorer === M.me);
+    addEv(M.min, "שער! " + scorer.n + " " + M.hg + "–" + M.ag, good?"goal":"bad");
+  } else if(rnd() < 0.05){
+    addEv(M.min, ["הזדמנות שהוחמצה.","כרטיס צהוב.","קרן.","החלפה בקבוצה היריבה.","הכדור יצא לקו."][ri(0,4)], "");
+  }
+
+  M.timer = setTimeout(tickMatch, M.onPitch ? 105 : 42);
+}
+
+function skipToEnd(){
+  if(M.timer) clearTimeout(M.timer);
+  M.moments.forEach(function(m){
+    if(!m.done){
+      m.done = true;
+      // auto-resolve at tactical difficulty: attribute-driven, no penalty
+      var q = 0.42 + (S.a.tac/240) + (S.sharp/400);
+      resolveMoment(null, q>0.62?"good":"ok", true);
+    }
+  });
+  while(M.min<90){
+    M.min++;
+    if(rnd()<0.05){
+      var hs = rnd()<0.5;
+      if(hs) M.hg++; else M.ag++;
+    }
+  }
+  document.getElementById("mHG").textContent = M.hg;
+  document.getElementById("mAG").textContent = M.ag;
+  finishMatch();
+}
+
+/* ── the Skill Moment ──────────────────────────────────────────── */
+var MO = null;
+
+var SITS = {
+  ST:[
+    {t:"גב לשער, לחץ מאחור", s:"קיבלת ברגל שמאל בקצה הקופסה. הבלם צמוד.", ch:[
+      {b:"להסתובב ולבעוט", d:"סיכון גבוה · אזור צר", w:-6, at:"tec"},
+      {b:"להוריד לקשר ולרוץ", d:"בטוח · שומר החזקה", w:8, at:"tac"}
+    ], unl:{b:"סיבוב ראשון פנימה", d:"נפתח מהאנליסט — הוא נצמד מוקדם מדי", w:2, at:"tec", big:true}},
+    {t:"כדור רוחב מהאגף", s:"הכדור בדרך לעמוד הרחוק. שני מגנים בפנים.", ch:[
+      {b:"נגיחה ראשונה", d:"תזמון קשה · תשואה גבוהה", w:-4, at:"phy"},
+      {b:"לרדת לקו הפנדל", d:"מרחב · פחות זווית", w:6, at:"tac"}
+    ], unl:{b:"לקצר את הריצה לעמוד הקרוב", d:"נפתח מווידאו — השוער יוצא מאוחר", w:0, at:"phy", big:true}}
+  ],
+  W:[
+    {t:"אחד על אחד באגף", s:"המגן פתוח פנימה. הקו פנוי מאחוריו.", ch:[
+      {b:"לעבור מבחוץ ולהזין", d:"קלאסי · המגן מוכן", w:2, at:"phy"},
+      {b:"לחתוך פנימה ולבעוט", d:"רגל חזקה · צפוי", w:-4, at:"tec"}
+    ], unl:{b:"כדור עומק בין המגן לבלם", d:"נפתח מהאנליסט — הם לא מתקנים", w:4, at:"tac", big:true}},
+    {t:"מעבר מהיר", s:"שלושה מולם שניים. חבר רץ בפנים.", ch:[
+      {b:"למסור לרץ בפנים", d:"תזמון · בישול אפשרי", w:5, at:"tac"},
+      {b:"להאט ולחכות לתמיכה", d:"בטוח · מבטל את המעבר", w:12, at:"men"}
+    ], unl:null}
+  ],
+  CM:[
+    {t:"כדור מגיע תחת לחץ", s:"אתה מקבל עם הגב, קשר יריב מגיע מהצד העיוור.", ch:[
+      {b:"נגיעה ראשונה החוצה", d:"פותח מרחב · סיכון איבוד", w:-2, at:"tec"},
+      {b:"מסירה קצרה אחורה", d:"בטוח · לא מקדם", w:12, at:"tac"}
+    ], unl:{b:"סיבוב וכדור עומק", d:"נפתח מווידאו — הקו שלהם גבוה", w:-1, at:"tec", big:true}},
+    {t:"שינוי צד", s:"הצד שלך צפוף. האגף הרחוק פנוי לגמרי.", ch:[
+      {b:"כדור ארוך מסובב", d:"מרשים · קשה לביצוע", w:-5, at:"tec"},
+      {b:"שתי מסירות דרך הבלם", d:"איטי אבל בטוח", w:10, at:"tac"}
+    ], unl:null},
+    {t:"רגע ללא כדור", s:"היריב יוצא מהגנה. יש קו מסירה פתוח לקשר שלהם.", ch:[
+      {b:"לסגור את קו המסירה", d:"משמעת · לא נראה בסטטיסטיקה", w:8, at:"tac"},
+      {b:"לקפוץ על הכדור", d:"חטיפה גדולה או חור ענק", w:-8, at:"phy"}
+    ], unl:{b:"להזיז את היחידה ולסגור יחד", d:"נפתח ממאמן העמדה", w:6, at:"men", big:true}}
+  ],
+  CB:[
+    {t:"כדור ארוך מגיע", s:"החלוץ שלהם מקדים אותך בחצי צעד.", ch:[
+      {b:"לתקוף את הכדור", d:"נגיחה · אם תפספס זה חור", w:-3, at:"phy"},
+      {b:"לרדת ולכסות", d:"בטוח · הוא מקבל ומסתובב", w:9, at:"tac"}
+    ], unl:{b:"קו נבדל — לעלות יחד", d:"נפתח מתוכנית המשחק", w:3, at:"men", big:true}},
+    {t:"יציאה מלחץ", s:"שני חלוצים לוחצים. השוער מחכה.", ch:[
+      {b:"למסור פנימה לקשר האחורי", d:"שובר לחץ · סיכון גבוה", w:-4, at:"tec"},
+      {b:"להוציא ארוך לקו", d:"מוותר על החזקה", w:14, at:"phy"}
+    ], unl:null}
+  ],
+  GK:[
+    {t:"כדור רוחב לרחבה", s:"הזנה גבוהה, שלושה גופים בקופסה.", ch:[
+      {b:"לצאת ולאגרף", d:"נועז · אם תחטיא זה שער", w:-6, at:"phy"},
+      {b:"לעמוד על הקו", d:"בטוח · מוותר על שליטה", w:9, at:"men"}
+    ], unl:{b:"לצעוק קו ולצאת מוקדם", d:"נפתח מווידאו — הם מחפשים עמוד רחוק", w:2, at:"men", big:true}},
+    {t:"אחד על אחד", s:"החלוץ נכנס לקופסה מזווית צרה.", ch:[
+      {b:"לצמצם זווית ולחכות", d:"נכון ברוב המקרים", w:6, at:"men"},
+      {b:"לצאת לרגליים", d:"או הצלה או פנדל", w:-7, at:"phy"}
+    ], unl:null}
+  ]
+};
+
+function openMoment(m){
+  var pool = SITS[S.pos];
+  var sit = pool[ri(0, pool.length-1)];
+
+  var readBase = 1.0 + S.a.tac/120 + (S.prep.video?0.4:0) - (1 - S.fit/100)*0.6 - (S.load/100)*0.4;
+  var readTime = clamp(readBase, 0.6, 2.6);
+
+  var atv = S.a[sit.ch[0].at] || 45;
+  var choices = sit.ch.slice();
+  if(sit.unl && S.prep.analyst) choices.push(sit.unl);
+  if(sit.unl && !S.prep.analyst && sit.unl.big && S.prep.coach) choices.push(sit.unl);
+
+  MO = {m:m, sit:sit, choices:choices, pick:null, readTime:readTime,
+        pos:0, dir:1, raf:null, fired:false, tLeft:readTime};
+
+  var el = document.createElement("div");
+  el.className = "moment"; el.id = "momentLayer";
+  el.innerHTML = momentHtml();
+  document.body.appendChild(el);
+  drawMomentPitch();
+  bindMoment();
+  startRead();
+}
+
+function momentHtml(){
+  var s = MO.sit;
+  return '<div class="mcard">'
+  + '<div class="mhd">'
+    + '<div class="ring"><svg width="44" height="44"><circle cx="22" cy="22" r="18" fill="none" stroke="var(--line)" stroke-width="4"/>'
+      + '<circle id="moRing" cx="22" cy="22" r="18" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="0"/></svg>'
+      + '<b id="moT">'+MO.readTime.toFixed(1)+'</b></div>'
+    + '<div><div class="t">'+s.t+'</div><div class="s">דקה '+MO.m.min+'׳ · זמן קריאה '+MO.readTime.toFixed(1)+' שנ׳'+(S.prep.video?' (‎+0.4 מווידאו)':'')+'</div></div>'
+    + '<div class="grow" style="flex:1"></div>'
+    + '<span class="tag">'+POS[S.pos].n+'</span>'
+  + '</div>'
+  + '<div class="mbd">'
+    + '<div style="display:flex;flex-direction:column;gap:11px">'
+      + '<div class="mpitch" id="moPitch"></div>'
+      + '<p class="hint" style="margin:0">'+s.s+'</p>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:11px">'
+      + '<div><span class="lbl">בחירת כוונה</span><div class="choices" id="moCh" style="margin-top:7px"></div></div>'
+      + '<div id="moExec" style="display:none">'
+        + '<span class="lbl">עוצמה ותזמון</span>'
+        + '<div class="power" style="margin-top:6px"><div class="zone" id="moZone"></div><div class="ndl" id="moNdl"></div>'
+        + '<div class="ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>'
+        + '<button class="btn pri big" id="moFire" style="width:100%;margin-top:9px">עצור ▸</button>'
+      + '</div>'
+      + '<div class="res" id="moRes">בחר כוונה. הזמן רץ.</div>'
+      + '<button class="btn" id="moNext" style="display:none">המשך משחק ▸</button>'
+    + '</div>'
+  + '</div></div>';
+}
+
+function drawMomentPitch(){
+  var p = document.getElementById("moPitch");
+  if(!p) return;
+  var mate = S.pos==="GK" ? "" :
+    '<path d="M300 400 C 236 380 190 350 164 322" stroke="#FFE27A" stroke-width="4" stroke-dasharray="9 7" fill="none" stroke-linecap="round"/>'
+    + '<circle cx="300" cy="400" r="13" fill="#FFE27A"/><text x="300" y="405" text-anchor="middle" font-size="13" font-weight="800" fill="#3A3000">9</text>';
+  p.innerHTML = '<svg viewBox="0 0 700 440" preserveAspectRatio="none">'
+    + '<g fill="none" stroke="var(--turf-line)" stroke-width="3">'
+    + '<rect x="12" y="12" width="676" height="416" rx="4"/>'
+    + '<rect x="12" y="112" width="140" height="216"/><rect x="12" y="172" width="52" height="96"/>'
+    + '<path d="M152 158 A 70 70 0 0 1 152 282"/></g>'
+    + mate
+    + '<path d="M496 128 L 424 168" stroke="#E4574B" stroke-width="4" stroke-linecap="round"/>'
+    + '<path d="M432 158 L 416 172 L 436 178 Z" fill="#E4574B"/>'
+    + '<circle cx="506" cy="122" r="13" fill="#E4574B"/>'
+    + '<circle cx="396" cy="188" r="17" fill="#1F6F43" stroke="#fff" stroke-width="4"/>'
+    + '<text x="396" y="194" text-anchor="middle" font-size="14" font-weight="900" fill="#fff">'+S.pos+'</text>'
+    + '<circle cx="374" cy="206" r="7" fill="#fff" stroke="#17150F" stroke-width="2"/>'
+    + '</svg>';
+}
+
+function bindMoment(){
+  var box = document.getElementById("moCh");
+  MO.choices.forEach(function(c, i){
+    var b = document.createElement("button");
+    b.className = "ch" + (c.big ? " unl" : "");
+    b.innerHTML = (c.big ? '<span class="u">נפתח מהכנה</span>' : '') + '<b>'+c.b+'</b><span>'+c.d+'</span>';
+    b.onclick = function(){ pickChoice(i, b); };
+    box.appendChild(b);
+  });
+  document.getElementById("moFire").onclick = fireMoment;
+}
+
+function startRead(){
+  var ring = document.getElementById("moRing");
+  var t0 = performance.now();
+  var total = MO.readTime*1000;
+  (function step(now){
+    if(!MO || MO.pick!==null) return;
+    var el = now - t0;
+    var left = Math.max(0, total-el);
+    MO.tLeft = left/1000;
+    var lbl = document.getElementById("moT");
+    if(lbl) lbl.textContent = (left/1000).toFixed(1);
+    if(ring) ring.setAttribute("stroke-dashoffset", String(113*(1-left/total)));
+    if(left<=0){
+      autoPick();
+      return;
+    }
+    requestAnimationFrame(step);
+  })(t0);
+}
+
+function autoPick(){
+  if(!MO || MO.pick!==null) return;
+  var safe = 0;
+  MO.choices.forEach(function(c,i){ if(c.w > MO.choices[safe].w) safe = i; });
+  var btns = document.getElementById("moCh").children;
+  document.getElementById("moRes").innerHTML = "<b>נגמר הזמן</b>הגוף בחר בשבילך — הבחירה הבטוחה. זמן קריאה ארוך יותר מגיע מטקטיקה, כושר והכנה.";
+  document.getElementById("moRes").className = "res poor";
+  pickChoice(safe, btns[safe]);
+}
+
+function pickChoice(i, btn){
+  if(MO.pick!==null) return;
+  MO.pick = i;
+  var all = document.getElementById("moCh").children;
+  for(var k=0;k<all.length;k++){ all[k].disabled = true; all[k].classList.remove("on"); }
+  if(btn) btn.classList.add("on");
+
+  var c = MO.choices[i];
+  var at = S.a[c.at] || 45;
+  // sweet zone width: attribute + sharpness + coach intel − load − risk
+  var w = 13 + at*0.22 + S.sharp*0.06 + (S.prep.coach?4:0) - S.load*0.05 + c.w*0.55;
+  w = clamp(w, 7, 42);
+  MO.w = w;
+  MO.center = clamp(30 + rnd()*40, 15, 80);
+
+  var z = document.getElementById("moZone");
+  z.style.insetInlineStart = Math.max(0, MO.center - w/2) + "%";
+  z.style.width = w + "%";
+
+  document.getElementById("moExec").style.display = "block";
+  if(document.getElementById("moRes").className === "res")
+    document.getElementById("moRes").textContent = "עצור את המד בתוך האזור הירוק.";
+
+  MO.pos = 0; MO.dir = 1;
+  var speed = 1.15 + S.load*0.012 + (100-S.fit)*0.009;
+  var ndl = document.getElementById("moNdl");
+  (function loop(){
+    if(!MO || MO.fired) return;
+    MO.pos += MO.dir*speed;
+    if(MO.pos>=100){MO.pos=100;MO.dir=-1}
+    if(MO.pos<=0){MO.pos=0;MO.dir=1}
+    ndl.style.insetInlineStart = "calc("+MO.pos+"% - 2px)";
+    MO.raf = requestAnimationFrame(loop);
+  })();
+}
+
+function fireMoment(){
+  if(!MO || MO.pick===null || MO.fired) return;
+  MO.fired = true;
+  if(MO.raf) cancelAnimationFrame(MO.raf);
+  document.getElementById("moFire").disabled = true;
+
+  var off = Math.abs(MO.pos - MO.center);
+  var half = MO.w/2;
+  var grade = off <= half*0.35 ? "great" : (off <= half ? "good" : (off <= half*1.9 ? "poor" : "fail"));
+  resolveMoment(MO.choices[MO.pick], grade, false);
+}
+
+function resolveMoment(choice, grade, silent){
+  var txt, cls, pts;
+  var risky = choice ? choice.w < 2 : false;
+
+  if(grade==="great"){ pts = risky ? 1.9 : 1.2; cls="great"; txt="ביצוע נקי. יצא בדיוק כפי שהתכוונת."; }
+  else if(grade==="good" || grade==="ok"){ pts = risky ? 1.0 : 0.8; cls="good"; txt="יצא, אבל לא מושלם. עכשיו זה תלוי גם בחבר ליד וביריב."; }
+  else if(grade==="poor"){ pts = -0.4; cls="poor"; txt="איבדת דיוק. דוח התפקיד עדיין יכיר בבחירה הנכונה."; }
+  else { pts = risky ? -1.3 : -0.8; cls="fail"; txt="הכדור אבד. זה לא Game Over — זו שורה בדוח."; }
+
+  M.score += pts; M.count++;
+
+  var outcome = "";
+  if(grade==="great" && risky && rnd()<0.42){
+    if(S.pos==="ST" || S.pos==="W"){
+      if(M.me===M.home){M.hg++;} else {M.ag++;}
+      S.goals++; outcome = " שער!";
+      if(!silent) addEv(M.min, "שער שלך! "+M.home.ab+" "+M.hg+"–"+M.ag+" "+M.away.ab, "goal");
+    } else {
+      S.assists++; outcome = " בישול!";
+      if(M.me===M.home){M.hg++;} else {M.ag++;}
+      if(!silent) addEv(M.min, "בישול שלך — הכדור מגיע ומסתיים ברשת.", "goal");
+    }
+    var hg = document.getElementById("mHG"), ag = document.getElementById("mAG");
+    if(hg) hg.textContent = M.hg; if(ag) ag.textContent = M.ag;
+  } else if(grade==="great" && !silent){
+    addEv(M.min, "פעולה נקייה שלך — האנליסט יסמן את זה.", "you");
+  } else if(grade==="fail" && !silent){
+    addEv(M.min, "איבוד כדור שלך באזור מסוכן.", "bad");
+  }
+
+  if(silent) return;
+
+  var r = document.getElementById("moRes");
+  r.className = "res " + cls;
+  r.innerHTML = "<b>" + (grade==="great"?"מצוין":(grade==="good"?"סביר":(grade==="poor"?"לקוי":"כישלון"))) + outcome + "</b>" + txt;
+
+  var t = document.getElementById("mTouch"); if(t) t.textContent = "מגעים " + M.count;
+  var rt = document.getElementById("mRate"); if(rt) rt.textContent = "ציון " + liveRating().toFixed(1);
+
+  var nx = document.getElementById("moNext");
+  nx.style.display = "block";
+  nx.onclick = closeMoment;
+}
+
+function liveRating(){
+  if(!M.count) return 6.0;
+  return clamp(6.0 + M.score*0.42, 3.5, 9.8);
+}
+
+function closeMoment(){
+  var el = document.getElementById("momentLayer");
+  if(el) el.remove();
+  MO = null;
+  M.timer = setTimeout(tickMatch, 120);
+}
+
+/* ── finish ────────────────────────────────────────────────────── */
+function finishMatch(){
+  if(M.timer) clearTimeout(M.timer);
+  stopPitch();
+  M.running = false;
+
+  var rating = M.playing ? liveRating() : 0;
+  var fx = S.fixtures[S.week-1];
+  fx.res = M.hg + "–" + M.ag;
+
+  var myG = M.me===M.home ? M.hg : M.ag;
+  var opG = M.me===M.home ? M.ag : M.hg;
+
+  applyResult(S.club, M.fx.opp, myG, opG);
+  simRound(S.club);
+
+  if(M.playing){
+    S.apps++; S.minutes += M.mins; S.ratings.push(rating);
+    var dTrust = (rating-6.6)*4.2 + (myG>opG?1.5:(myG<opG?-0.8:0.3));
+    S.trust = clamp(S.trust + dTrust, 0, 100);
+    S.sharp = clamp(S.sharp + 9, 0, 100);
+    S.load  = clamp(S.load + M.mins*0.28, 0, 100);
+    S.fit   = clamp(S.fit - M.mins*0.09, 20, 100);
+    S.morale= clamp(S.morale + (myG>opG?7:(myG<opG?-4:1)) + (rating-6.6)*3, 0, 100);
+  } else {
+    S.trust = clamp(S.trust - 1.5, 0, 100);
+    S.morale = clamp(S.morale - 4, 0, 100);
+  }
+
+  var scoutHit = false;
+  if(M.playing && rating>=7.4 && rnd()<0.45){
+    var e = EURO[ri(0,EURO.length-1)];
+    if(!S.interest.some(function(x){return x.n===e.n})){
+      S.interest.push({n:e.n, ab:e.ab, c:e.c, lg:e.lg, rep:e.rep, lvl:1});
+      scoutHit = true;
+    }
+  }
+
+  showPostMatch(rating, myG, opG, scoutHit);
+}
+
+function applyResult(a, b, ga, gb){
+  var ta = S.table[a], tb = S.table[b];
+  ta.p++; tb.p++; ta.gf+=ga; ta.ga+=gb; tb.gf+=gb; tb.ga+=ga;
+  if(ga>gb){ta.w++;tb.l++;ta.pts+=3}
+  else if(ga<gb){tb.w++;ta.l++;tb.pts+=3}
+  else {ta.d++;tb.d++;ta.pts++;tb.pts++}
+}
+
+function simRound(skipId){
+  var pool = LIGAT.filter(function(c){
+    return c.id!==skipId && c.id!==(S.fixtures[S.week-1]||{}).opp;
+  }).map(function(c){return c.id});
+  for(var i=0;i+1<pool.length;i+=2){
+    var A = club(pool[i]), B = club(pool[i+1]);
+    var sa = A.rep+ri(0,14), sb = B.rep+ri(0,14);
+    var ga = clamp(Math.round((sa-sb)/16 + ri(0,2)),0,5);
+    var gb = clamp(Math.round((sb-sa)/16 + ri(0,2)),0,5);
+    applyResult(A.id, B.id, ga, gb);
+  }
+}
+
+function showPostMatch(rating, myG, opG, scoutHit){
+  var res = myG>opG ? "ניצחון" : (myG<opG ? "הפסד" : "תיקו");
+  var cls = rating>=7.4?"":(rating>=6.5?"g":(rating>=5.8?"w":"b"));
+  var prevTrust = S.trust;
+
+  var el = document.getElementById("matchLayer");
+  el.innerHTML = ''
+  + '<div class="scorebug">'
+    + '<div class="sbteam"><div class="sbmini" style="background:'+M.home.c+';color:'+M.home.t+'">'+M.home.ab+'</div><b>'+M.home.n+'</b></div>'
+    + '<div class="sbscore"><span class="g">'+M.hg+'</span><span class="clk">סיום</span><span class="g">'+M.ag+'</span></div>'
+    + '<div class="sbteam away"><div class="sbmini" style="background:'+M.away.c+';color:'+M.away.t+'">'+M.away.ab+'</div><b>'+M.away.n+'</b></div>'
+  + '</div>'
+  + '<div style="flex:1;overflow-y:auto;padding:18px;display:flex;justify-content:center">'
+  + '<div style="width:min(880px,100%);display:flex;flex-direction:column;gap:14px">'
+
+    + '<div class="p"><h3>הדוח שלך <span class="r">'+res+'</span></h3><div class="pb">'
+      + (M.playing
+        ? '<div class="ratebig"><div class="num '+cls+'">'+rating.toFixed(1)+'</div><div style="flex:1">'
+          + '<div style="font-size:16px;font-weight:850">'+reportLine(rating)+'</div>'
+          + '<div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap">'
+          + '<span class="tag">'+M.mins+' דקות</span>'
+          + '<span class="tag">'+M.count+' מגעי מפתח</span>'
+          + '<span class="tag '+(S.trust>=prevTrust?"ok":"b")+'">אמון '+(S.trust>=prevTrust?"▲":"▼")+' '+Math.round(S.trust)+'</span>'
+          + '</div></div></div>'
+        : '<div class="empty">לא היית בסגל. הצפייה מהיציע היא גם מידע — האמון ירד מעט.</div>')
+    + '</div></div>'
+
+    + '<div class="grid g2">'
+      + '<div class="p"><h3>מה המאמן ראה</h3><div class="pb">'
+        + '<p style="margin:0 0 10px;font-size:13.5px;line-height:1.55">'+coachLine(rating, myG>opG)+'</p>'
+        + '<div class="kv"><span>אמון המאמן</span><b class="n">'+Math.round(S.trust)+'</b></div>'
+        + '<div class="kv"><span>חדות</span><b class="n">'+Math.round(S.sharp)+'%</b></div>'
+        + '<div class="kv"><span>עומס אחרי המשחק</span><b class="n">'+Math.round(S.load)+'%</b></div>'
+      + '</div></div>'
+      + '<div class="p"><h3>שוק</h3><div class="pb">'
+        + (scoutHit
+          ? '<p style="margin:0;font-size:13.5px;line-height:1.55">סקאוט מ־<b>'+S.interest[S.interest.length-1].n+'</b> ישב ביציע. הסוכן קיבל איתות — לא הצעה.</p>'
+          : '<p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink3)">אין תנועה בשוק אחרי המשחק הזה. מדגם אחד לא מזיז תיק גיוס.</p>')
+      + '</div></div>'
+    + '</div>'
+
+    + '<button class="btn pri big" id="pmNext" style="align-self:flex-start">לשבוע הבא ▸</button>'
+  + '</div></div>';
+
+  document.getElementById("pmNext").onclick = nextWeek;
+}
+
+function reportLine(r){
+  if(r>=8.2) return "משחק שמזיזים בגללו קלסרים.";
+  if(r>=7.4) return "משחק חזק. דוח התפקיד גבוה.";
+  if(r>=6.6) return "עמדת בתפקיד. בלי זיקוקים, בלי טעויות.";
+  if(r>=5.8) return "משחק חיוור. נשארת בתוך המערכת אבל לא השפעת.";
+  return "ערב קשה. זה קורה, וזה גם תוכן.";
+}
+function coachLine(r, won){
+  if(!M.playing) return "\"אני יודע שאתה רוצה לשחק. תראה לי את זה באימון ולא בשיחה.\"";
+  if(r>=7.4) return won ? "\"זה בדיוק מה שביקשתי. תמשיך ככה ואתה בהרכב.\"" : "\"אתה לא הבעיה היום. תזכור את זה.\"";
+  if(r>=6.6) return "\"סביר. עשית את העבודה, אבל אני צריך יותר בשליש האחרון.\"";
+  if(r>=5.8) return "\"הייתי צריך יותר. תעבוד על החדות — זה נראה בכל מגע.\"";
+  return "\"נדבר ביום שני. לא ככה.\"";
+}
+
+function nextWeek(){
+  var el = document.getElementById("matchLayer"); if(el) el.remove();
+  M = null;
+  S.week++;
+  S.picked = [];
+  S.prep = {video:0, analyst:0, coach:0, unit:0, sp:0};
+  if(S.week > S.maxWeek) return endSeason();
+  S.screen = "hub"; S.seen = S.inbox.length;
+  render();
+}
+
+function endSeason(){
+  var rows = LIGAT.map(function(c){ return {c:c, t:S.table[c.id]}; })
+    .sort(function(a,b){ return b.t.pts-a.t.pts || (b.t.gf-b.t.ga)-(a.t.gf-a.t.ga); });
+  var place = rows.findIndex(function(r){return r.c.id===S.club}) + 1;
+
+  var el = document.createElement("div");
+  el.className = "match"; el.id = "matchLayer";
+  el.innerHTML = '<div class="scorebug"><div class="sbteam"><div class="sbmini" style="background:'+club(S.club).c+';color:'+club(S.club).t+'">'+club(S.club).ab+'</div><b>סיכום עונה '+S.season+'</b></div></div>'
+  + '<div style="flex:1;overflow-y:auto;padding:20px;display:flex;justify-content:center">'
+  + '<div style="width:min(760px,100%);display:flex;flex-direction:column;gap:14px">'
+  + '<div class="p"><h3>העונה שלך</h3><div class="pb">'
+    + '<div class="ratebig"><div class="num">'+avgRating().toFixed(1)+'</div><div style="flex:1">'
+    + '<div style="font-size:18px;font-weight:900">'+S.name+' · גיל '+S.age+'</div>'
+    + '<div style="color:var(--ink3);font-size:13px;margin-top:3px">'+club(S.club).n+' סיימו במקום '+place+'</div>'
+    + '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">'
+    + '<span class="tag">'+S.apps+' הופעות</span><span class="tag">'+S.minutes+' דקות</span>'
+    + '<span class="tag g">'+S.goals+' שערים</span><span class="tag g">'+S.assists+' בישולים</span>'
+    + '<span class="tag '+(S.trust>=55?"ok":"w")+'">אמון '+Math.round(S.trust)+'</span></div>'
+    + '</div></div>'
+    + '<p class="hint" style="margin:13px 0 0">'+seasonVerdict(place)+'</p>'
+  + '</div></div>'
+  + '<div class="p"><h3>מי מסתכל</h3><div class="pb">'
+    + (S.interest.length ? S.interest.map(function(x){
+        return '<div class="kv"><span><span class="sw" style="background:'+x.c+'"></span><b>'+x.n+'</b> · '+x.lg+'</span>'
+          + '<span class="tag '+["","","w","ok"][x.lvl]+'">'+["","בירור","סקאוט","הצעה"][x.lvl]+'</span></div>';
+      }).join("") : '<div class="empty">אף אחד. עונה נוספת.</div>')
+  + '</div></div>'
+  + '<button class="btn pri big" id="nsBtn" style="align-self:flex-start">לעונה הבאה ▸</button>'
+  + '</div></div>';
+  document.body.appendChild(el);
+
+  document.getElementById("nsBtn").onclick = function(){
+    el.remove();
+    S.season++; S.age++; S.week=1; S.apps=0; S.minutes=0; S.goals=0; S.assists=0;
+    S.ratings=[]; S.picked=[]; S.inbox=[]; S.seen=0;
+    S.a.tec+=ri(0,2); S.a.tac+=ri(1,3); S.a.phy+=ri(0,2); S.a.men+=ri(0,2);
+    S.fit=88; S.sharp=45; S.load=15;
+    S.contractYears=Math.max(0,S.contractYears-1);
+    if(S.trust>62){ S.status="מסובב ראשון"; S.wage+=ri(2,5); }
+    LIGAT.forEach(function(c){ S.table[c.id]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
+    S.fixtures = buildFixtures(S.club);
+    push("עונה חדשה. הכל מתאפס חוץ ממה שאנשים זוכרים.", "");
+    S.screen="hub"; render();
+  };
+}
+
+function seasonVerdict(place){
+  if(S.apps===0) return "עונה בלי דקות. זה לא סוף — זו סיבה להחליט: להילחם, לבקש השאלה, או לשנות עמדה.";
+  if(avgRating()>=7.2) return "עונה שמשנה תיקי גיוס. הבעיה הבאה שלך תהיה לבחור נכון, לא להיבחר.";
+  if(S.apps<6) return "מעט דקות ומדגם קטן. סקאוטים לא מוחקים אותך — הם פשוט עוד לא ראו מספיק.";
+  return "עונה שנבנתה על עקביות. זה איך שרוב הקריירות באמת מתקדמות.";
+}
+
+function toast(msg){
+  var t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 2600);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   BOOT — character creation
+   ════════════════════════════════════════════════════════════════ */
+var boot = {name:"", pos:"CM", start:"itb"};
+
+function showBoot(){
+  var el = document.createElement("div");
+  el.className = "boot"; el.id = "bootLayer";
+  el.setAttribute("dir","rtl");
+  el.innerHTML = ''
+  + '<div class="bootcard">'
+  + '<div class="boothd"><h1>ONE <span>CAREER</span></h1>'
+  + '<p>שחקן אחד. מהאקדמיה עד הפרישה. אתה לא מנהל את הקבוצה — אתה נאבק על דקות, קורא מאמן, ומחליט מה לעשות ברגע שהכדור מגיע אליך.</p></div>'
+  + '<div class="bootbd">'
+    + '<div class="field"><span class="lbl">שם השחקן</span>'
+      + '<input id="bName" maxlength="22" placeholder="למשל: יונתן אשל" value="">'
+    + '</div>'
+    + '<div class="field"><span class="lbl">עמדה</span><div class="opts" id="bPos">'
+      + Object.keys(POS).map(function(k){
+          return '<button class="opt'+(k===boot.pos?" on":"")+'" data-pos="'+k+'"><b>'+POS[k].n+'</b>'
+            + '<span>'+POS[k].kpi.join(" · ")+'</span></button>';
+        }).join("")
+    + '</div></div>'
+    + '<div class="field"><span class="lbl">נקודת פתיחה</span><div class="opts" id="bStart">'
+      + STARTS.map(function(s){
+          var c = club(s.id);
+          return '<button class="opt'+(s.id===boot.start?" on":"")+'" data-start="'+s.id+'">'
+            + '<b><span class="sw" style="background:'+c.c+'"></span>'+s.nm+'</b>'
+            + '<span>'+s.d+'<br><b style="color:var(--ink2)">קושי: '+s.diff+'</b></span></button>';
+        }).join("")
+    + '</div></div>'
+    + '<button class="btn pri big" id="bGo">התחל קריירה ▸</button>'
+  + '</div></div>';
+  document.body.appendChild(el);
+
+  el.querySelectorAll("[data-pos]").forEach(function(b){
+    b.onclick = function(){
+      boot.pos = b.getAttribute("data-pos");
+      el.querySelectorAll("[data-pos]").forEach(function(x){x.classList.remove("on")});
+      b.classList.add("on");
+    };
+  });
+  el.querySelectorAll("[data-start]").forEach(function(b){
+    b.onclick = function(){
+      boot.start = b.getAttribute("data-start");
+      el.querySelectorAll("[data-start]").forEach(function(x){x.classList.remove("on")});
+      b.classList.add("on");
+    };
+  });
+  document.getElementById("bGo").onclick = function(){
+    var nm = document.getElementById("bName").value.trim() || "יונתן אשל";
+    S = newState(nm, boot.pos, boot.start);
+    push("חתמת בחוזה נוער. עכשיו צריך שמישהו ישים לב.", "");
+    el.remove();
+    render();
+  };
+}
+
+showBoot();
+</script>
