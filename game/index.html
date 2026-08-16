@@ -140,6 +140,45 @@ button{font:inherit;color:inherit}
 .pb{padding:14px}
 .pb.tight{padding:8px}
 
+/* HUD chips */
+.ovrchip{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:52px;height:40px;border-radius:9px;background:var(--ink);color:var(--paper);
+  flex:0 0 auto;box-shadow:inset 0 -3px 0 rgba(0,0,0,.35);position:relative;overflow:hidden;
+}
+.ovrchip>u{
+  position:absolute;inset-inline-start:0;bottom:0;height:3px;width:0;
+  background:var(--accent);text-decoration:none;transition:width .45s cubic-bezier(.2,0,.1,1);
+}
+.ovrchip b{font-size:20px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.ovrchip span{font-size:8px;font-weight:800;letter-spacing:.14em;opacity:.65}
+.ovrchip.up{animation:ovrpop .7s cubic-bezier(.2,0,.1,1)}
+@keyframes ovrpop{0%{transform:scale(1)}35%{transform:scale(1.22);background:var(--accent)}100%{transform:scale(1)}}
+.valchip{display:flex;flex-direction:column;justify-content:center;flex:0 0 auto;min-width:74px}
+.valchip b{font-size:15px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.valchip span{font-size:10px;font-weight:800;color:var(--ink3);min-height:12px}
+.valchip span.up{color:var(--accent)} .valchip span.dn{color:var(--bad)}
+.xpwrap{flex:0 1 190px;min-width:110px;display:flex;flex-direction:column;gap:3px}
+.xptop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.xptop .lvl{font-size:11px;font-weight:900;color:var(--accent)}
+.xptop .n{font-size:9.5px;font-weight:700;color:var(--ink3);direction:ltr;unicode-bidi:isolate}
+.xpfoot span,.xphead b,.sbclk .m{direction:ltr;unicode-bidi:isolate}
+.xpbar{height:7px;border-radius:99px;background:var(--sunken);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.xpbar>i{
+  display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--accent),#6FCB96);
+  transition:width .8s cubic-bezier(.2,0,.1,1);
+}
+@media (max-width:900px){.xpwrap,.valchip{display:none}}
+
+/* TP badge on rail */
+.rail .tp{
+  position:absolute;top:5px;inset-inline-end:9px;min-width:16px;height:16px;border-radius:9px;
+  background:var(--gold);color:#fff;font-size:10px;font-weight:900;display:grid;place-items:center;padding:0 4px;
+  animation:tppulse 1.6s infinite;
+}
+@keyframes tppulse{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
+
 /* matchday hero */
 .hero{overflow:hidden}
 .heroband{
@@ -225,12 +264,91 @@ button{font:inherit;color:inherit}
 .slot{width:22px;height:7px;border-radius:99px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)}
 .slot.f{background:var(--accent);box-shadow:none}
 
-/* ── attributes ────────────────────────────────────────────────── */
-.attrs{display:flex;flex-direction:column;gap:11px}
-.attr{display:grid;grid-template-columns:1fr auto;gap:3px 8px;align-items:center}
-.attr .an{font-size:12.5px;font-weight:700}
-.attr .av{font-size:13px;font-weight:850}
-.attr .bar{grid-column:1/-1}
+/* ── FIFA-style card ───────────────────────────────────────────── */
+.fcard{
+  border-radius:14px;padding:14px;color:#17150F;position:relative;overflow:hidden;
+  background:linear-gradient(150deg,#F7EFD2 0%,#EEDFAE 42%,#DFC97F 100%);
+  box-shadow:0 6px 18px rgba(90,70,20,.22),inset 0 0 0 1px rgba(255,255,255,.5);
+}
+.fcard::after{
+  content:"";position:absolute;inset-inline-end:-40px;top:-40px;width:150px;height:150px;
+  border-radius:50%;background:var(--cc);opacity:.13;
+}
+.fctop{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
+.fcovr{display:flex;flex-direction:column;align-items:center;line-height:1}
+.fcovr b{font-size:44px;font-weight:900;letter-spacing:-.04em}
+.fcovr span{font-size:13px;font-weight:900;letter-spacing:.06em;margin-top:2px;opacity:.72}
+.fcbadges{display:flex;flex-direction:column;align-items:center;gap:6px}
+.fcclub{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:900}
+.fclvl{
+  width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  background:#17150F;color:#F7EFD2;font-size:12px;font-weight:900;
+}
+.fcname{
+  font-size:19px;font-weight:900;letter-spacing:-.02em;text-align:center;
+  margin:8px 0 10px;padding-bottom:9px;border-bottom:1.5px solid rgba(23,21,15,.28);position:relative;z-index:1;
+}
+.fcstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 4px;position:relative;z-index:1}
+.fs{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.fs b{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+.fs span{font-size:9.5px;font-weight:900;letter-spacing:.08em;opacity:.66}
+.fcfoot{
+  display:flex;justify-content:space-between;align-items:center;margin-top:11px;
+  padding-top:9px;border-top:1.5px solid rgba(23,21,15,.28);position:relative;z-index:1;
+  font-size:11.5px;font-weight:800;
+}
+.fcfoot b{font-size:14px;font-weight:900;font-variant-numeric:tabular-nums}
+
+/* ── attribute development ─────────────────────────────────────── */
+.tpbanner{
+  background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold);
+  border-radius:10px;padding:10px 14px;font-size:13.5px;font-weight:700;margin-bottom:14px;
+}
+.grps{display:flex;flex-direction:column;gap:14px}
+.grpblock{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.grphd{
+  display:flex;align-items:center;gap:9px;padding:8px 12px;background:var(--sunken);
+  border-bottom:1px solid var(--line);
+}
+.grphd b{font-size:13px;font-weight:850}
+.grphd .grpv{margin-inline-start:auto;font-size:17px;font-weight:900;font-variant-numeric:tabular-nums}
+.grphd .grpk{font-size:9.5px;font-weight:900;letter-spacing:.1em;color:var(--ink3)}
+.subs{padding:6px 10px 10px}
+.sub{display:grid;grid-template-columns:1fr auto auto;gap:3px 9px;align-items:center;padding:6px 0}
+.sub+.sub{border-top:1px solid var(--line)}
+.sub .sn{font-size:12.5px;font-weight:600}
+.sub.key .sn{font-weight:800}
+.sub .sn i{color:var(--gold);font-style:normal;font-size:11px}
+.sub .sv{font-size:13.5px;font-weight:900;min-width:24px;text-align:end}
+.sub .sbar{
+  grid-column:1/3;height:6px;border-radius:99px;background:var(--sunken);
+  box-shadow:inset 0 0 0 1px var(--line);position:relative;overflow:hidden;
+}
+.sub .sbar>i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .45s}
+.sub.key .sbar>i{background:linear-gradient(90deg,var(--accent),#6FCB96)}
+.sub .sbar>u{position:absolute;inset-block:-2px;width:2px;background:var(--gold);text-decoration:none}
+.spend{
+  grid-row:1/3;width:44px;height:34px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--ctrl);background:var(--surface);
+  font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:2px;
+  transition:background .13s,transform .06s;
+}
+.spend em{font-style:normal;font-size:10px;font-weight:800;color:var(--ink3)}
+.spend:hover:not(:disabled){background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.spend:hover:not(:disabled) em{color:var(--gold)}
+.spend:active:not(:disabled){transform:translateY(1px)}
+.spend:disabled{opacity:.32;cursor:not-allowed}
+
+.sparks{display:flex;gap:5px;align-items:flex-end;min-height:64px}
+.spk{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
+.spk>div{width:100%;max-width:22px;border-radius:4px 4px 0 0}
+.spk>span{font-size:10px;font-weight:800;color:var(--ink3)}
+
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.bdg{
+  font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:99px;
+  background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold);
+}
 
 /* ── table ─────────────────────────────────────────────────────── */
 table{width:100%;border-collapse:collapse;font-size:12.5px}
@@ -421,6 +539,56 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 .delta{font-size:12px;font-weight:850}
 .delta.up{color:var(--accent)} .delta.dn{color:var(--bad)}
 
+/* ── reward panel ──────────────────────────────────────────────── */
+.rewards .pb{display:flex;flex-direction:column}
+.xpbig{margin-bottom:14px}
+.xphead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.xphead b{font-size:22px;font-weight:900;color:var(--accent);font-variant-numeric:tabular-nums}
+.xpbar.big{height:14px;border-radius:99px;background:var(--sunken);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.xpbar.big>i{
+  display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--accent),#6FCB96);
+  transition:width .1s linear;
+}
+.xpfoot{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;font-weight:800;color:var(--ink3)}
+.rewgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:640px){.rewgrid{grid-template-columns:1fr}}
+.ovrdelta{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line)}
+.ovrdelta b{font-size:17px;font-weight:900}
+.ovrdelta b em{font-style:normal;color:var(--accent);font-size:15px}
+.ovrdelta b em.dn{color:var(--bad)}
+.ovrdelta b em.up{color:var(--accent)}
+.tpline{margin-top:9px;font-size:12.5px;font-weight:800;color:var(--gold);background:var(--gold-soft);
+  border-radius:8px;padding:7px 11px;border:1px solid var(--gold)}
+.gains{display:flex;flex-wrap:wrap;gap:6px}
+.gain{
+  font-size:12px;font-weight:900;padding:5px 11px;border-radius:99px;
+  background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--accent);
+  animation:gpop .45s cubic-bezier(.2,0,.1,1);
+}
+@keyframes gpop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+
+/* ── celebration overlay ───────────────────────────────────────── */
+.celeb{
+  position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;
+  background:rgba(20,17,12,.5);backdrop-filter:blur(2px);animation:fade .18s;cursor:pointer;
+}
+.celebcard{
+  border-radius:18px;padding:26px 44px;text-align:center;color:#17150F;
+  box-shadow:0 20px 60px rgba(40,30,10,.4);animation:celebin .5s cubic-bezier(.2,0,.1,1);
+  background:linear-gradient(150deg,#F9F1D6,#E8D294);
+}
+.celeb.green .celebcard{background:linear-gradient(150deg,#E4F2E8,#A9DcBE);}
+@keyframes celebin{
+  0%{opacity:0;transform:scale(.7) translateY(20px)}
+  60%{transform:scale(1.05)}
+  100%{opacity:1;transform:none}
+}
+.ctag{font-size:11px;font-weight:900;letter-spacing:.18em;opacity:.6}
+.cbig{font-size:46px;font-weight:900;letter-spacing:-.03em;line-height:1.05;margin:6px 0 4px}
+.cbig em{font-style:normal;opacity:.45}
+.csub{font-size:14px;font-weight:800;opacity:.75}
+
 .toast{
   position:fixed;inset-block-end:18px;inset-inline-start:50%;transform:translateX(50%);
   background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:99px;
@@ -439,10 +607,16 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
       <b id="hClub">—</b>
       <span id="hMeta">—</span>
     </div>
+    <div class="ovrchip"><b id="hOvr">50</b><span>OVR</span><u id="hOvrFrac"></u></div>
+    <div class="valchip"><b id="hVal">€0</b><span id="hValD"></span></div>
+    <div class="xpwrap">
+      <div class="xptop"><span class="lvl" id="hLvl">רמה 1</span><span class="n" id="hXpTxt">0 / 0 XP</span></div>
+      <div class="xpbar"><i id="hXpFill" style="width:0%"></i></div>
+    </div>
     <div class="grow"></div>
     <div class="pill n"><i>עונה</i><span id="hSeason">1</span></div>
     <div class="pill n"><i>מחזור</i><span id="hWeek">1</span></div>
-    <div class="pill n" id="hAgeWrap"><i>גיל</i><span id="hAge">18</span></div>
+    <div class="pill n"><i>גיל</i><span id="hAge">18</span></div>
     <button class="iconbtn" id="hTheme" title="ערכת נושא" aria-label="החלף ערכת נושא">◐</button>
   </header>
 
@@ -482,13 +656,129 @@ var EURO = [
   {n:"קווינס פארק",     ab:"QPR", c:"#1D5BA4", lg:"צ'מפיונשיפ",  rep:52}
 ];
 
-var POS = {
-  ST:{n:"חלוץ",        k:"טכני",  kpi:["xG","נגיחות","לחץ ראשון"],   at:"fin"},
-  W :{n:"כנף",         k:"טכני",  kpi:["דריבל","הזנות","עומק"],       at:"pac"},
-  CM:{n:"קשר מרכזי",   k:"טקטי",  kpi:["קידום כדור","שבירת קווים","שמירה בלחץ"], at:"pas"},
-  CB:{n:"בלם",         k:"טקטי",  kpi:["מניעת קבלה","דו־קרב","יציאה מלחץ"], at:"def"},
-  GK:{n:"שוער",        k:"מנטלי", kpi:["PSxG","יציאות","בנייה"],      at:"gk"}
+/* ── attribute model (FIFA-style: 6 face stats over 23 sub-attributes) ── */
+var ATTR = {
+  acc:{n:"האצה",            g:"PAC"},
+  spd:{n:"מהירות שיא",      g:"PAC"},
+  fin:{n:"סיום",            g:"SHO"},
+  pow:{n:"עוצמת בעיטה",     g:"SHO"},
+  lng:{n:"בעיטות מרחוק",    g:"SHO"},
+  vis:{n:"ראיית משחק",      g:"PAS"},
+  crs:{n:"הזנות",           g:"PAS"},
+  spa:{n:"מסירה קצרה",      g:"PAS"},
+  lpa:{n:"מסירה ארוכה",     g:"PAS"},
+  agi:{n:"זריזות",          g:"DRI"},
+  bal:{n:"שיווי משקל",      g:"DRI"},
+  ctl:{n:"שליטה בכדור",     g:"DRI"},
+  drb:{n:"דריבל",           g:"DRI"},
+  cmp:{n:"קור רוח",         g:"DRI"},
+  itc:{n:"יירוט",           g:"DEF"},
+  hdr:{n:"משחק אווירי",     g:"DEF"},
+  mrk:{n:"שמירה",           g:"DEF"},
+  tkl:{n:"תיקול",           g:"DEF"},
+  jmp:{n:"קפיצה",           g:"PHY"},
+  sta:{n:"סיבולת",          g:"PHY"},
+  str:{n:"כוח",             g:"PHY"},
+  agg:{n:"אגרסיביות",       g:"PHY"},
+  /* goalkeeper-only */
+  gdiv:{n:"זינוק",          g:"DIV", gk:true},
+  ghan:{n:"תפיסה",          g:"HAN", gk:true},
+  gkic:{n:"בעיטה ובנייה",   g:"KIC", gk:true},
+  gref:{n:"רפלקסים",        g:"REF", gk:true},
+  gpos:{n:"מיקום",          g:"POS", gk:true}
 };
+
+var GRP = {
+  PAC:{n:"מהירות", subs:["acc","spd"]},
+  SHO:{n:"בעיטה",  subs:["fin","pow","lng"]},
+  PAS:{n:"מסירה",  subs:["vis","crs","spa","lpa"]},
+  DRI:{n:"דריבל",  subs:["agi","bal","ctl","drb","cmp"]},
+  DEF:{n:"הגנה",   subs:["itc","hdr","mrk","tkl"]},
+  PHY:{n:"פיזי",   subs:["jmp","sta","str","agg"]},
+  DIV:{n:"זינוק",  subs:["gdiv"], gk:true},
+  HAN:{n:"תפיסה",  subs:["ghan"], gk:true},
+  KIC:{n:"בעיטה",  subs:["gkic"], gk:true},
+  REF:{n:"רפלקס",  subs:["gref"], gk:true},
+  POS:{n:"מיקום",  subs:["gpos"], gk:true}
+};
+
+var POS = {
+  ST:{n:"חלוץ", face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+      w:{PAC:.18,SHO:.32,PAS:.10,DRI:.22,DEF:.02,PHY:.16},
+      kpi:["xG","נגיחות","לחץ ראשון"],
+      key:["fin","pow","acc","drb","str"]},
+  W :{n:"כנף", face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+      w:{PAC:.28,SHO:.16,PAS:.18,DRI:.28,DEF:.02,PHY:.08},
+      kpi:["דריבל","הזנות","כדורי עומק"],
+      key:["acc","spd","drb","agi","crs"]},
+  CM:{n:"קשר מרכזי", face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+      w:{PAC:.04,SHO:.12,PAS:.30,DRI:.22,DEF:.16,PHY:.16},
+      kpi:["קידום כדור","שבירת קווים","שמירה בלחץ"],
+      key:["vis","spa","lpa","ctl","sta"]},
+  CB:{n:"בלם", face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+      w:{PAC:.12,SHO:.02,PAS:.10,DRI:.06,DEF:.42,PHY:.28},
+      kpi:["מניעת קבלה","דו־קרב","יציאה מלחץ"],
+      key:["mrk","tkl","itc","hdr","str"]},
+  GK:{n:"שוער", face:["DIV","HAN","KIC","REF","PAC","POS"],
+      w:{DIV:.21,HAN:.21,KIC:.05,REF:.21,PAC:.11,POS:.21},
+      kpi:["PSxG","יציאות","בנייה"],
+      key:["gref","gdiv","ghan","gpos","gkic"]}
+};
+
+function grpVal(g){
+  var subs = GRP[g].subs, t = 0;
+  for(var i=0;i<subs.length;i++) t += S.a[subs[i]] || 0;
+  return Math.round(t/subs.length);
+}
+function grpExact(g){
+  var subs = GRP[g].subs, t = 0;
+  for(var i=0;i<subs.length;i++) t += S.a[subs[i]] || 0;
+  return t/subs.length;
+}
+function ovrExact(){
+  var w = POS[S.pos].w, t = 0;
+  for(var g in w) t += grpExact(g) * w[g];
+  return clamp(t, 1, 99);
+}
+function ovr(){ return Math.round(ovrExact()); }
+/* how far through the current OVR point we are — drives the HUD progress sliver */
+function ovrFrac(){ var e = ovrExact(); return clamp(e - Math.floor(e), 0, 1); }
+/* market value in euros — exponential in OVR, shaped by age and potential */
+function value(){
+  var o = ovr();
+  var base = 25000 * Math.pow(1.185, o - 40);
+  var age = S.age, m;
+  if(age <= 19)      m = 1.55;
+  else if(age <= 22) m = 1.40;
+  else if(age <= 25) m = 1.20;
+  else if(age <= 28) m = 1.00;
+  else if(age <= 31) m = 0.72;
+  else if(age <= 34) m = 0.42;
+  else               m = 0.20;
+  var pot = 1 + clamp(S.potential - o, 0, 25) * 0.022;      // headroom premium
+  var fr = S.ratings.length ? avgRating() : (S.lastSeasonRating || 6.6);
+  var form = 1 + clamp(fr - 6.6, -0.8, 1.2) * 0.16;
+  var con  = S.contractYears <= 0 ? 0.55 : (S.contractYears === 1 ? 0.82 : 1);
+  return Math.round(base * m * pot * form * con);
+}
+function money(v){
+  if(v >= 1000000) return "€" + (v/1000000).toFixed(v >= 10000000 ? 0 : 1) + "M";
+  if(v >= 1000)    return "€" + Math.round(v/1000) + "K";
+  return "€" + v;
+}
+/* XP & levels */
+function xpNeed(l){ return Math.round(110 + l*72 + l*l*3.5); }
+function tpCost(v){
+  var c = v < 55 ? 1 : (v < 65 ? 2 : (v < 75 ? 3 : (v < 82 ? 5 : (v < 88 ? 8 : 13))));
+  return c;
+}
+function isKey(k){ return POS[S.pos].key.indexOf(k) >= 0; }
+/* game intelligence — drives how long the Read phase lasts */
+function iq(){
+  return S.pos === "GK"
+    ? (S.a.gpos + S.a.cmp) / 2
+    : (S.a.vis + S.a.cmp) / 2;
+}
 
 var STARTS = [
   {id:"mha", nm:"אקדמיית מכבי חיפה", d:"מועדון־על מקומי. הבעיה אינה יכולת — אלא דקות.", trust:34, status:"נער", diff:"קשה"},
@@ -503,31 +793,75 @@ var S = null;
 
 function newState(name, pos, startId){
   var st = STARTS.filter(function(s){return s.id===startId})[0];
-  var base = {tec:44,tac:44,phy:46,men:42};
-  if(pos==="ST"){base.tec=52;base.phy=48;base.tac=38}
-  if(pos==="W"){base.tec=50;base.phy=52;base.tac=38}
-  if(pos==="CM"){base.tac=50;base.tec=47;base.phy=42}
-  if(pos==="CB"){base.tac=49;base.phy=52;base.tec=36}
-  if(pos==="GK"){base.men=52;base.phy=48;base.tec=40;base.tac=44}
+
+  /* every sub-attribute starts low; the position's key five start meaningfully
+     higher, and the position's weighted groups get a smaller lift. A prospect
+     is not balanced — that is the point. */
+  var a = {};
+  var gk = pos === "GK";
+  for(var k in ATTR){
+    if(!!ATTR[k].gk !== gk && !(gk && (k === "acc" || k === "spd"))) { a[k] = 22; continue; }
+    a[k] = 34 + Math.round(Math.random()*7);
+  }
+  var w = POS[pos].w;
+  for(var k2 in ATTR){
+    var g = ATTR[k2].g;
+    if(w[g]) a[k2] = Math.round(a[k2] + w[g] * 26);
+  }
+  POS[pos].key.forEach(function(k3){ a[k3] = clamp(a[k3] + 9 + Math.round(Math.random()*4), 1, 99); });
 
   var table = {};
   LIGAT.forEach(function(c){ table[c.id]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
 
-  return {
+  var s = {
     screen:"hub", name:name, pos:pos, age:18, club:st.id,
     season:1, week:1, maxWeek:14,
-    a:base,
+    a:a,
+    potential: 0,
+    xp:0, level:1, tp:3,
     fit:86, sharp:48, load:22, morale:58,
     trust:st.trust, status:st.status,
     apps:0, minutes:0, goals:0, assists:0, ratings:[],
+    careerApps:0, careerGoals:0, careerAssists:0, bestRating:0, streak:0, bestStreak:0,
     picked:[], slots:4,
     prep:{video:0, analyst:0, coach:0, unit:0, sp:0},
-    prepTarget:null,
     table:table, fixtures:buildFixtures(st.id),
     interest:[], inbox:[], seen:0,
-    lastMatch:null, contractYears:2, wage:4,
+    contractYears:2, wage:4,
+    valuePrev:0, ovrPrev:0, badges:[],
     seed: (Date.now()%100000)
   };
+  S = s;
+  s.potential = clamp(ovr() + 14 + Math.round(Math.random()*20), 45, 94);
+  s.ovrPrev = ovr();
+  s.valuePrev = value();
+  return s;
+}
+
+/* ── badges: one-shot milestones, each fires a celebration ─────────── */
+var BADGES = [
+  {id:"debut",   n:"בכורה",              d:"ההופעה הראשונה שלך",         t:function(){return S.careerApps>=1}},
+  {id:"g1",      n:"השער הראשון",         d:"כבשת בקריירה",               t:function(){return S.careerGoals>=1}},
+  {id:"a1",      n:"הבישול הראשון",       d:"בישלת בקריירה",              t:function(){return S.careerAssists>=1}},
+  {id:"r8",      n:"משחק ענק",            d:"ציון 8.0 ומעלה",             t:function(){return S.bestRating>=8}},
+  {id:"streak3", n:"בכושר",               d:"3 משחקים ברצף מעל 7.0",      t:function(){return S.bestStreak>=3}},
+  {id:"streak5", n:"בלתי ניתן לעצירה",    d:"5 משחקים ברצף מעל 7.0",      t:function(){return S.bestStreak>=5}},
+  {id:"ovr60",   n:"שחקן ליגה",           d:"OVR 60",                     t:function(){return ovr()>=60}},
+  {id:"ovr70",   n:"מסובב ראשון",         d:"OVR 70",                     t:function(){return ovr()>=70}},
+  {id:"ovr80",   n:"כוכב",                d:"OVR 80",                     t:function(){return ovr()>=80}},
+  {id:"val1m",   n:"מיליון ראשון",        d:"שווי €1M",                   t:function(){return value()>=1000000}},
+  {id:"val10m",  n:"נכס יקר",             d:"שווי €10M",                  t:function(){return value()>=10000000}},
+  {id:"g10",     n:"מלך שערים",           d:"10 שערים בקריירה",           t:function(){return S.careerGoals>=10}},
+  {id:"trust80", n:"איש של המאמן",        d:"אמון 80",                    t:function(){return S.trust>=80}},
+  {id:"euro",    n:"על המפה",             d:"מועדון אירופי שלח הצעה",     t:function(){return S.interest.some(function(x){return x.lvl>=3})}}
+];
+
+function checkBadges(){
+  var got = [];
+  BADGES.forEach(function(b){
+    if(S.badges.indexOf(b.id) < 0 && b.t()){ S.badges.push(b.id); got.push(b); }
+  });
+  return got;
 }
 
 function buildFixtures(myId){
@@ -549,25 +883,57 @@ function club(id){ return LIGAT.filter(function(c){return c.id===id})[0]; }
    WEEKLY ACTIONS
    ════════════════════════════════════════════════════════════════ */
 var ACTIONS = [
-  {id:"tec", i:"⚽", t:"אימון טכני",       d:"נגיעה, מסירה וסיום. שיפור איטי, חדות מיידית.",
-   fx:["טכני ‎+", "חדות ‎+", "עומס ‎+"], run:function(){ S.a.tec+=0.8; S.sharp+=7; S.load+=9; }},
-  {id:"tac", i:"◱", t:"אימון טקטי ווידאו", d:"הבנת תפקיד וכימיה עם היחידה.",
-   fx:["טקטי ‎+", "אמון ‎+", "עומס נמוך"], run:function(){ S.a.tac+=0.9; S.trust+=3; S.load+=4; }},
-  {id:"phy", i:"⚡", t:"כוח ומהירות",      d:"שיפור גופני אמיתי — במחיר עומס גבוה.",
-   fx:["פיזי ‎++", "עומס ‎++"], run:function(){ S.a.phy+=1.1; S.load+=17; S.sharp+=3; }},
-  {id:"rec", i:"♻", t:"התאוששות ופיזיו",  d:"מוריד עומס ומעלה כשירות. מוותר על התקדמות.",
-   fx:["עומס ‎−−", "כשירות ‎+"], run:function(){ S.load-=22; S.fit+=13; }},
+  {id:"fin", i:"🎯", t:"אימון סיום",       d:"בעיטות מהקופסה, גימור בנגיעה, עוצמה.",
+   fx:["SHO ‎++","‎+55 XP"], xp:55,
+   run:function(){ actGrow(["fin","pow","lng"], 0.62); S.sharp+=6; S.load+=9; }},
+  {id:"drb", i:"⚡", t:"אימון דריבל וזריזות", d:"מסלולי חרוטים, אחד על אחד, שליטה בכדור.",
+   fx:["DRI ‎++","PAC ‎+","‎+55 XP"], xp:55,
+   run:function(){ actGrow(["drb","agi","ctl","bal"], 0.55); S.sharp+=6; S.load+=10; }},
+  {id:"pas", i:"◎", t:"אימון מסירות",      d:"קצרה, ארוכה, הזנות וראיית משחק.",
+   fx:["PAS ‎++","‎+55 XP"], xp:55,
+   run:function(){ actGrow(["spa","lpa","vis","crs"], 0.58); S.sharp+=5; S.load+=7; }},
+  {id:"def", i:"🛡", t:"אימון הגנה",        d:"שמירה, תיקול, יירוט ומשחק אווירי.",
+   fx:["DEF ‎++","‎+55 XP"], xp:55,
+   run:function(){ actGrow(["mrk","tkl","itc","hdr"], 0.6); S.sharp+=5; S.load+=9; }},
+  {id:"phy", i:"🏋", t:"כוח ומהירות",       d:"שיפור גופני אמיתי — במחיר עומס גבוה.",
+   fx:["PHY ‎++","PAC ‎++","‎+60 XP"], xp:60,
+   run:function(){ actGrow(["str","sta","acc","spd","jmp"], 0.6); S.load+=17; S.sharp+=3; }},
+  {id:"gk", i:"🧤", t:"אימון שוערים",       d:"רפלקסים, זינוקים, תפיסה ומיקום.",
+   fx:["GK ‎++","‎+60 XP"], xp:60, only:"GK",
+   run:function(){ actGrow(["gref","gdiv","ghan","gpos","gkic"], 0.6); S.sharp+=6; S.load+=9; }},
+  {id:"rec", i:"♻", t:"התאוששות ופיזיו",   d:"מוריד עומס ומעלה כשירות. מוותר על התקדמות.",
+   fx:["עומס ‎−−","כשירות ‎+","‎+20 XP"], xp:20,
+   run:function(){ S.load-=22; S.fit+=13; }},
   {id:"video", i:"▶", t:"ניתוח וידאו על היריב", d:"‎+0.4 שנייה לזמן הקריאה מול היריב הקרוב.",
-   fx:["זמן קריאה ‎+"], prep:"video", run:function(){ S.prep.video=1; S.load+=2; }},
+   fx:["זמן קריאה ‎+","‎+30 XP"], xp:30, prep:"video",
+   run:function(){ S.prep.video=1; S.load+=2; actGrow(["cmp","vis"],0.2); }},
   {id:"analyst", i:"◈", t:"ישיבת אנליסט אישית", d:"פותח אפשרות בחירה נוספת בחלק מהמצבים.",
-   fx:["אפשרות נוספת"], prep:"analyst", run:function(){ S.prep.analyst=1; }},
-  {id:"coach", i:"☰", t:"שיחה עם מאמן העמדה", d:"מסמן את החולשה של המקביל שלך.",
-   fx:["אזור מתוק ‎+", "אמון ‎+"], prep:"coach", run:function(){ S.prep.coach=1; S.trust+=2; }},
-  {id:"agent", i:"✎", t:"פגישה עם הסוכן",  d:"בודק מי מתעניין ומה שווה כרגע כוח המיקוח.",
-   fx:["מודיעין שוק"], run:function(){ agentMeeting(); }},
-  {id:"life", i:"◉", t:"חיים אישיים",      d:"משפחה, חברים, ראש נקי. מוריד לחץ.",
-   fx:["מורל ‎++", "עומס ‎−"], run:function(){ S.morale+=13; S.load-=6; }}
+   fx:["אפשרות נוספת","‎+30 XP"], xp:30, prep:"analyst",
+   run:function(){ S.prep.analyst=1; actGrow(["cmp"],0.3); }},
+  {id:"coach", i:"☰", t:"שיחה עם מאמן העמדה", d:"מרחיב את האזור המתוק ומחזק אמון.",
+   fx:["אזור מתוק ‎+","אמון ‎+","‎+25 XP"], xp:25, prep:"coach",
+   run:function(){ S.prep.coach=1; S.trust+=2; }},
+  {id:"agent", i:"✎", t:"פגישה עם הסוכן",   d:"בודק מי מתעניין ומה שווה כרגע כוח המיקוח.",
+   fx:["מודיעין שוק","‎+20 XP"], xp:20, run:function(){ agentMeeting(); }},
+  {id:"life", i:"◉", t:"חיים אישיים",       d:"משפחה, חברים, ראש נקי. מוריד לחץ.",
+   fx:["מורל ‎++","עומס ‎−","‎+15 XP"], xp:15,
+   run:function(){ S.morale+=13; S.load-=6; }}
 ];
+
+/* actions record their attribute gains so the week summary can show them */
+var WEEK_GAINS = [];
+function actGrow(keys, amt){
+  grow(keys, amt).forEach(function(g){ WEEK_GAINS.push(g); });
+}
+function availableActions(){
+  return ACTIONS.filter(function(a){
+    if(a.only && a.only !== S.pos) return false;
+    if(a.id === "def" && S.pos === "GK") return false;
+    if(a.id === "fin" && S.pos === "GK") return false;
+    if(a.id === "drb" && S.pos === "GK") return false;
+    return true;
+  });
+}
 
 function agentMeeting(){
   var r = avgRating();
@@ -576,13 +942,13 @@ function agentMeeting(){
     var e = EURO[ri(0,EURO.length-1)];
     if(!S.interest.some(function(x){return x.n===e.n})){
       S.interest.push({n:e.n, ab:e.ab, c:e.c, lg:e.lg, rep:e.rep, lvl:1});
-      push("הסוכן: " + e.n + " (" + e.lg + ") ביקשו דוח עליך.", "ok");
+      push("הסוכן: \u2068" + e.n + "\u2069 (\u2068" + e.lg + "\u2069) ביקשו דוח עליך.", "ok");
       return;
     }
   }
   if(S.interest.length){
     S.interest[0].lvl = Math.min(3, S.interest[0].lvl+1);
-    push("הסוכן: " + S.interest[0].n + " העמיקו את הבירור.", "ok");
+    push("הסוכן: \u2068" + S.interest[0].n + "\u2069 העמיקו את הבירור.", "ok");
   } else {
     push("הסוכן: אין תנועה. \"תן לי דקות ואני אתן לך שוק.\"", "");
   }
@@ -590,7 +956,33 @@ function agentMeeting(){
 
 function push(txt, kind){ S.inbox.unshift({t:txt, k:kind||"", w:S.week}); if(S.inbox.length>40) S.inbox.pop(); }
 function avgRating(){ if(!S.ratings.length) return 6.0; return S.ratings.reduce(function(a,b){return a+b},0)/S.ratings.length; }
-function ovr(){ return Math.round((S.a.tec+S.a.tac+S.a.phy+S.a.men)/4); }
+
+/* grow a set of sub-attributes, respecting the potential ceiling.
+   Returns [{k, amount}] so the UI can show "+1 דריבל" chips. */
+function grow(keys, amount){
+  var out = [], head = S.potential - ovr();
+  keys.forEach(function(k){
+    if(S.a[k] === undefined) return;
+    var soft = head <= 0 ? 0.25 : (head < 5 ? 0.55 : 1);
+    var gain = amount * soft * (isKey(k) ? 1.25 : 0.85);
+    var before = Math.floor(S.a[k]);
+    S.a[k] = clamp(S.a[k] + gain, 1, 99);
+    var after = Math.floor(S.a[k]);
+    if(after > before) out.push({k:k, amount:after-before});
+  });
+  return out;
+}
+function addXp(n){
+  S.xp += n;
+  var levels = 0;
+  while(S.xp >= xpNeed(S.level)){
+    S.xp -= xpNeed(S.level);
+    S.level++;
+    S.tp += 3 + (S.level % 5 === 0 ? 3 : 0);
+    levels++;
+  }
+  return levels;
+}
 
 /* ══════════════════════════════════════════════════════════════════
    RENDER — shell
@@ -617,6 +1009,22 @@ function renderShell(){
   document.getElementById("hWeek").textContent = S.week + "/" + S.maxWeek;
   document.getElementById("hAge").textContent = S.age;
 
+  var o = ovr(), v = value();
+  document.getElementById("hOvr").textContent = o;
+  document.getElementById("hOvrFrac").style.width = Math.round(ovrFrac()*100) + "%";
+  document.getElementById("hVal").textContent = money(v);
+  var vd = document.getElementById("hValD");
+  var dv = v - S.valuePrev;
+  if(S.valuePrev && Math.abs(dv) > v*0.005){
+    vd.textContent = (dv>0?"▲ ":"▼ ") + money(Math.abs(dv));
+    vd.className = dv>0 ? "up" : "dn";
+  } else { vd.textContent = "שווי שוק"; vd.className = ""; }
+
+  document.getElementById("hLvl").textContent = "רמה " + S.level;
+  document.getElementById("hXpTxt").textContent = Math.round(S.xp) + " / " + xpNeed(S.level) + " XP";
+  document.getElementById("hXpTxt").dir = "ltr";
+  document.getElementById("hXpFill").style.width = clamp(S.xp/xpNeed(S.level)*100, 0, 100) + "%";
+
   rail.innerHTML = "";
   NAV.forEach(function(n){
     var b = document.createElement("button");
@@ -624,6 +1032,8 @@ function renderShell(){
     b.innerHTML = "<em>"+n.i+"</em><span>"+n.t+"</span>";
     if(n.id==="hub" && S.inbox.length>S.seen)
       b.innerHTML += '<span class="badge">'+(S.inbox.length-S.seen)+'</span>';
+    if(n.id==="player" && S.tp>0)
+      b.innerHTML += '<span class="tp">'+S.tp+'</span>';
     b.onclick = function(){ S.screen=n.id; if(n.id==="hub") S.seen=S.inbox.length; render(); };
     rail.appendChild(b);
   });
@@ -656,7 +1066,7 @@ function viewHub(){
     return '<div class="day'+(a?"":" d")+'"><b>'+d+'</b>'+(a?a.i:"—")+'</div>';
   }).join("");
 
-  var actsHtml = ACTIONS.map(function(a){
+  var actsHtml = availableActions().map(function(a){
     var on = S.picked.indexOf(a.id)>=0;
     var idx = S.picked.indexOf(a.id);
     var full = S.picked.length>=S.slots && !on;
@@ -747,66 +1157,100 @@ function expectedMinutes(){
 
 /* ── PLAYER ────────────────────────────────────────────────────── */
 function viewPlayer(){
-  var p = POS[S.pos];
-  var atts = [
-    {k:"tec", n:"טכני", v:S.a.tec},
-    {k:"tac", n:"טקטי", v:S.a.tac},
-    {k:"phy", n:"גופני", v:S.a.phy},
-    {k:"men", n:"מנטלי", v:S.a.men}
-  ];
-  var last = S.ratings.slice(-8);
+  var p = POS[S.pos], c = club(S.club), o = ovr();
+
+  /* FIFA-style card */
+  var faceHtml = p.face.map(function(g){
+    return '<div class="fs"><b class="n">'+grpVal(g)+'</b><span>'+g+'</span></div>';
+  }).join("");
+
+  var card = '<div class="fcard" style="--cc:'+c.c+'">'
+    + '<div class="fctop">'
+      + '<div class="fcovr"><b class="n">'+o+'</b><span>'+S.pos+'</span></div>'
+      + '<div class="fcbadges">'
+        + '<div class="fcclub" style="background:'+c.c+';color:'+c.t+'">'+c.ab+'</div>'
+        + '<div class="fclvl">'+S.level+'</div>'
+      + '</div>'
+    + '</div>'
+    + '<div class="fcname">'+S.name+'</div>'
+    + '<div class="fcstats">'+faceHtml+'</div>'
+    + '<div class="fcfoot"><span>'+p.n+' · גיל '+S.age+'</span><b>'+money(value())+'</b></div>'
+  + '</div>';
+
+  /* attribute groups with spend buttons */
+  var groups = p.face.map(function(g){
+    var subs = GRP[g].subs.map(function(k){
+      var v = Math.floor(S.a[k]);
+      var cost = tpCost(v);
+      var can = S.tp >= cost && v < 99;
+      var cap = v >= Math.min(99, S.potential + 6);
+      return '<div class="sub'+(isKey(k)?" key":"")+'">'
+        + '<span class="sn">'+ATTR[k].n+(isKey(k)?' <i title="תכונת מפתח לעמדה">★</i>':'')+'</span>'
+        + '<span class="sv n">'+v+'</span>'
+        + '<span class="sbar"><i style="width:'+v+'%"></i>'
+          + (S.potential>v?'<u style="inset-inline-start:'+clamp(S.potential,0,99)+'%"></u>':'')+'</span>'
+        + '<button class="spend" data-k="'+k+'"'+((!can||cap)?' disabled':'')+' title="'+(cap?"הגעת לתקרה הנוכחית":"עלות "+cost+" נקודות")+'">'
+          + '+<em class="n">'+cost+'</em></button>'
+      + '</div>';
+    }).join("");
+    return '<div class="grpblock"><div class="grphd"><b>'+GRP[g].n+'</b>'
+      + '<span class="grpv n">'+grpVal(g)+'</span><span class="grpk">'+g+'</span></div>'
+      + '<div class="subs">'+subs+'</div></div>';
+  }).join("");
+
+  var last = S.ratings.slice(-10);
   var spark = last.length ? last.map(function(r){
-    var h = Math.round(((r-4)/6)*38)+6;
+    var h = Math.round(((r-4)/6)*44)+6;
     var col = r>=7.2?"var(--accent)":(r>=6.4?"var(--gold)":"var(--bad)");
-    return '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px">'
-      + '<div style="width:100%;max-width:22px;height:'+h+'px;background:'+col+';border-radius:4px 4px 0 0"></div>'
-      + '<span class="n" style="font-size:10px;font-weight:800;color:var(--ink3)">'+r.toFixed(1)+'</span></div>';
+    return '<div class="spk"><div style="height:'+h+'px;background:'+col+'"></div>'
+      + '<span class="n">'+r.toFixed(1)+'</span></div>';
   }).join("") : '<div class="empty">אין עדיין משחקים</div>';
 
+  var earned = BADGES.filter(function(b){return S.badges.indexOf(b.id)>=0});
+  var next = BADGES.filter(function(b){return S.badges.indexOf(b.id)<0}).slice(0,4);
+
   return ''
+  + (S.tp>0 ? '<div class="tpbanner">יש לך <b>'+S.tp+'</b> נקודות אימון לחלוקה. כל נקודה מזיזה את ה-OVR ואת השווי.</div>' : '')
   + '<div class="grid g2">'
   + '<div style="display:flex;flex-direction:column;gap:14px">'
 
-    + '<div class="p"><h3>כרטיס שחקן</h3><div class="pb">'
-      + '<div class="ratebig" style="margin-bottom:14px">'
-        + '<div class="num">'+ovr()+'</div>'
-        + '<div style="flex:1">'
-          + '<div style="font-size:20px;font-weight:900;letter-spacing:-.02em">'+S.name+'</div>'
-          + '<div style="color:var(--ink3);font-size:13px;margin-top:2px">'+p.n+' · גיל '+S.age+' · '+club(S.club).n+'</div>'
-          + '<div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">'
-            + '<span class="tag">'+S.status+'</span>'
-            + '<span class="tag '+(avgRating()>=7?"ok":"")+'">ציון '+avgRating().toFixed(2)+'</span>'
-            + (S.goals?'<span class="tag g">'+S.goals+' שערים</span>':'')
-            + (S.assists?'<span class="tag g">'+S.assists+' בישולים</span>':'')
-          + '</div>'
-        + '</div>'
-      + '</div>'
-      + '<div class="attrs">' + atts.map(function(a){
-          return '<div class="attr"><span class="an">'+a.n+'</span><span class="av n">'+Math.round(a.v)+'</span>'
-            + '<span class="bar"><i style="width:'+clamp(a.v,0,100)+'%"></i></span></div>';
-        }).join("") + '</div>'
-    + '</div></div>'
-
-    + '<div class="p"><h3>מגמת ציונים <span class="r">8 אחרונים</span></h3>'
-    + '<div class="pb"><div style="display:flex;gap:5px;align-items:flex-end;min-height:58px">'+spark+'</div></div></div>'
+    + '<div class="p"><h3>פיתוח תכונות'
+      + '<span class="r">נקודות אימון: <b class="n" style="color:var(--gold)">'+S.tp+'</b></span></h3>'
+      + '<div class="pb"><div class="grps">'+groups+'</div>'
+      + '<p class="hint" style="margin:12px 0 0">★ = תכונת מפתח לעמדה שלך; היא מזיזה את ה-OVR הכי הרבה. הקו האנכי בפס הוא הפוטנציאל המשוער שלך — אפשר לעבור אותו, אבל זה נהיה יקר.</p>'
+      + '</div></div>'
 
   + '</div>'
 
   + '<div style="display:flex;flex-direction:column;gap:14px">'
+    + '<div class="p"><h3>הכרטיס שלך</h3><div class="pb">'+card
+      + '<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">'
+        + '<span class="tag">'+S.status+'</span>'
+        + '<span class="tag '+(avgRating()>=7?"ok":"")+'">ציון '+avgRating().toFixed(2)+'</span>'
+        + (S.streak>=2?'<span class="tag g">🔥 רצף '+S.streak+'</span>':'')
+        + '<span class="tag">פוטנציאל ~'+S.potential+'</span>'
+      + '</div>'
+    + '</div></div>'
+
+    + '<div class="p"><h3>מגמת ציונים <span class="r">10 אחרונים</span></h3>'
+    + '<div class="pb"><div class="sparks">'+spark+'</div></div></div>'
+
+    + '<div class="p"><h3>הישגים <span class="r">'+earned.length+'/'+BADGES.length+'</span></h3><div class="pb">'
+      + (earned.length ? '<div class="badges">'+earned.map(function(b){
+          return '<span class="bdg" title="'+b.d+'">🏅 '+b.n+'</span>';
+        }).join("")+'</div>' : '<div class="empty">עוד לא נפתחו הישגים.</div>')
+      + (next.length ? '<p class="lbl" style="margin:12px 0 6px">הבאים בתור</p>'
+          + next.map(function(b){
+              return '<div class="kv"><span>'+b.n+'</span><span class="muted xs">'+b.d+'</span></div>';
+            }).join("") : "")
+    + '</div></div>'
+
     + '<div class="p"><h3>KPI לפי תפקיד</h3><div class="pb">'
       + p.kpi.map(function(k,i){
-          var pct = clamp(Math.round(30 + (avgRating()-6)*28 + (i===2?-14:i*7) + S.a.tac/6), 5, 97);
+          var pct = clamp(Math.round(28 + (avgRating()-6)*26 + (i===2?-12:i*7) + o/4), 5, 97);
           return '<div style="margin-bottom:11px"><div class="kv" style="padding:0 0 5px"><span>'+k+'</span>'
             + '<b class="n">אחוזון '+pct+'</b></div><div class="bar"><i class="'+(pct<40?"w":"")+'" style="width:'+pct+'%"></i></div></div>';
         }).join("")
-      + '<p class="hint" style="margin:6px 0 0">מדדים לפי התפקיד שלך. בלם אינו נמדד בשערים, ושוער אינו נמדד ב-xG.</p>'
-    + '</div></div>'
-
-    + '<div class="p"><h3>מודיעין שנצבר</h3><div class="pb">'
-      + '<div class="kv"><span>▶ ניתוח וידאו</span>'+(S.prep.video?'<span class="tag ok">פעיל</span>':'<span class="tag">—</span>')+'</div>'
-      + '<div class="kv"><span>◈ ישיבת אנליסט</span>'+(S.prep.analyst?'<span class="tag ok">פעיל</span>':'<span class="tag">—</span>')+'</div>'
-      + '<div class="kv"><span>☰ מאמן עמדה</span>'+(S.prep.coach?'<span class="tag ok">פעיל</span>':'<span class="tag">—</span>')+'</div>'
-      + '<p class="hint" style="margin:9px 0 0">המודיעין נצרך במשחק הקרוב. יריב שהחליף מאמן מאפס אותו.</p>'
     + '</div></div>'
   + '</div></div>';
 }
@@ -885,7 +1329,7 @@ function viewCareer(){
   var intHtml = S.interest.length ? S.interest.map(function(x){
     var lv = ["","בירור ראשוני","סקאוט בדרך","הצעה אפשרית"][x.lvl];
     var cls = ["","","w","ok"][x.lvl];
-    return '<div class="kv"><span><span class="sw" style="background:'+x.c+'"></span><b>'+x.n+'</b> · '+x.lg+'</span>'
+    return '<div class="kv"><span><span class="sw" style="background:'+x.c+'"></span><b><bdi>'+x.n+'</bdi></b> · <bdi>'+x.lg+'</bdi></span>'
       + '<span class="tag '+cls+'">'+lv+'</span></div>';
   }).join("") : '<div class="empty">אף אחד לא מסתכל עדיין.<br>דקות ודוחות תפקיד הם מה שפותח את השוק.</div>';
 
@@ -918,6 +1362,39 @@ function bind(){
   });
   var pl = document.getElementById("play"); if(pl) pl.onclick = startWeek;
   var cl = document.getElementById("clear"); if(cl) cl.onclick = function(){ S.picked=[]; render(); };
+
+  Array.prototype.forEach.call(stage.querySelectorAll(".spend"), function(b){
+    b.onclick = function(){
+      var k = b.getAttribute("data-k");
+      var v = Math.floor(S.a[k]);
+      var cost = tpCost(v);
+      if(S.tp < cost || v >= 99) return;
+      var before = ovr(), beforeE = ovrExact(), bv = value();
+      S.tp -= cost;
+      S.a[k] = Math.min(99, Math.floor(S.a[k]) + 1);
+      /* spillover: drilling one thing lifts its siblings a little */
+      GRP[ATTR[k].g].subs.forEach(function(sib){
+        if(sib !== k && S.a[sib] !== undefined) S.a[sib] = clamp(S.a[sib] + 0.4, 1, 99);
+      });
+      var after = ovr();
+      render();
+      if(after > before){
+        S.valuePrev = bv;
+        flashOvr();
+        toast("OVR " + before + " → " + after + "   ·   " + money(value()));
+      } else {
+        var d = (ovrExact() - beforeE);
+        toast(ATTR[k].n + " " + v + " → " + (v+1) + "   ·   OVR +" + d.toFixed(2));
+      }
+      var got = checkBadges();
+      if(got.length) setTimeout(function(){ showBadge(got[0]); }, 320);
+    };
+  });
+}
+
+function flashOvr(){
+  var el = document.getElementById("hOvr").parentNode;
+  el.classList.remove("up"); void el.offsetWidth; el.classList.add("up");
 }
 
 document.getElementById("hTheme").onclick = function(){
@@ -930,16 +1407,20 @@ document.getElementById("hTheme").onclick = function(){
    WEEK → MATCH
    ════════════════════════════════════════════════════════════════ */
 function startWeek(){
+  WEEK_GAINS = [];
+  var xp = 0;
   S.picked.forEach(function(id){
     var a = ACTIONS.filter(function(x){return x.id===id})[0];
-    if(a) a.run();
+    if(a){ a.run(); xp += (a.xp||0); }
   });
+  S.trainXp = xp;
+  S.trainGains = WEEK_GAINS.slice();
   S.fit   = clamp(S.fit - S.load*0.06 + 4, 25, 100);
   S.sharp = clamp(S.sharp - 3, 0, 100);
   S.load  = clamp(S.load, 0, 100);
   S.morale= clamp(S.morale - 1, 0, 100);
 
-  if(S.load > 82 && rnd() < 0.28){
+  if(S.load > 86 && rnd() < 0.17){
     var wks = ri(1,3);
     push("פציעה: מתיחה בירך. " + wks + " שבועות בחוץ. העומס לא היה סוד.", "b");
     S.load = 30; S.fit = 55; S.sharp = 30; S.trust -= 2;
@@ -973,7 +1454,7 @@ function openMatch(){
     events:[], moments:[], mi:0,
     onPitch: exp.start, entryMin: exp.start ? 0 : ri(55,75),
     mins: exp.mins, playing: exp.mins>0,
-    score:0, count:0, keyActs:[],
+    score:0, count:0, gAdded:0, aAdded:0,
     running:false, timer:null
   };
 
@@ -985,7 +1466,7 @@ function openMatch(){
   document.body.appendChild(el);
   paintPitch();
   document.getElementById("mStart").onclick = runClock;
-  document.getElementById("mSkip").onclick = function(){ while(M.min<90 && M.running===false){ } skipToEnd(); };
+  document.getElementById("mSkip").onclick = skipToEnd;
 }
 
 function buildMoments(exp){
@@ -1172,7 +1653,7 @@ function tickMatch(){
     return;
   }
 
-  if(rnd() < 0.055){
+  if(rnd() < 0.028){
     var homeStr = (M.home.rep + (M.home===M.me?6:0));
     var awayStr = (M.away.rep + (M.away===M.me?6:0));
     var hs = rnd() < homeStr/(homeStr+awayStr);
@@ -1194,13 +1675,13 @@ function skipToEnd(){
     if(!m.done){
       m.done = true;
       // auto-resolve at tactical difficulty: attribute-driven, no penalty
-      var q = 0.42 + (S.a.tac/240) + (S.sharp/400);
+      var q = 0.42 + (iq()/240) + (S.sharp/400);
       resolveMoment(null, q>0.62?"good":"ok", true);
     }
   });
   while(M.min<90){
     M.min++;
-    if(rnd()<0.05){
+    if(rnd()<0.028){
       var hs = rnd()<0.5;
       if(hs) M.hg++; else M.ag++;
     }
@@ -1216,56 +1697,56 @@ var MO = null;
 var SITS = {
   ST:[
     {t:"גב לשער, לחץ מאחור", s:"קיבלת ברגל שמאל בקצה הקופסה. הבלם צמוד.", ch:[
-      {b:"להסתובב ולבעוט", d:"סיכון גבוה · אזור צר", w:-6, at:"tec"},
-      {b:"להוריד לקשר ולרוץ", d:"בטוח · שומר החזקה", w:8, at:"tac"}
-    ], unl:{b:"סיבוב ראשון פנימה", d:"נפתח מהאנליסט — הוא נצמד מוקדם מדי", w:2, at:"tec", big:true}},
+      {b:"להסתובב ולבעוט", d:"סיכון גבוה · אזור צר", w:-6, at:"fin"},
+      {b:"להוריד לקשר ולרוץ", d:"בטוח · שומר החזקה", w:8, at:"spa"}
+    ], unl:{b:"סיבוב ראשון פנימה", d:"נפתח מהאנליסט — הוא נצמד מוקדם מדי", w:2, at:"cmp", big:true}},
     {t:"כדור רוחב מהאגף", s:"הכדור בדרך לעמוד הרחוק. שני מגנים בפנים.", ch:[
-      {b:"נגיחה ראשונה", d:"תזמון קשה · תשואה גבוהה", w:-4, at:"phy"},
-      {b:"לרדת לקו הפנדל", d:"מרחב · פחות זווית", w:6, at:"tac"}
-    ], unl:{b:"לקצר את הריצה לעמוד הקרוב", d:"נפתח מווידאו — השוער יוצא מאוחר", w:0, at:"phy", big:true}}
+      {b:"נגיחה ראשונה", d:"תזמון קשה · תשואה גבוהה", w:-4, at:"hdr"},
+      {b:"לרדת לקו הפנדל", d:"מרחב · פחות זווית", w:6, at:"cmp"}
+    ], unl:{b:"לקצר את הריצה לעמוד הקרוב", d:"נפתח מווידאו — השוער יוצא מאוחר", w:0, at:"acc", big:true}}
   ],
   W:[
     {t:"אחד על אחד באגף", s:"המגן פתוח פנימה. הקו פנוי מאחוריו.", ch:[
-      {b:"לעבור מבחוץ ולהזין", d:"קלאסי · המגן מוכן", w:2, at:"phy"},
-      {b:"לחתוך פנימה ולבעוט", d:"רגל חזקה · צפוי", w:-4, at:"tec"}
-    ], unl:{b:"כדור עומק בין המגן לבלם", d:"נפתח מהאנליסט — הם לא מתקנים", w:4, at:"tac", big:true}},
+      {b:"לעבור מבחוץ ולהזין", d:"קלאסי · המגן מוכן", w:2, at:"crs"},
+      {b:"לחתוך פנימה ולבעוט", d:"רגל חזקה · צפוי", w:-4, at:"drb"}
+    ], unl:{b:"כדור עומק בין המגן לבלם", d:"נפתח מהאנליסט — הם לא מתקנים", w:4, at:"vis", big:true}},
     {t:"מעבר מהיר", s:"שלושה מולם שניים. חבר רץ בפנים.", ch:[
-      {b:"למסור לרץ בפנים", d:"תזמון · בישול אפשרי", w:5, at:"tac"},
-      {b:"להאט ולחכות לתמיכה", d:"בטוח · מבטל את המעבר", w:12, at:"men"}
+      {b:"למסור לרץ בפנים", d:"תזמון · בישול אפשרי", w:5, at:"vis"},
+      {b:"להאט ולחכות לתמיכה", d:"בטוח · מבטל את המעבר", w:12, at:"cmp"}
     ], unl:null}
   ],
   CM:[
     {t:"כדור מגיע תחת לחץ", s:"אתה מקבל עם הגב, קשר יריב מגיע מהצד העיוור.", ch:[
-      {b:"נגיעה ראשונה החוצה", d:"פותח מרחב · סיכון איבוד", w:-2, at:"tec"},
-      {b:"מסירה קצרה אחורה", d:"בטוח · לא מקדם", w:12, at:"tac"}
-    ], unl:{b:"סיבוב וכדור עומק", d:"נפתח מווידאו — הקו שלהם גבוה", w:-1, at:"tec", big:true}},
+      {b:"נגיעה ראשונה החוצה", d:"פותח מרחב · סיכון איבוד", w:-2, at:"ctl"},
+      {b:"מסירה קצרה אחורה", d:"בטוח · לא מקדם", w:12, at:"spa"}
+    ], unl:{b:"סיבוב וכדור עומק", d:"נפתח מווידאו — הקו שלהם גבוה", w:-1, at:"lpa", big:true}},
     {t:"שינוי צד", s:"הצד שלך צפוף. האגף הרחוק פנוי לגמרי.", ch:[
-      {b:"כדור ארוך מסובב", d:"מרשים · קשה לביצוע", w:-5, at:"tec"},
-      {b:"שתי מסירות דרך הבלם", d:"איטי אבל בטוח", w:10, at:"tac"}
+      {b:"כדור ארוך מסובב", d:"מרשים · קשה לביצוע", w:-5, at:"lpa"},
+      {b:"שתי מסירות דרך הבלם", d:"איטי אבל בטוח", w:10, at:"spa"}
     ], unl:null},
     {t:"רגע ללא כדור", s:"היריב יוצא מהגנה. יש קו מסירה פתוח לקשר שלהם.", ch:[
-      {b:"לסגור את קו המסירה", d:"משמעת · לא נראה בסטטיסטיקה", w:8, at:"tac"},
-      {b:"לקפוץ על הכדור", d:"חטיפה גדולה או חור ענק", w:-8, at:"phy"}
-    ], unl:{b:"להזיז את היחידה ולסגור יחד", d:"נפתח ממאמן העמדה", w:6, at:"men", big:true}}
+      {b:"לסגור את קו המסירה", d:"משמעת · לא נראה בסטטיסטיקה", w:8, at:"itc"},
+      {b:"לקפוץ על הכדור", d:"חטיפה גדולה או חור ענק", w:-8, at:"tkl"}
+    ], unl:{b:"להזיז את היחידה ולסגור יחד", d:"נפתח ממאמן העמדה", w:6, at:"vis", big:true}}
   ],
   CB:[
     {t:"כדור ארוך מגיע", s:"החלוץ שלהם מקדים אותך בחצי צעד.", ch:[
-      {b:"לתקוף את הכדור", d:"נגיחה · אם תפספס זה חור", w:-3, at:"phy"},
-      {b:"לרדת ולכסות", d:"בטוח · הוא מקבל ומסתובב", w:9, at:"tac"}
-    ], unl:{b:"קו נבדל — לעלות יחד", d:"נפתח מתוכנית המשחק", w:3, at:"men", big:true}},
+      {b:"לתקוף את הכדור", d:"נגיחה · אם תפספס זה חור", w:-3, at:"hdr"},
+      {b:"לרדת ולכסות", d:"בטוח · הוא מקבל ומסתובב", w:9, at:"mrk"}
+    ], unl:{b:"קו נבדל — לעלות יחד", d:"נפתח מתוכנית המשחק", w:3, at:"itc", big:true}},
     {t:"יציאה מלחץ", s:"שני חלוצים לוחצים. השוער מחכה.", ch:[
-      {b:"למסור פנימה לקשר האחורי", d:"שובר לחץ · סיכון גבוה", w:-4, at:"tec"},
-      {b:"להוציא ארוך לקו", d:"מוותר על החזקה", w:14, at:"phy"}
+      {b:"למסור פנימה לקשר האחורי", d:"שובר לחץ · סיכון גבוה", w:-4, at:"spa"},
+      {b:"להוציא ארוך לקו", d:"מוותר על החזקה", w:14, at:"lpa"}
     ], unl:null}
   ],
   GK:[
     {t:"כדור רוחב לרחבה", s:"הזנה גבוהה, שלושה גופים בקופסה.", ch:[
-      {b:"לצאת ולאגרף", d:"נועז · אם תחטיא זה שער", w:-6, at:"phy"},
-      {b:"לעמוד על הקו", d:"בטוח · מוותר על שליטה", w:9, at:"men"}
-    ], unl:{b:"לצעוק קו ולצאת מוקדם", d:"נפתח מווידאו — הם מחפשים עמוד רחוק", w:2, at:"men", big:true}},
+      {b:"לצאת ולאגרף", d:"נועז · אם תחטיא זה שער", w:-6, at:"ghan"},
+      {b:"לעמוד על הקו", d:"בטוח · מוותר על שליטה", w:9, at:"gpos"}
+    ], unl:{b:"לצעוק קו ולצאת מוקדם", d:"נפתח מווידאו — הם מחפשים עמוד רחוק", w:2, at:"gref", big:true}},
     {t:"אחד על אחד", s:"החלוץ נכנס לקופסה מזווית צרה.", ch:[
-      {b:"לצמצם זווית ולחכות", d:"נכון ברוב המקרים", w:6, at:"men"},
-      {b:"לצאת לרגליים", d:"או הצלה או פנדל", w:-7, at:"phy"}
+      {b:"לצמצם זווית ולחכות", d:"נכון ברוב המקרים", w:6, at:"gpos"},
+      {b:"לצאת לרגליים", d:"או הצלה או פנדל", w:-7, at:"gdiv"}
     ], unl:null}
   ]
 };
@@ -1274,10 +1755,9 @@ function openMoment(m){
   var pool = SITS[S.pos];
   var sit = pool[ri(0, pool.length-1)];
 
-  var readBase = 1.0 + S.a.tac/120 + (S.prep.video?0.4:0) - (1 - S.fit/100)*0.6 - (S.load/100)*0.4;
+  var readBase = 1.0 + iq()/120 + (S.prep.video?0.4:0) - (1 - S.fit/100)*0.6 - (S.load/100)*0.4;
   var readTime = clamp(readBase, 0.6, 2.6);
 
-  var atv = S.a[sit.ch[0].at] || 45;
   var choices = sit.ch.slice();
   if(sit.unl && S.prep.analyst) choices.push(sit.unl);
   if(sit.unl && !S.prep.analyst && sit.unl.big && S.prep.coach) choices.push(sit.unl);
@@ -1450,10 +1930,10 @@ function resolveMoment(choice, grade, silent){
   if(grade==="great" && risky && rnd()<0.42){
     if(S.pos==="ST" || S.pos==="W"){
       if(M.me===M.home){M.hg++;} else {M.ag++;}
-      S.goals++; outcome = " שער!";
+      S.goals++; S.careerGoals++; M.gAdded++; outcome = " שער!";
       if(!silent) addEv(M.min, "שער שלך! "+M.home.ab+" "+M.hg+"–"+M.ag+" "+M.away.ab, "goal");
     } else {
-      S.assists++; outcome = " בישול!";
+      S.assists++; S.careerAssists++; M.aAdded++; outcome = " בישול!";
       if(M.me===M.home){M.hg++;} else {M.ag++;}
       if(!silent) addEv(M.min, "בישול שלך — הכדור מגיע ומסתיים ברשת.", "goal");
     }
@@ -1508,7 +1988,10 @@ function finishMatch(){
   simRound(S.club);
 
   if(M.playing){
-    S.apps++; S.minutes += M.mins; S.ratings.push(rating);
+    S.apps++; S.careerApps++; S.minutes += M.mins; S.ratings.push(rating);
+    if(rating > S.bestRating) S.bestRating = rating;
+    S.streak = rating >= 7 ? S.streak + 1 : 0;
+    if(S.streak > S.bestStreak) S.bestStreak = S.streak;
     var dTrust = (rating-6.6)*4.2 + (myG>opG?1.5:(myG<opG?-0.8:0.3));
     S.trust = clamp(S.trust + dTrust, 0, 100);
     S.sharp = clamp(S.sharp + 9, 0, 100);
@@ -1529,7 +2012,43 @@ function finishMatch(){
     }
   }
 
-  showPostMatch(rating, myG, opG, scoutHit);
+  /* ── rewards ─────────────────────────────────────────────────── */
+  var ovrBefore = ovr();
+  S.valuePrev = value();
+
+  var xp = S.trainXp || 0;
+  var xpRows = [];
+  if(S.trainXp) xpRows.push({l:"אימוני השבוע", v:S.trainXp});
+
+  var matchGains = [];
+  if(M.playing){
+    var mx = 40 + Math.round(M.mins*0.9) + Math.round(Math.max(0,(rating-6))*70);
+    xpRows.push({l:M.mins+" דקות משחק", v:40 + Math.round(M.mins*0.9)});
+    if(rating>6) xpRows.push({l:"ציון "+rating.toFixed(1), v:Math.round((rating-6)*70)});
+    xp += mx;
+    if(M.gAdded){ xp += M.gAdded*120; xpRows.push({l:M.gAdded+" שערים", v:M.gAdded*120}); }
+    if(M.aAdded){ xp += M.aAdded*80;  xpRows.push({l:M.aAdded+" בישולים", v:M.aAdded*80}); }
+    if(myG>opG){ xp += 60; xpRows.push({l:"ניצחון", v:60}); }
+    if(S.streak>=3){ xp += 50*S.streak; xpRows.push({l:"רצף "+S.streak+" משחקים", v:50*S.streak}); }
+
+    /* learning by doing: the attributes you actually leaned on this match */
+    var used = POS[S.pos].key.slice(0, 3);
+    matchGains = grow(used, 0.16 + Math.max(0, rating-6.5)*0.22);
+  }
+
+  (S.trainGains||[]).forEach(function(g){ matchGains.push(g); });
+
+  var levels = addXp(xp);
+  var ovrAfter = ovr();
+  S.ovrPrev = ovrBefore;
+
+  var badges = checkBadges();
+
+  showPostMatch(rating, myG, opG, scoutHit, {
+    xp:xp, rows:xpRows, levels:levels, gains:matchGains,
+    ovrBefore:ovrBefore, ovrAfter:ovrAfter, badges:badges
+  });
+  S.trainXp = 0; S.trainGains = [];
 }
 
 function applyResult(a, b, ga, gb){
@@ -1553,10 +2072,23 @@ function simRound(skipId){
   }
 }
 
-function showPostMatch(rating, myG, opG, scoutHit){
+function showPostMatch(rating, myG, opG, scoutHit, R){
   var res = myG>opG ? "ניצחון" : (myG<opG ? "הפסד" : "תיקו");
   var cls = rating>=7.4?"":(rating>=6.5?"g":(rating>=5.8?"w":"b"));
   var prevTrust = S.trust;
+  R = R || {xp:0, rows:[], levels:0, gains:[], ovrBefore:ovr(), ovrAfter:ovr(), badges:[]};
+
+  var gainHtml = R.gains.length
+    ? R.gains.map(function(g){
+        return '<span class="gain">+'+g.amount+' '+ATTR[g.k].n+'</span>';
+      }).join("")
+    : '<span class="muted xs">אין שיפור מדיד השבוע — צריך יותר עומס אימון או יותר דקות.</span>';
+
+  var rowsHtml = R.rows.map(function(r){
+    return '<div class="kv"><span>'+r.l+'</span><b class="n" style="color:var(--accent)">+'+r.v+'</b></div>';
+  }).join("");
+
+  var dv = value() - S.valuePrev;
 
   var el = document.getElementById("matchLayer");
   el.innerHTML = ''
@@ -1580,16 +2112,45 @@ function showPostMatch(rating, myG, opG, scoutHit){
         : '<div class="empty">לא היית בסגל. הצפייה מהיציע היא גם מידע — האמון ירד מעט.</div>')
     + '</div></div>'
 
+    + '<div class="p rewards"><h3>התקדמות</h3><div class="pb">'
+      + '<div class="xpbig">'
+        + '<div class="xphead"><span class="lbl">ניסיון שנצבר</span>'
+          + '<b class="n" id="xpCount">+0</b></div>'
+        + '<div class="xpbar big"><i id="pmXp" style="width:'+clamp((S.xp/xpNeed(S.level))*100,0,100)+'%"></i></div>'
+        + '<div class="xpfoot"><span class="n">רמה '+S.level+'</span>'
+          + '<span class="n">'+Math.round(S.xp)+' / '+xpNeed(S.level)+' XP</span></div>'
+      + '</div>'
+      + '<div class="rewgrid">'
+        + '<div>'+ (rowsHtml || '<span class="muted xs">אין XP השבוע.</span>') +'</div>'
+        + '<div>'
+          + '<div class="ovrdelta">'
+            + '<span class="lbl">OVR</span>'
+            + '<b class="n">'+R.ovrBefore+(R.ovrAfter>R.ovrBefore?' <em>→ '+R.ovrAfter+'</em>':'')+'</b>'
+          + '</div>'
+          + '<div class="ovrdelta">'
+            + '<span class="lbl">שווי שוק</span>'
+            + '<b class="n">'+money(value())
+              + (Math.abs(dv)>value()*0.005 ? ' <em class="'+(dv>0?"up":"dn")+'">'+(dv>0?"▲":"▼")+' '+money(Math.abs(dv))+'</em>' : '')
+            + '</b>'
+          + '</div>'
+          + (S.tp>0 ? '<div class="tpline">🎁 '+S.tp+' נקודות אימון ממתינות</div>' : '')
+        + '</div>'
+      + '</div>'
+      + '<p class="lbl" style="margin:14px 0 7px">שיפור תכונות</p>'
+      + '<div class="gains">'+gainHtml+'</div>'
+    + '</div></div>'
+
     + '<div class="grid g2">'
       + '<div class="p"><h3>מה המאמן ראה</h3><div class="pb">'
         + '<p style="margin:0 0 10px;font-size:13.5px;line-height:1.55">'+coachLine(rating, myG>opG)+'</p>'
         + '<div class="kv"><span>אמון המאמן</span><b class="n">'+Math.round(S.trust)+'</b></div>'
         + '<div class="kv"><span>חדות</span><b class="n">'+Math.round(S.sharp)+'%</b></div>'
         + '<div class="kv"><span>עומס אחרי המשחק</span><b class="n">'+Math.round(S.load)+'%</b></div>'
+        + (S.streak>=2?'<div class="kv"><span>רצף</span><b style="color:var(--gold)">🔥 '+S.streak+' משחקים מעל 7.0</b></div>':'')
       + '</div></div>'
       + '<div class="p"><h3>שוק</h3><div class="pb">'
         + (scoutHit
-          ? '<p style="margin:0;font-size:13.5px;line-height:1.55">סקאוט מ־<b>'+S.interest[S.interest.length-1].n+'</b> ישב ביציע. הסוכן קיבל איתות — לא הצעה.</p>'
+          ? '<p style="margin:0;font-size:13.5px;line-height:1.55">סקאוט מ־<b><bdi>'+S.interest[S.interest.length-1].n+'</bdi></b> ישב ביציע. הסוכן קיבל איתות — לא הצעה.</p>'
           : '<p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink3)">אין תנועה בשוק אחרי המשחק הזה. מדגם אחד לא מזיז תיק גיוס.</p>')
       + '</div></div>'
     + '</div>'
@@ -1598,6 +2159,67 @@ function showPostMatch(rating, myG, opG, scoutHit){
   + '</div></div>';
 
   document.getElementById("pmNext").onclick = nextWeek;
+
+  /* animated reward sequence */
+  setTimeout(function(){ countXp(R.xp); }, 260);
+  var q = 900;
+  if(R.ovrAfter > R.ovrBefore){
+    setTimeout(function(){ showOvrUp(R.ovrBefore, R.ovrAfter); }, q); q += 2200;
+  }
+  if(R.levels > 0){
+    setTimeout(function(){ showLevelUp(R.levels); }, q); q += 2200;
+  }
+  (R.badges||[]).forEach(function(b){
+    setTimeout(function(){ showBadge(b); }, q); q += 2000;
+  });
+}
+
+function countXp(total){
+  var el = document.getElementById("xpCount");
+  var bar = document.getElementById("pmXp");
+  if(!el) return;
+  var t0 = performance.now(), dur = 1100;
+  var startPct = parseFloat(bar.style.width) || 0;
+  var endPct = clamp((S.xp/xpNeed(S.level))*100, 0, 100);
+  (function step(now){
+    var k = clamp((now-t0)/dur, 0, 1);
+    var e = 1 - Math.pow(1-k, 3);
+    el.textContent = "+" + Math.round(total*e);
+    bar.style.width = (startPct + (endPct-startPct)*e) + "%";
+    if(k < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+/* ── celebration overlays ──────────────────────────────────────── */
+function celebrate(html, cls){
+  var el = document.createElement("div");
+  el.className = "celeb " + (cls||"");
+  el.innerHTML = '<div class="celebcard">'+html+'</div>';
+  document.body.appendChild(el);
+  el.onclick = function(){ el.remove(); };
+  setTimeout(function(){ if(el.parentNode) el.remove(); }, 1900);
+}
+
+function showOvrUp(a, b){
+  celebrate(
+    '<span class="ctag">דירוג כללי עלה</span>'
+    + '<div class="cbig n">'+a+' <em>→</em> '+b+'</div>'
+    + '<div class="csub">'+money(value())+' שווי שוק</div>', "gold");
+  flashOvr();
+}
+
+function showLevelUp(n){
+  celebrate(
+    '<span class="ctag">עלית רמה</span>'
+    + '<div class="cbig n">רמה '+S.level+'</div>'
+    + '<div class="csub">🎁 '+S.tp+' נקודות אימון לחלוקה</div>', "green");
+}
+
+function showBadge(b){
+  celebrate(
+    '<span class="ctag">הישג חדש</span>'
+    + '<div class="cbig" style="font-size:34px">🏅 '+b.n+'</div>'
+    + '<div class="csub">'+b.d+'</div>', "gold");
 }
 
 function reportLine(r){
@@ -1643,13 +2265,14 @@ function endSeason(){
     + '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">'
     + '<span class="tag">'+S.apps+' הופעות</span><span class="tag">'+S.minutes+' דקות</span>'
     + '<span class="tag g">'+S.goals+' שערים</span><span class="tag g">'+S.assists+' בישולים</span>'
-    + '<span class="tag '+(S.trust>=55?"ok":"w")+'">אמון '+Math.round(S.trust)+'</span></div>'
+    + '<span class="tag '+(S.trust>=55?"ok":"w")+'">אמון '+Math.round(S.trust)+'</span>'
+    + '<span class="tag">OVR '+ovr()+'</span><span class="tag g">'+money(value())+'</span></div>'
     + '</div></div>'
     + '<p class="hint" style="margin:13px 0 0">'+seasonVerdict(place)+'</p>'
   + '</div></div>'
   + '<div class="p"><h3>מי מסתכל</h3><div class="pb">'
     + (S.interest.length ? S.interest.map(function(x){
-        return '<div class="kv"><span><span class="sw" style="background:'+x.c+'"></span><b>'+x.n+'</b> · '+x.lg+'</span>'
+        return '<div class="kv"><span><span class="sw" style="background:'+x.c+'"></span><b><bdi>'+x.n+'</bdi></b> · <bdi>'+x.lg+'</bdi></span>'
           + '<span class="tag '+["","","w","ok"][x.lvl]+'">'+["","בירור","סקאוט","הצעה"][x.lvl]+'</span></div>';
       }).join("") : '<div class="empty">אף אחד. עונה נוספת.</div>')
   + '</div></div>'
@@ -1660,8 +2283,19 @@ function endSeason(){
   document.getElementById("nsBtn").onclick = function(){
     el.remove();
     S.season++; S.age++; S.week=1; S.apps=0; S.minutes=0; S.goals=0; S.assists=0;
+    S.lastSeasonRating = S.ratings.length ? avgRating() : (S.lastSeasonRating || 6.6);
     S.ratings=[]; S.picked=[]; S.inbox=[]; S.seen=0;
-    S.a.tec+=ri(0,2); S.a.tac+=ri(1,3); S.a.phy+=ri(0,2); S.a.men+=ri(0,2);
+    /* off-season development: driven by minutes played, capped by potential.
+       After 30 the physical attributes start going the other way. */
+    var devKeys = Object.keys(ATTR).filter(function(k){ return S.a[k] > 25; });
+    var mins = S.minutes;
+    grow(devKeys, 0.5 + clamp(mins/1200, 0, 1.6));
+    if(S.age >= 30){
+      ["acc","spd","sta","jmp","agi"].forEach(function(k){
+        if(S.a[k]) S.a[k] = clamp(S.a[k] - (1 + (S.age-30)*0.45), 1, 99);
+      });
+    }
+    S.tp += 3;
     S.fit=88; S.sharp=45; S.load=15;
     S.contractYears=Math.max(0,S.contractYears-1);
     if(S.trust>62){ S.status="מסובב ראשון"; S.wage+=ri(2,5); }
