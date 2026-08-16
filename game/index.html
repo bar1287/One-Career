@@ -354,7 +354,37 @@ button{font:inherit;color:inherit}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
 th,td{padding:6px 9px;text-align:start;border-bottom:1px solid var(--line)}
 th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:800}
-td.r{text-align:end;font-variant-numeric:tabular-nums}
+td.r{text-align:end;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+
+/* league switcher */
+.lgtabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.lgtab{
+  border:1px solid var(--line2);background:var(--surface);border-radius:99px;
+  padding:7px 14px;font-size:12.5px;font-weight:750;cursor:pointer;transition:all .14s;
+}
+.lgtab:hover{background:var(--hover)}
+.lgtab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* news feed */
+.newsrow{
+  display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.45;
+  padding:8px 10px;border-radius:8px;background:var(--sunken);border:1px solid var(--line);
+}
+.newsrow.w{background:var(--warn-soft);border-color:var(--warn);color:var(--warn-ink)}
+.newsrow.b{background:var(--bad-soft);border-color:var(--bad);color:var(--bad-ink)}
+.newsrow.ok{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+.newsrow .nw{flex:0 0 32px;font-size:10.5px;font-weight:900;color:var(--ink3);padding-top:1px}
+
+/* transfer offers */
+.offer{border:1px solid var(--line2);border-radius:11px;padding:13px;margin-bottom:11px;background:var(--surface)}
+.ohead{display:flex;align-items:center;gap:11px;margin-bottom:11px}
+.ohead b{display:block;font-size:15px;font-weight:850}
+.ohead span{display:block;font-size:11.5px;color:var(--ink3);font-weight:700}
+.ocrest{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:12px;font-weight:900;flex:0 0 auto}
+.oterms{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:11px}
+@media (max-width:640px){.oterms{grid-template-columns:repeat(2,1fr)}}
+.oterms>div{background:var(--sunken);border-radius:8px;padding:7px 9px}
+.oterms b{display:block;font-size:14px;font-weight:900;margin-top:2px;direction:ltr;unicode-bidi:isolate}
 tr.me{background:var(--accent-soft)}
 tr.me td{font-weight:850;color:var(--accent-ink)}
 tr.cl{box-shadow:inset 3px 0 0 var(--gold)}
@@ -617,6 +647,7 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
     <div class="pill n"><i>עונה</i><span id="hSeason">1</span></div>
     <div class="pill n"><i>מחזור</i><span id="hWeek">1</span></div>
     <div class="pill n"><i>גיל</i><span id="hAge">18</span></div>
+    <button class="iconbtn" id="hRead" title="זמן קריאה ברגעי משחק">⏱</button>
     <button class="iconbtn" id="hTheme" title="ערכת נושא" aria-label="החלף ערכת נושא">◐</button>
   </header>
 
@@ -631,30 +662,94 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 /* ══════════════════════════════════════════════════════════════════
    DATA — real clubs, trimmed from data/leagues/*.json
    ════════════════════════════════════════════════════════════════ */
-var LIGAT = [
-  {id:"mta", n:"מכבי תל אביב",       ab:"MTA", c:"#FFDD00", t:"#3A3000", rep:53},
-  {id:"mha", n:"מכבי חיפה",          ab:"MHA", c:"#008D36", t:"#fff",    rep:52},
-  {id:"hbs", n:"הפועל באר שבע",      ab:"HBS", c:"#E4002B", t:"#fff",    rep:48},
-  {id:"bei", n:"בית\"ר ירושלים",     ab:"BEI", c:"#FFDD00", t:"#3A3000", rep:43},
-  {id:"hta", n:"הפועל תל אביב",      ab:"HTA", c:"#E4002B", t:"#fff",    rep:38},
-  {id:"hha", n:"הפועל חיפה",         ab:"HHA", c:"#E4002B", t:"#fff",    rep:36},
-  {id:"mne", n:"מכבי נתניה",         ab:"MNE", c:"#FFDD00", t:"#3A3000", rep:35},
-  {id:"sak", n:"בני סכנין",          ab:"SAK", c:"#E4002B", t:"#fff",    rep:32},
-  {id:"iks", n:"עירוני קרית שמונה",  ab:"IKS", c:"#E4002B", t:"#fff",    rep:32},
-  {id:"ash", n:"מ.ס. אשדוד",         ab:"ASH", c:"#FFDD00", t:"#3A3000", rep:31},
-  {id:"hje", n:"הפועל ירושלים",      ab:"HJE", c:"#E4002B", t:"#fff",    rep:30},
-  {id:"hpt", n:"הפועל פתח תקווה",    ab:"HPT", c:"#008D36", t:"#fff",    rep:29},
-  {id:"itb", n:"עירוני טבריה",       ab:"ITB", c:"#0A3A7A", t:"#fff",    rep:27},
-  {id:"mbr", n:"מכבי בני ריינה",     ab:"MBR", c:"#008D36", t:"#fff",    rep:27}
-];
-var EURO = [
-  {n:"LOSC ליל",        ab:"LIL", c:"#E4002B", lg:"ליג 1",       rep:74},
-  {n:"פיינורד",         ab:"FEY", c:"#E4002B", lg:"ארדיוויזי",   rep:66},
-  {n:"אאוקסר",          ab:"AJA", c:"#0055A5", lg:"ליג 1",       rep:56},
-  {n:"קיילקו וניציה",   ab:"VEN", c:"#F58220", lg:"סריה B",      rep:44},
-  {n:"הנובר 96",        ab:"H96", c:"#009641", lg:"בונדסליגה 2", rep:47},
-  {n:"קווינס פארק",     ab:"QPR", c:"#1D5BA4", lg:"צ'מפיונשיפ",  rep:52}
-];
+/* ══════════════════════════════════════════════════════════════════
+   THE WORLD — 7 real divisions, 126 real clubs.
+   Rows are "id|name|abbr|colour|reputation"; text colour is derived.
+   ════════════════════════════════════════════════════════════════ */
+var LEAGUES = {
+  isr1:{n:"ליגת העל", cc:"ISR", flag:"🇮🇱", tier:1, rounds:14, ucl:1, uel:1, uecl:2, raw:
+    "mta|מכבי תל אביב|MTA|#FFDD00|53;mha|מכבי חיפה|MHA|#008D36|52;hbs|הפועל באר שבע|HBS|#E4002B|48;"+
+    "bei|בית\"ר ירושלים|BEI|#FFDD00|43;hta|הפועל תל אביב|HTA|#E4002B|38;hha|הפועל חיפה|HHA|#E4002B|36;"+
+    "mne|מכבי נתניה|MNE|#FFDD00|35;sak|בני סכנין|SAK|#E4002B|32;iks|עירוני קרית שמונה|IKS|#E4002B|32;"+
+    "ash|מ.ס. אשדוד|ASH|#FFDD00|31;hje|הפועל ירושלים|HJE|#E4002B|30;hpt|הפועל פתח תקווה|HPT|#008D36|29;"+
+    "itb|עירוני טבריה|ITB|#0A3A7A|27;mbr|מכבי בני ריינה|MBR|#008D36|27"},
+
+  isr2:{n:"ליגה לאומית", cc:"ISR", flag:"🇮🇱", tier:2, rounds:14, raw:
+    "mpt|מכבי פתח תקווה|MPT|#003DA5|25;byt|בני יהודה|BYT|#F58220|24;hhd|הפועל חדרה|HHD|#E4002B|24;"+
+    "hks|הפועל כפר סבא|HKS|#008D36|22;hrg|הפועל רמת גן|HRG|#E4002B|19;snt|סקציה נס ציונה|SNT|#003DA5|18;"+
+    "mhe|מכבי הרצליה|MHE|#FFDD00|18;hak|הפועל עכו|HAK|#E4002B|18;hrl|הפועל ראשון לציון|HRL|#E4002B|18;"+
+    "hng|הפועל נוף הגליל|HNG|#E4002B|18;haf|הפועל עפולה|HAF|#E4002B|17;hra|הפועל רעננה|HRA|#E4002B|17;"+
+    "mkj|מכבי יפו|MKJ|#003DA5|16;kfq|כפר קאסם|KFQ|#003DA5|16;huf|הפועל אום אל־פחם|HUF|#008D36|15;"+
+    "ibs|אחוד בני שפרעם|IBS|#E4002B|15"},
+
+  eng1:{n:"פרמייר ליג", cc:"ENG", flag:"🏴", tier:1, rounds:14, ucl:5, uel:2, uecl:1, raw:
+    "mci|מנצ'סטר סיטי|MCI|#6CABDD|94;liv|ליברפול|LIV|#C8102E|93;ars|ארסנל|ARS|#EF0107|91;"+
+    "che|צ'לסי|CHE|#034694|88;mun|מנצ'סטר יונייטד|MUN|#DA291C|88;tot|טוטנהאם|TOT|#132257|84;"+
+    "new|ניוקאסל|NEW|#241F20|83;avl|אסטון וילה|AVL|#95BFE5|80;bha|ברייטון|BHA|#0057B8|75;"+
+    "whu|וסטהאם|WHU|#7A263A|75;nfo|נוטינגהאם פורסט|NFO|#DD0000|73;cry|קריסטל פאלאס|CRY|#1B458F|73;"+
+    "eve|אוורטון|EVE|#003399|73;ful|פולהאם|FUL|#8E8E8E|72;bou|בורנמות'|BOU|#DA291C|71;"+
+    "wol|וולבס|WOL|#FDB913|71;bre|ברנטפורד|BRE|#E30613|70;lee|לידס|LEE|#C8A200|70;"+
+    "sun|סנדרלנד|SUN|#EB172B|67;bur|ברנלי|BUR|#6C1D45|64"},
+
+  esp1:{n:"לה ליגה", cc:"ESP", flag:"🇪🇸", tier:1, rounds:14, ucl:5, uel:2, uecl:1, raw:
+    "rma|ריאל מדריד|RMA|#C8A200|96;bar|ברצלונה|BAR|#A50044|95;atm|אתלטיקו מדריד|ATM|#CB3524|89;"+
+    "ath|אתלטיק בילבאו|ATH|#EE2523|81;vil|ויאריאל|VIL|#C9A227|78;sev|סביליה|SEV|#D00027|77;"+
+    "bet|ריאל בטיס|BET|#00954C|76;rso|ריאל סוסיאדד|RSO|#0067B1|74;val|ולנסיה|VAL|#F18E00|72;"+
+    "cel|סלטה ויגו|CEL|#5EA3D8|68;gir|חירונה|GIR|#E4002B|67;esp|אספניול|ESP|#0072CE|65;"+
+    "osa|אוססונה|OSA|#D91A21|64;mll|מיורקה|MLL|#E20613|63;get|חטאפה|GET|#005999|63;"+
+    "ala|אלאבס|ALA|#0761AF|62;ray|ראיו ואייקאנו|RAY|#E53027|62;lev|לבנטה|LEV|#B4141E|58;"+
+    "elc|אלצ'ה|ELC|#009B48|57;ovi|ריאל אוביידו|OVI|#0067B1|54"},
+
+  ita1:{n:"סריה A", cc:"ITA", flag:"🇮🇹", tier:1, rounds:14, ucl:5, uel:2, uecl:1, raw:
+    "int|אינטר|INT|#0068A8|91;nap|נאפולי|NAP|#12A0D7|88;juv|יובנטוס|JUV|#2A2A2A|88;"+
+    "mil|מילאן|MIL|#FB090B|87;rom|רומא|ROM|#8E1F2F|82;ata|אטלנטה|ATA|#1E71B8|80;"+
+    "laz|לאציו|LAZ|#5BB8DE|76;fio|פיורנטינה|FIO|#59307F|75;bol|בולוניה|BOL|#9F1D35|72;"+
+    "tor|טורינו|TOR|#8A1538|65;com|קומו|COM|#003DA5|63;udi|אודינזה|UDI|#2A2A2A|63;"+
+    "gen|ג'נואה|GEN|#A21C25|63;cag|קליארי|CAG|#B01B2E|61;par|פארמה|PAR|#C9A227|60;"+
+    "ver|ורונה|VER|#C9A227|59;sas|ססואולו|SAS|#00A752|58;lec|לצ'ה|LEC|#C9A227|57;"+
+    "cre|קרמונזה|CRE|#E4002B|56;pis|פיזה|PIS|#2A2A2A|55"},
+
+  ger1:{n:"בונדסליגה", cc:"GER", flag:"🇩🇪", tier:1, rounds:14, ucl:5, uel:2, uecl:1, raw:
+    "fcb|באיירן מינכן|FCB|#DC052D|95;bvb|בורוסיה דורטמונד|BVB|#D4B800|86;b04|באייר לוורקוזן|B04|#E32221|85;"+
+    "rbl|לייפציג|RBL|#DD0741|80;sge|אייטרכט פרנקפורט|SGE|#E1000F|78;vfb|שטוטגרט|VFB|#E32219|74;"+
+    "scf|פרייבורג|SCF|#E2001A|70;bmg|מנשנגלדבאך|BMG|#2A2A2A|70;wob|וולפסבורג|WOB|#65B32E|67;"+
+    "svw|ורדר ברמן|SVW|#1D9053|66;hsv|המבורג|HSV|#0A2240|66;koe|קלן|KOE|#ED1C24|65;"+
+    "m05|מיינץ|M05|#C3141E|65;tsg|הופנהיים|TSG|#1C63B7|63;fcu|יוניון ברלין|FCU|#EB1923|63;"+
+    "aug|אאוגסבורג|AUG|#BA3733|62;stp|סנט פאולי|STP|#6B3F2B|58;fch|היידנהיים|FCH|#E30613|56"},
+
+  fra1:{n:"ליג 1", cc:"FRA", flag:"🇫🇷", tier:1, rounds:14, ucl:4, uel:1, uecl:1, raw:
+    "psg|פ.ס.ז'|PSG|#004170|94;om|מארסיי|OM|#2FAEE0|80;asm|מונאקו|ASM|#E4002B|78;"+
+    "ol|ליון|OL|#C8102E|76;lil|ליל|LIL|#E4002B|74;rcl|לאנס|RCL|#C9A227|70;"+
+    "nic|ניס|NIC|#E4002B|68;srf|רן|SRF|#E4002B|68;rcs|שטרסבורג|RCS|#0055A5|62;"+
+    "tfc|טולוז|TFC|#59307F|60;brs|ברסט|BRS|#E4002B|60;fcn|נאנט|FCN|#C9A227|58;"+
+    "aja|אוקסר|AJA|#0055A5|56;pfc|פריז FC|PFC|#0055A5|55;sco|אנז'ה|SCO|#2A2A2A|54;"+
+    "hac|לה האבר|HAC|#0055A5|53;fcl|לוריאן|FCL|#F58220|53;met|מץ|MET|#8A1538|52"
+  }
+};
+
+/* build the club index; ids are namespaced by league */
+var CLUBS = {};
+var LG_IDS = Object.keys(LEAGUES);
+LG_IDS.forEach(function(lid){
+  var L = LEAGUES[lid];
+  L.id = lid;
+  L.clubs = L.raw.split(";").map(function(row){
+    var f = row.split("|");
+    var id = lid + "_" + f[0];
+    var c = { id:id, lg:lid, n:f[1], ab:f[2], c:f[3], rep:+f[4] };
+    c.t = textOn(f[3]);
+    CLUBS[id] = c;
+    return c;
+  });
+  delete L.raw;
+});
+function textOn(hex){
+  var r = parseInt(hex.substr(1,2),16), g = parseInt(hex.substr(3,2),16), b = parseInt(hex.substr(5,2),16);
+  return (0.299*r + 0.587*g + 0.114*b) > 150 ? "#241F20" : "#FFFFFF";
+}
+function club(id){ return CLUBS[id]; }
+function lg(id){ return LEAGUES[id]; }
+function leagueOf(clubId){ return LEAGUES[CLUBS[clubId].lg]; }
 
 /* ── attribute model (FIFA-style: 6 face stats over 23 sub-attributes) ── */
 var ATTR = {
@@ -781,9 +876,9 @@ function iq(){
 }
 
 var STARTS = [
-  {id:"mha", nm:"אקדמיית מכבי חיפה", d:"מועדון־על מקומי. הבעיה אינה יכולת — אלא דקות.", trust:34, status:"נער", diff:"קשה"},
-  {id:"itb", nm:"עירוני טבריה",       d:"מועדון קטן שצריך אותך. דקות מהיום הראשון.",     trust:52, status:"סגל",  diff:"רגיל"},
-  {id:"hpt", nm:"הפועל פתח תקווה",    d:"אמצע הטבלה. תחרות אמיתית, דלת פתוחה.",           trust:44, status:"רוטציה", diff:"רגיל"}
+  {id:"isr1_mha", nm:"אקדמיית מכבי חיפה", d:"מועדון־על מקומי. הבעיה אינה יכולת — אלא דקות.", trust:34, status:"נער", diff:"קשה"},
+  {id:"isr1_itb", nm:"עירוני טבריה",       d:"מועדון קטן שצריך אותך. דקות מהיום הראשון.",     trust:52, status:"סגל",  diff:"רגיל"},
+  {id:"isr1_hpt", nm:"הפועל פתח תקווה",    d:"אמצע הטבלה. תחרות אמיתית, דלת פתוחה.",           trust:44, status:"רוטציה", diff:"רגיל"}
 ];
 
 /* ══════════════════════════════════════════════════════════════════
@@ -810,11 +905,8 @@ function newState(name, pos, startId){
   }
   POS[pos].key.forEach(function(k3){ a[k3] = clamp(a[k3] + 9 + Math.round(Math.random()*4), 1, 99); });
 
-  var table = {};
-  LIGAT.forEach(function(c){ table[c.id]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
-
   var s = {
-    screen:"hub", name:name, pos:pos, age:18, club:st.id,
+    screen:"hub", name:name, pos:pos, age:18, club:st.id, league:CLUBS[st.id].lg,
     season:1, week:1, maxWeek:14,
     a:a,
     potential: 0,
@@ -825,17 +917,67 @@ function newState(name, pos, startId){
     careerApps:0, careerGoals:0, careerAssists:0, bestRating:0, streak:0, bestStreak:0,
     picked:[], slots:4,
     prep:{video:0, analyst:0, coach:0, unit:0, sp:0},
-    table:table, fixtures:buildFixtures(st.id),
-    interest:[], inbox:[], seen:0,
+    tables:{}, scorers:{}, fixtures:[],
+    interest:[], inbox:[], news:[], seen:0, offers:[],
     contractYears:2, wage:4,
-    valuePrev:0, ovrPrev:0, badges:[],
+    valuePrev:0, ovrPrev:0, badges:[], squad:[], rivals:[],
+    history:[], honours:[],
+    readMode:"normal",
     seed: (Date.now()%100000)
   };
   S = s;
+  resetWorld();
+  s.fixtures = buildFixtures(st.id);
   s.potential = clamp(ovr() + 14 + Math.round(Math.random()*20), 45, 94);
   s.ovrPrev = ovr();
   s.valuePrev = value();
+  s.squad = buildSquad();
+  s.rivals = buildRivals();
   return s;
+}
+
+/* ── world: every modelled league keeps its own table and scorers ─── */
+function resetWorld(){
+  S.tables = {}; S.scorers = {};
+  LG_IDS.forEach(function(lid){
+    S.tables[lid] = {};
+    LEAGUES[lid].clubs.forEach(function(c){
+      S.tables[lid][c.id] = {p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
+    });
+    S.scorers[lid] = LEAGUES[lid].clubs.slice(0,9).map(function(c){
+      return {n:playerName(), club:c.id, g:0};
+    });
+  });
+}
+
+var FIRST = ["דניאל","ליאור","עומרי","איתי","רועי","יונתן","נועם","עידו","גיא","אורי","שגיא","תום","אלון","מתן","ניר","אמיר","ערן","דור","בר","יובל","מוחמד","אחמד","סאמר","כרים"];
+var LAST  = ["כהן","לוי","מזרחי","פרץ","ביטון","דהן","אברהם","פרידמן","שלום","אזולאי","חדד","גבאי","סבן","טל","ברקוביץ'","נחמיאס","זוארץ","חמו","עבאס","נסאר"];
+function playerName(){ return FIRST[ri(0,FIRST.length-1)] + " " + LAST[ri(0,LAST.length-1)]; }
+
+var SQUAD_POS = ["GK","GK","CB","CB","CB","CB","RB","LB","CM","CM","CM","CM","W","W","W","ST","ST","ST"];
+
+function buildSquad(){
+  var rep = club(S.club).rep;
+  return SQUAD_POS.map(function(pp){
+    var base = clamp(rep + ri(-11, 9), 32, 92);
+    return {n:playerName(), pos:pp, ovr:base, age:ri(18,34), inj:0, form:ri(-1,1), me:false};
+  });
+}
+
+/* the league's other young talents — you are ranked against them all game */
+function buildRivals(){
+  var out = [];
+  var pool = LEAGUES[S.league].clubs;
+  for(var i=0;i<11;i++){
+    var c = pool[ri(0, pool.length-1)];
+    out.push({
+      n:playerName(), club:c.id, pos:SQUAD_POS[ri(2,SQUAD_POS.length-1)],
+      ovr: clamp(ovr() + ri(-6, 10), 38, 80),
+      pot: clamp(ovr() + ri(6, 26), 50, 92),
+      val: 0, age: ri(17,21)
+    });
+  }
+  return out;
 }
 
 /* ── badges: one-shot milestones, each fires a celebration ─────────── */
@@ -865,11 +1007,11 @@ function checkBadges(){
 }
 
 function buildFixtures(myId){
-  var others = LIGAT.filter(function(c){return c.id!==myId}).map(function(c){return c.id});
+  var others = LEAGUES[CLUBS[myId].lg].clubs
+    .filter(function(c){return c.id!==myId}).map(function(c){return c.id});
+  for(var i=others.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=others[i]; others[i]=others[j]; others[j]=t; }
   var fx = [];
-  for(var i=0;i<14;i++){
-    fx.push({opp: others[i % others.length], home: i%2===0});
-  }
+  for(var k=0;k<14;k++) fx.push({opp: others[k % others.length], home: k%2===0});
   return fx;
 }
 
@@ -877,7 +1019,6 @@ function buildFixtures(myId){
 function rnd(){ S.seed = (S.seed*1103515245 + 12345) & 0x7fffffff; return S.seed/0x7fffffff; }
 function ri(a,b){ return Math.floor(rnd()*(b-a+1))+a; }
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-function club(id){ return LIGAT.filter(function(c){return c.id===id})[0]; }
 
 /* ══════════════════════════════════════════════════════════════════
    WEEKLY ACTIONS
@@ -935,23 +1076,87 @@ function availableActions(){
   });
 }
 
+/* clubs that could plausibly want you right now — reputation-gated */
+function suitorPool(){
+  var o = ovr(), out = [];
+  var ceiling = o + 14 + (S.interest.length ? 4 : 0);
+  LG_IDS.forEach(function(lid){
+    if(lid === S.league) return;
+    LEAGUES[lid].clubs.forEach(function(c){
+      if(c.rep <= ceiling && c.rep >= club(S.club).rep - 6) out.push(c);
+    });
+  });
+  return out;
+}
+
 function agentMeeting(){
   var r = avgRating();
   var chance = (r-6.2)*0.5 + (S.minutes/900)*0.4;
-  if(rnd() < clamp(chance,0.05,0.8)){
-    var e = EURO[ri(0,EURO.length-1)];
-    if(!S.interest.some(function(x){return x.n===e.n})){
-      S.interest.push({n:e.n, ab:e.ab, c:e.c, lg:e.lg, rep:e.rep, lvl:1});
-      push("הסוכן: \u2068" + e.n + "\u2069 (\u2068" + e.lg + "\u2069) ביקשו דוח עליך.", "ok");
+  var pool = suitorPool();
+  if(pool.length && rnd() < clamp(chance, 0.05, 0.8)){
+    var e = pool[ri(0, pool.length-1)];
+    if(!S.interest.some(function(x){return x.id===e.id})){
+      S.interest.push({id:e.id, n:e.n, ab:e.ab, c:e.c, lg:LEAGUES[e.lg].n, rep:e.rep, lvl:1});
+      push("הסוכן: ⁨" + e.n + "⁩ (⁨" + LEAGUES[e.lg].n + "⁩) ביקשו דוח עליך.", "ok");
       return;
     }
   }
   if(S.interest.length){
-    S.interest[0].lvl = Math.min(3, S.interest[0].lvl+1);
-    push("הסוכן: \u2068" + S.interest[0].n + "\u2069 העמיקו את הבירור.", "ok");
+    var x = S.interest[ri(0, S.interest.length-1)];
+    if(x.lvl < 3){
+      x.lvl++;
+      push("הסוכן: ⁨" + x.n + "⁩ העמיקו את הבירור.", "ok");
+    } else {
+      push("הסוכן: ⁨" + x.n + "⁩ מוכנים לדבר. חכה לחלון ההעברות.", "ok");
+    }
   } else {
     push("הסוכן: אין תנועה. \"תן לי דקות ואני אתן לך שוק.\"", "");
   }
+}
+
+/* ── transfer window: fires at mid-season and at season end ─────── */
+function openTransferWindow(){
+  S.offers = S.interest.filter(function(x){ return x.lvl >= 2; }).slice(0,3).map(function(x){
+    var c = club(x.id);
+    var fee = Math.round(value() * (0.8 + rnd()*1.1));
+    return {
+      id:x.id, n:x.n, ab:x.ab, c:x.c, lgName:x.lg, rep:x.rep, fee:fee,
+      wage: Math.max(5, Math.round(S.wage * (1 + (c.rep - club(S.club).rep)/22) + ri(1,6))),
+      role: c.rep > ovr() + 8 ? "רוטציה" : (c.rep > ovr() - 2 ? "מסובב ראשון" : "שחקן מפתח"),
+      years: ri(3,5)
+    };
+  });
+  return S.offers.length > 0;
+}
+
+function acceptOffer(i){
+  var o = S.offers[i];
+  var from = club(S.club).n;
+  S.club = o.id;
+  S.league = CLUBS[o.id].lg;
+  S.wage = o.wage;
+  S.contractYears = o.years;
+  S.status = o.role;
+  S.trust = o.role === "שחקן מפתח" ? 58 : (o.role === "מסובב ראשון" ? 46 : 34);
+  S.squad = buildSquad();
+  S.rivals = buildRivals();
+  S.fixtures = buildFixtures(S.club);
+  S.interest = []; S.offers = []; viewLid = null;
+  S.honours.push({s:S.season, t:"עבר מ"+from+" ל"+o.n+" תמורת "+money(o.fee)});
+  push("חתמת ב" + o.n + " (" + o.lgName + ") תמורת " + money(o.fee) + ".", "ok");
+  S.news.unshift({w:S.week, k:"ok", t:"💰 " + o.n + " חתמו על " + S.name + " תמורת " + money(o.fee) + "."});
+  S.screen = "hub";
+  render();
+  celebrate('<span class="ctag">העברה הושלמה</span>'
+    + '<div class="cbig" style="font-size:30px">'+o.n+'</div>'
+    + '<div class="csub">'+o.lgName+' · '+money(o.fee)+' · '+o.role+'</div>', "gold");
+}
+
+function declineOffers(){
+  S.offers = [];
+  push("דחית את ההצעות. הסוכן: \"בסדר. אבל דלת שנסגרת לא תמיד נפתחת שוב.\"", "w");
+  S.trust = clamp(S.trust + 3, 0, 100);
+  render();
 }
 
 function push(txt, kind){ S.inbox.unshift({t:txt, k:kind||"", w:S.week}); if(S.inbox.length>40) S.inbox.pop(); }
@@ -994,7 +1199,8 @@ var NAV = [
   {id:"hub",    i:"◧", t:"היום"},
   {id:"player", i:"◉", t:"השחקן"},
   {id:"squad",  i:"▤", t:"הסגל"},
-  {id:"league", i:"≡", t:"הליגה"},
+  {id:"league", i:"≡", t:"ליגות"},
+  {id:"world",  i:"🌍", t:"עולם"},
   {id:"career", i:"✦", t:"קריירה"}
 ];
 
@@ -1004,7 +1210,7 @@ function renderShell(){
   var cr = document.getElementById("hCrest");
   cr.textContent = c.ab; cr.style.background = c.c; cr.style.color = c.t;
   document.getElementById("hClub").textContent = S.name + " · " + POS[S.pos].n;
-  document.getElementById("hMeta").textContent = c.n + " · ליגת העל";
+  document.getElementById("hMeta").textContent = c.n + " · " + LEAGUES[S.league].flag + " " + LEAGUES[S.league].n;
   document.getElementById("hSeason").textContent = S.season;
   document.getElementById("hWeek").textContent = S.week + "/" + S.maxWeek;
   document.getElementById("hAge").textContent = S.age;
@@ -1045,6 +1251,7 @@ function render(){
   if(S.screen==="player") stage.innerHTML = viewPlayer();
   if(S.screen==="squad")  stage.innerHTML = viewSquad();
   if(S.screen==="league") stage.innerHTML = viewLeague();
+  if(S.screen==="world")  stage.innerHTML = viewWorld();
   if(S.screen==="career") stage.innerHTML = viewCareer();
   bind();
   stage.scrollTop = 0;
@@ -1136,7 +1343,8 @@ function viewHub(){
 }
 
 function oppPlace(id){
-  var rows = LIGAT.map(function(c){ return {id:c.id, t:S.table[c.id]}; })
+  var T = S.tables[S.league];
+  var rows = LEAGUES[S.league].clubs.map(function(c){ return {id:c.id, t:T[c.id]}; })
     .sort(function(a,b){ return b.t.pts-a.t.pts || (b.t.gf-b.t.ga)-(a.t.gf-a.t.ga); });
   return rows.findIndex(function(r){return r.id===id}) + 1;
 }
@@ -1258,14 +1466,32 @@ function viewPlayer(){
 /* ── SQUAD (depth chart) ───────────────────────────────────────── */
 function viewSquad(){
   var rivals = depthChart();
-  return '<div class="grid g2"><div class="p"><h3>מפת עומק · '+POS[S.pos].n+'</h3><div class="pb tight">'
-    + '<table><thead><tr><th>#</th><th>שחקן</th><th class="r">גיל</th><th class="r">יכולת</th><th>מעמד</th></tr></thead><tbody>'
+  var ORDER = ["GK","CB","RB","LB","CM","W","ST"];
+  var full = S.squad.slice().sort(function(a,b){
+    return ORDER.indexOf(a.pos)-ORDER.indexOf(b.pos) || b.ovr-a.ovr;
+  });
+  var avg = Math.round(S.squad.reduce(function(s,p){return s+p.ovr},0)/S.squad.length);
+
+  return '<div class="grid g2"><div style="display:flex;flex-direction:column;gap:14px">'
+    + '<div class="p"><h3>מפת עומק · '+POS[S.pos].n+'</h3><div class="pb tight">'
+    + '<table><thead><tr><th>#</th><th>שחקן</th><th class="r">גיל</th><th class="r">OVR</th><th>מעמד</th></tr></thead><tbody>'
     + rivals.map(function(r,i){
-        return '<tr'+(r.me?' class="me"':'')+'><td class="n">'+(i+1)+'</td><td>'+r.n+'</td>'
+        return '<tr'+(r.me?' class="me"':'')+'><td class="n">'+(i+1)+'</td>'
+          + '<td>'+r.n+(r.inj?' <span class="tag b">פצוע</span>':'')+'</td>'
           + '<td class="r">'+r.age+'</td><td class="r">'+r.ovr+'</td>'
           + '<td><span class="tag '+(i===0?"ok":(i===1?"w":""))+'">'+r.role+'</span></td></tr>';
       }).join("")
     + '</tbody></table></div></div>'
+
+    + '<div class="p"><h3>הסגל המלא <span class="r">ממוצע OVR '+avg+'</span></h3><div class="pb tight">'
+    + '<table><thead><tr><th>עמדה</th><th>שחקן</th><th class="r">גיל</th><th class="r">OVR</th></tr></thead><tbody>'
+    + full.map(function(pl){
+        return '<tr><td><span class="tag">'+pl.pos+'</span></td>'
+          + '<td>'+pl.n+(pl.inj?' <span class="tag b">'+pl.inj+' שב׳</span>':'')+'</td>'
+          + '<td class="r">'+pl.age+'</td><td class="r"><b>'+pl.ovr+'</b></td></tr>';
+      }).join("")
+    + '</tbody></table></div></div>'
+    + '</div>'
     + '<div class="p"><h3>למה אתה שם</h3><div class="pb">'
       + '<p style="margin:0 0 10px;font-size:13.5px;line-height:1.5">'+depthReason()+'</p>'
       + '<div class="kv"><span>אמון המאמן</span><b class="n">'+Math.round(S.trust)+'/100</b></div>'
@@ -1275,15 +1501,16 @@ function viewSquad(){
     + '</div></div></div>';
 }
 
+/* players competing for your shirt, drawn from the real squad */
 function depthChart(){
-  var names = ["דניאל אבוקסיס","ליאור חדד","עומרי כהן","איתי בן־חיים","רועי לוי"];
-  var list = [];
-  var myOvr = ovr();
-  for(var i=0;i<3;i++){
-    list.push({n:names[i], age:ri(22,30), ovr: clamp(myOvr + (i===0?ri(3,9):(i===1?ri(-2,4):ri(-8,-1))),30,90), me:false, role:""});
-  }
-  list.push({n:S.name+" (אתה)", age:S.age, ovr:myOvr, me:true, role:""});
-  list.sort(function(a,b){ return (b.ovr + (b.me?S.trust*0.14:0)) - (a.ovr + (a.me?S.trust*0.14:0)); });
+  var fam = {GK:["GK"], CB:["CB"], RB:["RB","LB"], LB:["LB","RB"], CM:["CM"], W:["W"], ST:["ST"]};
+  var want = fam[S.pos] || [S.pos];
+  var list = S.squad.filter(function(pl){ return want.indexOf(pl.pos) >= 0; })
+    .map(function(pl){ return {n:pl.n, age:pl.age, ovr:pl.ovr, inj:pl.inj, me:false, role:""}; });
+  list.push({n:S.name+" (אתה)", age:S.age, ovr:ovr(), inj:0, me:true, role:""});
+  list.sort(function(a,b){
+    return (b.ovr + (b.me?S.trust*0.16:0) - (b.inj?25:0)) - (a.ovr + (a.me?S.trust*0.16:0) - (a.inj?25:0));
+  });
   list.forEach(function(r,i){ r.role = i===0?"מפתח":(i===1?"מסובב":(i===2?"רוטציה":"מחוץ לרוטציה")); });
   return list;
 }
@@ -1296,32 +1523,100 @@ function depthReason(){
 }
 
 /* ── LEAGUE ────────────────────────────────────────────────────── */
+var viewLid = null;
 function viewLeague(){
-  var rows = LIGAT.map(function(c){
-    var t = S.table[c.id];
+  var lid = viewLid || S.league;
+  var L = LEAGUES[lid], T = S.tables[lid];
+  var rows = L.clubs.map(function(c){
+    var t = T[c.id];
     return {c:c, t:t, gd:t.gf-t.ga};
   }).sort(function(a,b){ return b.t.pts-a.t.pts || b.gd-a.gd || b.t.gf-a.t.gf; });
 
-  return '<div class="grid g2"><div class="p"><h3>ליגת העל <span class="r">מחזור '+(S.week-1)+'</span></h3><div class="pb tight">'
+  var tabs = '<div class="lgtabs">' + LG_IDS.map(function(id){
+    return '<button class="lgtab'+(id===lid?" on":"")+'" data-lg="'+id+'">'
+      + LEAGUES[id].flag + ' ' + LEAGUES[id].n + '</button>';
+  }).join("") + '</div>';
+
+  var scorers = S.scorers[lid].slice().sort(function(a,b){return b.g-a.g}).slice(0,8);
+  var myGoals = (lid === S.league) ? S.goals : 0;
+
+  var relLine = L.clubs.length - 2;
+  return tabs + '<div class="grid g2"><div class="p"><h3>'+L.flag+' '+L.n+' <span class="r">מחזור '+(S.week-1)+'</span></h3><div class="pb tight">'
   + '<table><thead><tr><th>#</th><th>מועדון</th><th class="r">מש׳</th><th class="r">נצ׳</th><th class="r">תק׳</th><th class="r">הפ׳</th><th class="r">הפרש</th><th class="r">נק׳</th></tr></thead><tbody>'
   + rows.map(function(r,i){
-      var cls = r.c.id===S.club ? "me" : (i<2 ? "cl" : (i>=12 ? "rel" : ""));
+      var cls = r.c.id===S.club ? "me" : (i<2 ? "cl" : (i>=relLine ? "rel" : ""));
       return '<tr class="'+cls+'"><td class="n">'+(i+1)+'</td>'
         + '<td><span class="sw" style="background:'+r.c.c+'"></span>'+r.c.n+'</td>'
         + '<td class="r">'+r.t.p+'</td><td class="r">'+r.t.w+'</td><td class="r">'+r.t.d+'</td><td class="r">'+r.t.l+'</td>'
         + '<td class="r">'+(r.gd>0?"+":"")+r.gd+'</td><td class="r"><b>'+r.t.pts+'</b></td></tr>';
     }).join("")
   + '</tbody></table></div></div>'
-  + '<div class="p"><h3>לוח משחקים</h3><div class="pb tight"><table><tbody>'
-  + S.fixtures.map(function(f,i){
-      var o = club(f.opp);
-      var done = i < S.week-1;
-      return '<tr'+(i===S.week-1?' class="me"':'')+'><td class="n">'+(i+1)+'</td>'
-        + '<td><span class="sw" style="background:'+o.c+'"></span>'+o.n+'</td>'
-        + '<td>'+(f.home?"בית":"חוץ")+'</td>'
-        + '<td class="r">'+(done?(f.res||"—"):(i===S.week-1?'<span class="tag ok">הבא</span>':""))+'</td></tr>';
-    }).join("")
-  + '</tbody></table></div></div></div>';
+
+  + '<div style="display:flex;flex-direction:column;gap:14px">'
+  + (lid===S.league
+    ? '<div class="p"><h3>לוח המשחקים שלך</h3><div class="pb tight"><table><tbody>'
+      + S.fixtures.map(function(f,i){
+          var o = club(f.opp);
+          var done = i < S.week-1;
+          return '<tr'+(i===S.week-1?' class="me"':'')+'><td class="n">'+(i+1)+'</td>'
+            + '<td><span class="sw" style="background:'+o.c+'"></span>'+o.n+'</td>'
+            + '<td>'+(f.home?"בית":"חוץ")+'</td>'
+            + '<td class="r">'+(done?(f.res||"—"):(i===S.week-1?'<span class="tag ok">הבא</span>':""))+'</td></tr>';
+        }).join("")
+      + '</tbody></table></div></div>'
+    : '')
+  + '<div class="p"><h3>מלך השערים <span class="r">'+L.n+'</span></h3><div class="pb tight"><table><tbody>'
+    + scorers.map(function(s,i){
+        return '<tr><td class="n">'+(i+1)+'</td><td>'+s.n+'</td>'
+          + '<td><span class="sw" style="background:'+club(s.club).c+'"></span>'+club(s.club).ab+'</td>'
+          + '<td class="r"><b>'+s.g+'</b></td></tr>';
+      }).join("")
+    + (lid===S.league && myGoals>0
+        ? '<tr class="me"><td class="n">—</td><td>'+S.name+' (אתה)</td>'
+          + '<td><span class="sw" style="background:'+club(S.club).c+'"></span>'+club(S.club).ab+'</td>'
+          + '<td class="r"><b>'+myGoals+'</b></td></tr>'
+        : '')
+  + '</tbody></table></div></div>'
+  + '</div></div>';
+}
+
+/* ── WORLD: news + the league's young talents ──────────────────── */
+function viewWorld(){
+  var board = S.rivals.slice();
+  board.push({n:S.name+" (אתה)", club:S.club, pos:S.pos, ovr:ovr(), pot:S.potential, age:S.age, me:true});
+  board.sort(function(a,b){ return b.ovr-a.ovr || b.pot-a.pot; });
+  var myRank = board.findIndex(function(r){return r.me}) + 1;
+
+  var newsHtml = S.news.length
+    ? S.news.slice(0,22).map(function(m){
+        return '<div class="newsrow '+(m.k||"")+'"><span class="nw n">מ׳'+m.w+'</span><span>'+m.t+'</span></div>';
+      }).join("")
+    : '<div class="empty">העולם עוד לא התחיל לזוז. שחק מחזור.</div>';
+
+  return '<div class="grid g2">'
+  + '<div class="p"><h3>חדשות העולם</h3><div class="pb" style="display:flex;flex-direction:column;gap:6px">'
+    + newsHtml + '</div></div>'
+  + '<div style="display:flex;flex-direction:column;gap:14px">'
+    + '<div class="p"><h3>כישרונות צעירים <span class="r">'+LEAGUES[S.league].n+' · מקום '+myRank+'</span></h3>'
+    + '<div class="pb tight"><table><thead><tr><th>#</th><th>שחקן</th><th>קבוצה</th><th class="r">גיל</th><th class="r">OVR</th><th class="r">פוט׳</th></tr></thead><tbody>'
+    + board.slice(0,12).map(function(r,i){
+        return '<tr'+(r.me?' class="me"':'')+'><td class="n">'+(i+1)+'</td><td>'+r.n+'</td>'
+          + '<td><span class="sw" style="background:'+club(r.club).c+'"></span>'+club(r.club).ab+'</td>'
+          + '<td class="r">'+r.age+'</td><td class="r"><b>'+r.ovr+'</b></td>'
+          + '<td class="r muted">'+r.pot+'</td></tr>';
+      }).join("")
+    + '</tbody></table></div></div>'
+    + '<div class="p"><h3>מובילות הליגות</h3><div class="pb tight"><table><tbody>'
+    + LG_IDS.map(function(id){
+        var c = topOf(id), pts = S.tables[id][c.id].pts, played = S.tables[id][c.id].p;
+        return '<tr><td>'+LEAGUES[id].flag+' '+LEAGUES[id].n+'</td>'
+          + (played
+             ? '<td><span class="sw" style="background:'+c.c+'"></span>'+c.n+'</td><td class="r n">'+pts+'</td>'
+             : '<td class="muted">טרם החלה</td><td class="r muted">—</td>')
+          + '</tr>';
+      }).join("")
+    + '</tbody></table></div></div>'
+  + '</div></div>';
 }
 
 /* ── CAREER ────────────────────────────────────────────────────── */
@@ -1333,10 +1628,32 @@ function viewCareer(){
       + '<span class="tag '+cls+'">'+lv+'</span></div>';
   }).join("") : '<div class="empty">אף אחד לא מסתכל עדיין.<br>דקות ודוחות תפקיד הם מה שפותח את השוק.</div>';
 
-  return '<div class="grid g2">'
+  var offersHtml = S.offers.length ? '<div class="p" style="border-color:var(--gold)"><h3>🔥 הצעות על השולחן</h3><div class="pb">'
+    + S.offers.map(function(o,i){
+        return '<div class="offer">'
+          + '<div class="ohead"><span class="ocrest" style="background:'+o.c+';color:'+textOn(o.c)+'">'+o.ab+'</span>'
+            + '<div><b>'+o.n+'</b><span>'+o.lgName+' · מוניטין '+o.rep+'</span></div></div>'
+          + '<div class="oterms">'
+            + '<div><span class="lbl">עמלת העברה</span><b>'+money(o.fee)+'</b></div>'
+            + '<div><span class="lbl">שכר שבועי</span><b>₪'+o.wage+'k</b></div>'
+            + '<div><span class="lbl">מעמד מובטח</span><b>'+o.role+'</b></div>'
+            + '<div><span class="lbl">אורך חוזה</span><b>'+o.years+' שנים</b></div>'
+          + '</div>'
+          + '<button class="btn pri" data-accept="'+i+'">לחתום ב'+o.n+' ▸</button>'
+        + '</div>';
+      }).join("")
+    + '<button class="btn" id="declineAll" style="margin-top:10px">להישאר ב'+club(S.club).n+'</button>'
+    + '</div></div>' : '';
+
+  var honHtml = S.honours.length
+    ? S.honours.map(function(h){ return '<div class="kv"><span>'+h.t+'</span><span class="tag">עונה '+h.s+'</span></div>'; }).join("")
+    : '<div class="empty">עוד לא נכתבה היסטוריה.</div>';
+
+  return offersHtml + '<div class="grid g2">'
   + '<div class="p"><h3>עניין ממועדונים</h3><div class="pb">'+intHtml
-  + '<p class="hint" style="margin:11px 0 0">מסדרונות ההעברות אמיתיים: מליגת העל לדרג שני של טופ־5 זו קפיצה סבירה. דרג ראשון דורש דקות ביבשת או נבחרת.</p>'
+  + '<p class="hint" style="margin:11px 0 0">מסדרונות ההעברות אמיתיים: קפיצה של עד ~14 נקודות מוניטין מעל ה-OVR שלך. הצעה ממשית מגיעה רק אחרי שסקאוט באמת ראה אותך.</p>'
   + '</div></div>'
+  + '<div class="p"><h3>היסטוריית קריירה</h3><div class="pb">'+honHtml+'</div></div>'
   + '<div class="p"><h3>חוזה</h3><div class="pb">'
     + '<div class="kv"><span>מועדון</span><b>'+club(S.club).n+'</b></div>'
     + '<div class="kv"><span>שנים שנותרו</span><b class="n">'+S.contractYears+'</b></div>'
@@ -1362,6 +1679,16 @@ function bind(){
   });
   var pl = document.getElementById("play"); if(pl) pl.onclick = startWeek;
   var cl = document.getElementById("clear"); if(cl) cl.onclick = function(){ S.picked=[]; render(); };
+
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-accept]"), function(b){
+    b.onclick = function(){ acceptOffer(+b.getAttribute("data-accept")); };
+  });
+  var dec = document.getElementById("declineAll");
+  if(dec) dec.onclick = declineOffers;
+
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-lg]"), function(b){
+    b.onclick = function(){ viewLid = b.getAttribute("data-lg"); render(); };
+  });
 
   Array.prototype.forEach.call(stage.querySelectorAll(".spend"), function(b){
     b.onclick = function(){
@@ -1397,6 +1724,13 @@ function flashOvr(){
   el.classList.remove("up"); void el.offsetWidth; el.classList.add("up");
 }
 
+document.getElementById("hRead").onclick = function(){
+  var modes = ["normal","long","off"];
+  var names = {normal:"זמן קריאה: רגיל", long:"זמן קריאה: ארוך (×1.8)", off:"זמן קריאה: ללא הגבלה"};
+  S.readMode = modes[(modes.indexOf(S.readMode)+1) % modes.length];
+  toast(names[S.readMode]);
+};
+
 document.getElementById("hTheme").onclick = function(){
   var cur = document.documentElement.getAttribute("data-theme");
   var next = cur==="dark" ? "light" : "dark";
@@ -1425,7 +1759,7 @@ function startWeek(){
     push("פציעה: מתיחה בירך. " + wks + " שבועות בחוץ. העומס לא היה סוד.", "b");
     S.load = 30; S.fit = 55; S.sharp = 30; S.trust -= 2;
     S.picked = [];
-    for(var i=0;i<wks && S.week<=S.maxWeek;i++){ simRound(null); S.week++; }
+    for(var i=0;i<wks && S.week<=S.maxWeek;i++){ simWorld(null); S.week++; }
     S.prep = {video:0,analyst:0,coach:0,unit:0,sp:0};
     if(S.week>S.maxWeek) return endSeason();
     render();
@@ -1755,8 +2089,13 @@ function openMoment(m){
   var pool = SITS[S.pos];
   var sit = pool[ri(0, pool.length-1)];
 
-  var readBase = 1.0 + iq()/120 + (S.prep.video?0.4:0) - (1 - S.fit/100)*0.6 - (S.load/100)*0.4;
-  var readTime = clamp(readBase, 0.6, 2.6);
+  /* Read time. The old numbers (1.0–2.6s) were unreadable — you could not
+     finish three Hebrew options, let alone weigh them. Base is now generous
+     and the attributes/preparation extend it further. */
+  var readBase = 4.2 + iq()/16 + (S.prep.video ? 1.6 : 0)
+               - (1 - S.fit/100)*1.6 - (S.load/100)*1.2;
+  var mult = S.readMode === "long" ? 1.8 : 1;
+  var readTime = S.readMode === "off" ? 999 : clamp(readBase*mult, 2.6, 14);
 
   var choices = sit.ch.slice();
   if(sit.unl && S.prep.analyst) choices.push(sit.unl);
@@ -1781,7 +2120,9 @@ function momentHtml(){
     + '<div class="ring"><svg width="44" height="44"><circle cx="22" cy="22" r="18" fill="none" stroke="var(--line)" stroke-width="4"/>'
       + '<circle id="moRing" cx="22" cy="22" r="18" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="0"/></svg>'
       + '<b id="moT">'+MO.readTime.toFixed(1)+'</b></div>'
-    + '<div><div class="t">'+s.t+'</div><div class="s">דקה '+MO.m.min+'׳ · זמן קריאה '+MO.readTime.toFixed(1)+' שנ׳'+(S.prep.video?' (‎+0.4 מווידאו)':'')+'</div></div>'
+    + '<div><div class="t">'+s.t+'</div><div class="s">דקה '+MO.m.min+'׳ · '
+      + (S.readMode==="off" ? 'ללא הגבלת זמן' : 'זמן קריאה '+MO.readTime.toFixed(1)+' שנ׳'+(S.prep.video?' (‎+1.6 מווידאו)':''))
+      + '</div></div>'
     + '<div class="grow" style="flex:1"></div>'
     + '<span class="tag">'+POS[S.pos].n+'</span>'
   + '</div>'
@@ -1838,6 +2179,11 @@ function bindMoment(){
 }
 
 function startRead(){
+  if(S.readMode === "off"){
+    var lbl0 = document.getElementById("moT");
+    if(lbl0) lbl0.textContent = "∞";
+    return;
+  }
   var ring = document.getElementById("moRing");
   var t0 = performance.now();
   var total = MO.readTime*1000;
@@ -1985,7 +2331,8 @@ function finishMatch(){
   var opG = M.me===M.home ? M.ag : M.hg;
 
   applyResult(S.club, M.fx.opp, myG, opG);
-  simRound(S.club);
+  awardGoals(S.league, S.club, myG); awardGoals(S.league, M.fx.opp, opG);
+  simWorld(S.club);
 
   if(M.playing){
     S.apps++; S.careerApps++; S.minutes += M.mins; S.ratings.push(rating);
@@ -2005,10 +2352,13 @@ function finishMatch(){
 
   var scoutHit = false;
   if(M.playing && rating>=7.4 && rnd()<0.45){
-    var e = EURO[ri(0,EURO.length-1)];
-    if(!S.interest.some(function(x){return x.n===e.n})){
-      S.interest.push({n:e.n, ab:e.ab, c:e.c, lg:e.lg, rep:e.rep, lvl:1});
-      scoutHit = true;
+    var pool = suitorPool();
+    if(pool.length){
+      var e = pool[ri(0,pool.length-1)];
+      if(!S.interest.some(function(x){return x.id===e.id})){
+        S.interest.push({id:e.id, n:e.n, ab:e.ab, c:e.c, lg:LEAGUES[e.lg].n, rep:e.rep, lvl:1});
+        scoutHit = true;
+      }
     }
   }
 
@@ -2052,24 +2402,86 @@ function finishMatch(){
 }
 
 function applyResult(a, b, ga, gb){
-  var ta = S.table[a], tb = S.table[b];
+  var T = S.tables[CLUBS[a].lg];
+  var ta = T[a], tb = T[b];
   ta.p++; tb.p++; ta.gf+=ga; ta.ga+=gb; tb.gf+=gb; tb.ga+=ga;
   if(ga>gb){ta.w++;tb.l++;ta.pts+=3}
   else if(ga<gb){tb.w++;ta.l++;tb.pts+=3}
   else {ta.d++;tb.d++;ta.pts++;tb.pts++}
 }
 
-function simRound(skipId){
-  var pool = LIGAT.filter(function(c){
-    return c.id!==skipId && c.id!==(S.fixtures[S.week-1]||{}).opp;
-  }).map(function(c){return c.id});
-  for(var i=0;i+1<pool.length;i+=2){
-    var A = club(pool[i]), B = club(pool[i+1]);
-    var sa = A.rep+ri(0,14), sb = B.rep+ri(0,14);
-    var ga = clamp(Math.round((sa-sb)/16 + ri(0,2)),0,5);
-    var gb = clamp(Math.round((sb-sa)/16 + ri(0,2)),0,5);
-    applyResult(A.id, B.id, ga, gb);
+/* one matchday across every modelled league */
+function simWorld(skipId){
+  LG_IDS.forEach(function(lid){
+    var pool = LEAGUES[lid].clubs.filter(function(c){
+      return c.id !== skipId && c.id !== (S.fixtures[S.week-1]||{}).opp;
+    }).map(function(c){ return c.id; });
+    for(var i=pool.length-1;i>0;i--){ var j=ri(0,i); var tmp=pool[i]; pool[i]=pool[j]; pool[j]=tmp; }
+    for(var k=0;k+1<pool.length;k+=2){
+      var A = club(pool[k]), B = club(pool[k+1]);
+      var sa = A.rep + ri(0,16), sb = B.rep + ri(0,16);
+      var ga = clamp(Math.round((sa-sb)/17 + ri(0,2)), 0, 5);
+      var gb = clamp(Math.round((sb-sa)/17 + ri(0,2)), 0, 5);
+      applyResult(A.id, B.id, ga, gb);
+      awardGoals(lid, A.id, ga); awardGoals(lid, B.id, gb);
+    }
+  });
+  advanceRivals();
+  makeNews();
+}
+
+function awardGoals(lid, clubId, n){
+  if(!n) return;
+  var list = S.scorers[lid].filter(function(s){ return s.club === clubId; });
+  if(!list.length){
+    var s = {n:playerName(), club:clubId, g:0};
+    S.scorers[lid].push(s); list = [s];
   }
+  for(var i=0;i<n;i++) list[ri(0,list.length-1)].g++;
+}
+
+function advanceRivals(){
+  S.rivals.forEach(function(r){
+    if(rnd() < 0.30 && r.ovr < r.pot) r.ovr += 1;
+  });
+}
+
+var NEWS_T = [
+  function(){ var l = LEAGUES[pickLg()]; var c = topOf(l.id);
+    return {t:"⚽ "+c.n+" בראש "+l.n+".", k:""}; },
+  function(){ var c = anyClub();
+    return {t:"🔁 "+c.n+" פיטרו את המאמן אחרי רצף תוצאות רע.", k:"w"}; },
+  function(){ var a = anyClub(), b = anyClub();
+    if(a.id===b.id) return null;
+    return {t:"💰 "+a.n+" רכשו קשר מ"+b.n+" תמורת "+money(ri(2,38)*1000000)+".", k:""}; },
+  function(){ var l = LEAGUES[pickLg()]; var s = S.scorers[l.id].slice().sort(function(x,y){return y.g-x.g})[0];
+    if(!s || s.g<3) return null;
+    return {t:"🥇 "+s.n+" ("+club(s.club).ab+") מוביל את מלך השערים ב"+l.n+" עם "+s.g+".", k:""}; },
+  function(){ var r = S.rivals[ri(0,S.rivals.length-1)];
+    if(!r || r.ovr < ovr()) return null;
+    return {t:"👀 "+r.n+" ("+club(r.club).ab+") מקבל דקות ועלה ל-OVR "+r.ovr+".", k:"w"}; },
+  function(){ var c = anyClub();
+    return {t:"🏟 "+c.n+" הודיעו על שדרוג האצטדיון.", k:""}; },
+  function(){ var c = anyClub();
+    return {t:"🩺 חלוץ "+c.n+" ייעדר 6 שבועות בעקבות פציעה.", k:"b"}; }
+];
+function pickLg(){ return LG_IDS[ri(0, LG_IDS.length-1)]; }
+function anyClub(){ var l = LEAGUES[pickLg()]; return l.clubs[ri(0,l.clubs.length-1)]; }
+function topOf(lid){
+  var T = S.tables[lid];
+  return LEAGUES[lid].clubs.slice().sort(function(a,b){
+    return T[b.id].pts-T[a.id].pts || (T[b.id].gf-T[b.id].ga)-(T[a.id].gf-T[a.id].ga);
+  })[0];
+}
+function makeNews(){
+  for(var i=0;i<3;i++){
+    var f = NEWS_T[ri(0,NEWS_T.length-1)];
+    var item = f();
+    if(item && !S.news.some(function(x){ return x.t === item.t; })){
+      item.w = S.week; S.news.unshift(item);
+    }
+  }
+  if(S.news.length > 60) S.news.length = 60;
 }
 
 function showPostMatch(rating, myG, opG, scoutHit, R){
@@ -2249,7 +2661,8 @@ function nextWeek(){
 }
 
 function endSeason(){
-  var rows = LIGAT.map(function(c){ return {c:c, t:S.table[c.id]}; })
+  var T = S.tables[S.league];
+  var rows = LEAGUES[S.league].clubs.map(function(c){ return {c:c, t:T[c.id]}; })
     .sort(function(a,b){ return b.t.pts-a.t.pts || (b.t.gf-b.t.ga)-(a.t.gf-a.t.ga); });
   var place = rows.findIndex(function(r){return r.c.id===S.club}) + 1;
 
@@ -2299,10 +2712,16 @@ function endSeason(){
     S.fit=88; S.sharp=45; S.load=15;
     S.contractYears=Math.max(0,S.contractYears-1);
     if(S.trust>62){ S.status="מסובב ראשון"; S.wage+=ri(2,5); }
-    LIGAT.forEach(function(c){ S.table[c.id]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
+    S.squad.forEach(function(pl){ pl.age++; pl.inj=0;
+      pl.ovr = clamp(pl.ovr + (pl.age<24?ri(0,3):(pl.age>30?ri(-3,0):ri(-1,1))), 30, 94); });
+    S.rivals.forEach(function(r){ r.age++; });
+    resetWorld();
     S.fixtures = buildFixtures(S.club);
     push("עונה חדשה. הכל מתאפס חוץ ממה שאנשים זוכרים.", "");
-    S.screen="hub"; render();
+    if(openTransferWindow()){
+      S.screen="career"; render();
+      toast("חלון ההעברות נפתח — " + S.offers.length + " הצעות");
+    } else { S.screen="hub"; render(); }
   };
 }
 
@@ -2323,7 +2742,7 @@ function toast(msg){
 /* ══════════════════════════════════════════════════════════════════
    BOOT — character creation
    ════════════════════════════════════════════════════════════════ */
-var boot = {name:"", pos:"CM", start:"itb"};
+var boot = {name:"", pos:"CM", start:"isr1_itb"};
 
 function showBoot(){
   var el = document.createElement("div");
