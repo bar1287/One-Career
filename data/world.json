@@ -1,0 +1,129 @@
+{
+  "world_id": "one_career_base",
+  "display_name_en": "ONE CAREER — Base World",
+  "display_name_he": "ONE CAREER — עולם הבסיס",
+  "season": "2025-26",
+  "schema_version": 1,
+  "packs": [
+    { "pack_id": "eng", "file": "leagues/eng.json", "sim_depth": "deep" },
+    { "pack_id": "esp", "file": "leagues/esp.json", "sim_depth": "deep" },
+    { "pack_id": "ita", "file": "leagues/ita.json", "sim_depth": "deep" },
+    { "pack_id": "ger", "file": "leagues/ger.json", "sim_depth": "deep" },
+    { "pack_id": "fra", "file": "leagues/fra.json", "sim_depth": "deep" },
+    { "pack_id": "isr", "file": "leagues/isr.json", "sim_depth": "deep" }
+  ],
+
+  "sim_lod": {
+    "comment": "Simulation level of detail. A career only needs full fidelity where the player can actually be seen, scouted or signed. Everything else is a cheaper statistical model that still produces legal tables, transfers and history.",
+    "deep": {
+      "description": "Full match engine, individual player states, injuries, morale, coach market, scouting dossiers.",
+      "applies_to": "the player's own division, plus one division above and below it, plus every T1/T2 in the packs above",
+      "cost_hint": "~40 clubs at any one time"
+    },
+    "medium": {
+      "description": "Aggregate match model, squad-level form, real transfers, no per-minute events.",
+      "applies_to": "remaining modelled divisions in loaded packs"
+    },
+    "shallow": {
+      "description": "Table + goal distribution only. Clubs still exist as scouting/transfer destinations.",
+      "applies_to": "unmodelled tiers and unloaded countries"
+    },
+    "promotion_rule": "A division is promoted to `deep` the moment the player, an active suitor club, or a tracked rival is in it. Demotion back to `medium` waits 2 seasons so recent history stays queryable."
+  },
+
+  "continental": [
+    {
+      "id": "uefa_ucl", "name_en": "Continental Champions Cup", "name_he": "גביע האלופות היבשתי",
+      "licensed_name": "UEFA Champions League",
+      "tier": 1, "field": 36, "format": "league_phase_36_then_knockout",
+      "prestige": 100
+    },
+    {
+      "id": "uefa_uel", "name_en": "Continental Cup", "name_he": "הגביע היבשתי",
+      "licensed_name": "UEFA Europa League",
+      "tier": 2, "field": 36, "format": "league_phase_36_then_knockout",
+      "prestige": 72
+    },
+    {
+      "id": "uefa_uecl", "name_en": "Continental Challenge Cup", "name_he": "גביע האתגר היבשתי",
+      "licensed_name": "UEFA Conference League",
+      "tier": 3, "field": 36, "format": "league_phase_36_then_knockout",
+      "prestige": 54
+    }
+  ],
+  "continental_slots": {
+    "comment": "How many clubs each country sends. Israeli clubs realistically compete for the third-tier continental trophy — which is exactly the career hook: a Ligat ha'Al season CAN put you on a European night against a Ligue 1 side.",
+    "eng": { "uefa_ucl": 5, "uefa_uel": 2, "uefa_uecl": 1 },
+    "esp": { "uefa_ucl": 5, "uefa_uel": 2, "uefa_uecl": 1 },
+    "ita": { "uefa_ucl": 5, "uefa_uel": 2, "uefa_uecl": 1 },
+    "ger": { "uefa_ucl": 5, "uefa_uel": 2, "uefa_uecl": 1 },
+    "fra": { "uefa_ucl": 4, "uefa_uel": 1, "uefa_uecl": 1 },
+    "isr": { "uefa_ucl": 1, "uefa_uel": 1, "uefa_uecl": 2 }
+  },
+
+  "domestic_cups": [
+    { "id": "eng_cup", "pack_id": "eng", "name_en": "FA Cup", "name_he": "גביע האנגלי", "entry_tiers": [1, 2, 3, 4, 5], "rounds": 8, "prestige": 70 },
+    { "id": "eng_lc", "pack_id": "eng", "name_en": "EFL Cup", "name_he": "גביע הליגה", "entry_tiers": [1, 2, 3, 4], "rounds": 7, "prestige": 52 },
+    { "id": "esp_cup", "pack_id": "esp", "name_en": "Copa del Rey", "name_he": "קופה דל ריי", "entry_tiers": [1, 2, 3], "rounds": 7, "prestige": 68 },
+    { "id": "ita_cup", "pack_id": "ita", "name_en": "Coppa Italia", "name_he": "קופה איטליה", "entry_tiers": [1, 2, 3], "rounds": 7, "prestige": 64 },
+    { "id": "ger_cup", "pack_id": "ger", "name_en": "DFB-Pokal", "name_he": "גביע גרמניה", "entry_tiers": [1, 2, 3], "rounds": 6, "prestige": 66 },
+    { "id": "fra_cup", "pack_id": "fra", "name_en": "Coupe de France", "name_he": "גביע צרפת", "entry_tiers": [1, 2, 3], "rounds": 8, "prestige": 60 },
+    { "id": "isr_cup", "pack_id": "isr", "name_en": "Israel State Cup", "name_he": "גביע המדינה", "entry_tiers": [1, 2, 3], "rounds": 7, "prestige": 44 },
+    { "id": "isr_toto", "pack_id": "isr", "name_en": "Toto Cup", "name_he": "גביע הטוטו", "entry_tiers": [1], "rounds": 5, "prestige": 26 }
+  ],
+
+  "transfer_corridors": {
+    "comment": "Realistic movement pressure between markets. A corridor weight of 1.0 is 'normal'; higher means AI clubs and scouts look here more often. This is what makes an Israeli career feel like a real ladder rather than a dead end — Ligat ha'Al genuinely feeds Belgium/Portugal/Cyprus-type markets and, for the best, straight into a top-5 second tier.",
+    "corridors": [
+      { "from": "isr_t1", "to": ["fra_t2", "ita_t2", "esp_t2", "ger_t2", "eng_t3"], "weight": 1.0, "typical_age": [21, 26] },
+      { "from": "isr_t1", "to": ["ita_t1", "ger_t1", "fra_t1"], "weight": 0.25, "typical_age": [22, 27], "note": "Rare and reputation-gated: needs continental minutes or a national-team call-up." },
+      { "from": "isr_t2", "to": ["isr_t1"], "weight": 2.0, "typical_age": [18, 24] },
+      { "from": "eng_t2", "to": ["eng_t1"], "weight": 2.2, "typical_age": [20, 28] },
+      { "from": "eng_t3", "to": ["eng_t2"], "weight": 1.8, "typical_age": [19, 26] },
+      { "from": "eng_t4", "to": ["eng_t3"], "weight": 1.6, "typical_age": [18, 25] },
+      { "from": "eng_t5", "to": ["eng_t4"], "weight": 1.4, "typical_age": [18, 24] },
+      { "from": "fra_t1", "to": ["eng_t1", "esp_t1", "ita_t1", "ger_t1"], "weight": 1.5, "typical_age": [20, 26] },
+      { "from": "esp_t2", "to": ["esp_t1", "ita_t1", "eng_t2"], "weight": 1.2, "typical_age": [20, 27] },
+      { "from": "ita_t2", "to": ["ita_t1"], "weight": 1.9, "typical_age": [20, 28] },
+      { "from": "ger_t2", "to": ["ger_t1"], "weight": 1.9, "typical_age": [20, 27] },
+      { "from": "ger_t3", "to": ["ger_t2"], "weight": 1.5, "typical_age": [19, 25] }
+    ]
+  },
+
+  "career_start_presets": {
+    "comment": "The starting points the Creator offers. Each is a different difficulty and a different story shape, not just a different club.",
+    "presets": [
+      { "id": "academy_elite", "name_he": "בוגר אקדמיה במועדון־על", "divisions": ["eng_t1", "esp_t1", "ger_t1", "fra_t1", "ita_t1"], "squad_role": "youth", "difficulty": "hard", "hook": "מוקף בכישרון. הבעיה אינה יכולת אלא דקות." },
+      { "id": "academy_mid", "name_he": "בוגר אקדמיה במועדון בינוני", "divisions": ["eng_t2", "esp_t2", "ita_t2", "ger_t2", "fra_t2"], "squad_role": "fringe", "difficulty": "normal", "hook": "דלת פתוחה לסגל הבוגר — אם תתאים לשיטה." },
+      { "id": "israel_home", "name_he": "כישרון ישראלי בבית", "divisions": ["isr_t1", "isr_t2"], "squad_role": "fringe", "difficulty": "normal", "hook": "ליגה קטנה, חלון קטן: להיראות באירופה תוך שלוש עונות." },
+      { "id": "released", "name_he": "שחקן ששוחרר", "divisions": ["eng_t4", "eng_t5", "ita_t3a", "esp_t3a", "isr_t2"], "squad_role": "trialist", "difficulty": "hard", "hook": "אין חוזה. יש מבחנים, סוכן חלש ושלושה חודשים." },
+      { "id": "late_bloomer", "name_he": "פריצה מאוחרת", "divisions": ["eng_t3", "eng_t4", "fra_t3", "ger_t3", "isr_t2"], "squad_role": "squad", "difficulty": "normal", "hook": "בן 23, חצי־מקצוען. הגוף בשיא, הזמן קצר." },
+      { "id": "abroad_first", "name_he": "מעבר מוקדם לחו״ל", "divisions": ["ger_t2", "fra_t2", "ita_t2"], "squad_role": "youth", "difficulty": "hard", "hook": "שפה חדשה, חדר הלבשה קר, פוטנציאל גבוה." }
+    ]
+  },
+
+  "identity_licensing": {
+    "comment": "ClubIdentity is stored separately from ClubSimulation on purpose. Swapping this block changes what the player SEES; it never touches AI, saves or balance.",
+    "current_mode": "real_names_generic_marks",
+    "modes": {
+      "real_names_generic_marks": {
+        "club_names": "real",
+        "crests": "generated by Club Crest Composer",
+        "kits": "generated by Kit Composer",
+        "player_names": "generated",
+        "competition_names": "generic (see `name_en` on continental entries)",
+        "risk": "Club names and competition names are trademarks. Fine for development and private builds; requires legal review or licensing before commercial release. See docs/05_DATA_AND_LICENSING_HE.md."
+      },
+      "fully_licensed": {
+        "club_names": "real", "crests": "licensed", "kits": "licensed", "player_names": "licensed",
+        "competition_names": "licensed", "risk": "none, once contracted"
+      },
+      "fully_fictional": {
+        "club_names": "generated from the city/region corpus, preserving reputation and pyramid position",
+        "crests": "generated", "kits": "generated", "player_names": "generated",
+        "competition_names": "generic", "risk": "none"
+      }
+    },
+    "switch_cost": "Zero. Mode is read at world load; a save started in one mode opens in another with identical simulation state."
+  }
+}

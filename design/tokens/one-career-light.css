@@ -1,0 +1,357 @@
+/* ============================================================================
+   ONE CAREER — "Matchday Paper" design tokens
+   ----------------------------------------------------------------------------
+   Replaces the previous "Editorial Sports Desk" direction (deep blue-black
+   ground, off-white panels). The ground is now warm paper; the accent system is
+   pitch-green and clay, NOT blue. Blue is deliberately absent from every UI
+   surface, accent, state and control colour in this file.
+
+   Everything below is authored light-first: bare :root IS the light palette.
+   The dark block only re-points the same token names, so no component ever
+   references a raw hex.
+
+   Contrast (measured, WCAG 2.1):
+     ink            on paper  15.98:1   on surface 17.40:1
+     ink-secondary  on paper   7.33:1   on surface  7.98:1
+     ink-muted      on paper   5.37:1   on surface  5.85:1   on sunken 4.96:1
+     accent         on surface 6.15:1   white on accent 6.15:1
+     warn           on surface 5.31:1
+     danger         on surface 6.54:1
+   Every colour listed as a text token clears 4.5:1 on every surface it is
+   allowed to sit on. That is the acceptance test, not a suggestion.
+   ========================================================================= */
+
+:root {
+  color-scheme: light;
+
+  /* --- Ground & surfaces ---------------------------------------------------
+     Warm paper, not clinical white. The page is the lightest thing on screen
+     ONLY at the card level: the base sheet is a half-step down so white cards
+     lift off it without needing a shadow. */
+  --oc-paper:            #F7F5F1;  /* app background                        */
+  --oc-surface:          #FFFFFF;  /* cards, panels, popovers               */
+  --oc-surface-sunken:   #EFECE6;  /* wells, table zebra, inactive tabs     */
+  --oc-surface-hover:    #F2EFE9;
+  --oc-surface-active:   #E9E5DC;
+  --oc-scrim:            rgba(27, 26, 23, 0.44);
+
+  /* --- Ink ---------------------------------------------------------------- */
+  --oc-ink:              #1B1A17;  /* headings, primary values              */
+  --oc-ink-secondary:    #55504A;  /* body copy, labels                     */
+  --oc-ink-muted:        #6B6459;  /* captions, axis ticks, metadata        */
+  --oc-ink-inverse:      #FFFFFF;
+
+  /* --- Lines -------------------------------------------------------------- */
+  --oc-border:           #E2DDD4;  /* hairlines between rows and cards      */
+  --oc-border-strong:    #C8C0B3;  /* card outline, section rule            */
+  --oc-border-control:   #948A7A;  /* input/checkbox outline — needs 3:1    */
+
+  /* --- Accent: pitch green ------------------------------------------------
+     The one saturated colour in the chrome. Used for the single primary action
+     on a screen and for "you are here". Never for decoration. */
+  --oc-accent:           #1F6F43;
+  --oc-accent-hover:     #185735;
+  --oc-accent-active:    #12432A;
+  --oc-accent-soft:      #E6F0E9;  /* tinted background                     */
+  --oc-accent-ink:       #14532D;  /* text on --oc-accent-soft              */
+
+  /* --- Status ------------------------------------------------------------
+     Four reserved states. These are NEVER reused as chart series colours. */
+  --oc-positive:         #1F6F43;
+  --oc-positive-soft:    #E6F0E9;
+  --oc-positive-ink:     #14532D;
+
+  --oc-warn:             #A05A00;  /* rising load, contract expiring        */
+  --oc-warn-soft:        #FBEDD8;
+  --oc-warn-ink:         #7A4400;
+
+  --oc-danger:           #B3261E;  /* injury, broken promise, relegation    */
+  --oc-danger-soft:      #FBE9E6;
+  --oc-danger-ink:       #8C1D18;
+
+  --oc-neutral:          #6B6459;  /* "no change", unknown, not applicable  */
+  --oc-neutral-soft:     #EFECE6;
+  --oc-neutral-ink:      #4A443B;
+
+  /* --- Club accent --------------------------------------------------------
+     Set per-club at runtime from data/leagues/*.json `primary`. It tints the
+     header rule, the crest plate and the active nav marker ONLY. It never
+     colours text, a status, or a chart series: a club whose primary is red
+     must not make the UI look like an injury alert. */
+  --oc-club:             var(--oc-accent);
+  --oc-club-contrast-ink: var(--oc-ink);
+
+  /* --- Information certainty ---------------------------------------------
+     A first-class visual axis in this game: the player must always know whether
+     a number is a fact, someone's estimate, or a rumour. Certainty is encoded
+     by BORDER STYLE + ICON, with colour as reinforcement only. */
+  --oc-fact-border:      solid;
+  --oc-estimate-border:  dashed;
+  --oc-rumor-border:     dotted;
+  --oc-fact-ink:         var(--oc-ink);
+  --oc-estimate-ink:     var(--oc-ink-secondary);
+  --oc-rumor-ink:        var(--oc-ink-muted);
+
+  /* --- Chart series -------------------------------------------------------
+     Validated with the data-viz six-checks validator on the light surface,
+     adjacent pairlist: lightness band PASS, chroma floor PASS, CVD separation
+     worst ΔE 9.2 (deutan) PASS, normal-vision worst ΔE 19.6 PASS.
+     Contrast WARN on slots 1, 4 and 5 (2.74 / 2.11 / 2.62) — the relief rule
+     applies: any chart using them ships visible direct labels or a table view.
+     Assign in fixed order, never cycled. Cap at 5.
+     Scatter / bubble / small-multiple forms cap at the FIRST THREE, which
+     validate under --pairs all in both modes. */
+  --oc-series-1:         #1baf7a;  /* aqua    */
+  --oc-series-2:         #eb6834;  /* orange  */
+  --oc-series-3:         #4a3aa7;  /* violet  */
+  --oc-series-4:         #eda100;  /* yellow  */
+  --oc-series-5:         #e87ba4;  /* magenta */
+  --oc-chart-surface:    #FFFFFF;
+  --oc-chart-grid:       #E2DDD4;
+  --oc-chart-axis:       #C8C0B3;
+
+  /* Sequential ramp — one hue, light to dark. Heat maps, load over time. */
+  --oc-seq-1:            #E6F0E9;
+  --oc-seq-2:            #BFDCC9;
+  --oc-seq-3:            #8FC3A6;
+  --oc-seq-4:            #55A47E;
+  --oc-seq-5:            #1F6F43;
+
+  /* Diverging — two hues, NEUTRAL GRAY midpoint. Above/below expectation. */
+  --oc-div-neg-2:        #B3261E;
+  --oc-div-neg-1:        #E09B94;
+  --oc-div-mid:          #DEDAD2;
+  --oc-div-pos-1:        #7FBB9B;
+  --oc-div-pos-2:        #1F6F43;
+
+  /* --- Type ---------------------------------------------------------------
+     One family for prose, one for numbers. Tabular figures everywhere a number
+     can change, so tables and the scorebug never jitter. */
+  --oc-font-ui:    "Inter", "Assistant", "Segoe UI", system-ui, sans-serif;
+  --oc-font-num:   "Inter", "Assistant", system-ui, sans-serif;
+  --oc-font-feature-num: "tnum" 1, "lnum" 1;
+
+  --oc-text-2xs:   0.6875rem;  /* 11px — table meta, axis ticks   */
+  --oc-text-xs:    0.75rem;    /* 12px — labels, chips            */
+  --oc-text-sm:    0.8125rem;  /* 13px — dense table body         */
+  --oc-text-base:  0.9375rem;  /* 15px — body copy                */
+  --oc-text-lg:    1.125rem;   /* 18px — card titles              */
+  --oc-text-xl:    1.5rem;     /* 24px — screen titles            */
+  --oc-text-2xl:   2rem;       /* 32px — hero values              */
+  --oc-text-3xl:   2.75rem;    /* 44px — matchday scoreline       */
+
+  --oc-leading-tight: 1.2;
+  --oc-leading-body:  1.55;
+  --oc-measure:       68ch;    /* max line length for prose       */
+
+  /* --- Space — 4px base --------------------------------------------------- */
+  --oc-space-1:  0.25rem;
+  --oc-space-2:  0.5rem;
+  --oc-space-3:  0.75rem;
+  --oc-space-4:  1rem;
+  --oc-space-5:  1.5rem;
+  --oc-space-6:  2rem;
+  --oc-space-7:  3rem;
+
+  --oc-radius-sm:  4px;
+  --oc-radius-md:  8px;
+  --oc-radius-lg:  12px;
+  --oc-radius-pill: 999px;
+
+  /* --- Elevation ---------------------------------------------------------
+     On a light ground, shadows must be warm and shallow or the UI turns muddy.
+     Depth is carried mostly by the border; the shadow only separates layers
+     that genuinely float. */
+  --oc-shadow-raised:  0 1px 2px rgba(60, 52, 40, 0.06);
+  --oc-shadow-overlay: 0 8px 24px rgba(60, 52, 40, 0.12), 0 2px 6px rgba(60, 52, 40, 0.08);
+
+  /* --- Motion -------------------------------------------------------------
+     Short and functional. Nothing between the player and the decision. */
+  --oc-dur-instant: 120ms;
+  --oc-dur-quick:   180ms;
+  --oc-dur-reveal:  320ms;   /* decision sheet opening */
+  --oc-ease:        cubic-bezier(0.2, 0, 0.1, 1);
+
+  /* --- Focus --------------------------------------------------------------
+     Visible in every mode, on every surface, for mouse, keyboard and gamepad. */
+  --oc-focus-ring:   0 0 0 2px var(--oc-paper), 0 0 0 4px var(--oc-accent);
+  --oc-focus-offset: 2px;
+}
+
+/* ===========================================================================
+   Dark mode — an OPTION, not the default.
+   The brief is a light interface; this exists so night play and OS preference
+   are respected. Declared under both the media query and the [data-theme]
+   scope so an explicit user choice wins in both directions.
+   ========================================================================= */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --oc-paper:          #171614;
+    --oc-surface:        #201E1B;
+    --oc-surface-sunken: #131211;
+    --oc-surface-hover:  #282521;
+    --oc-surface-active: #302C27;
+    --oc-scrim:          rgba(0, 0, 0, 0.62);
+
+    --oc-ink:            #F5F2EC;
+    --oc-ink-secondary:  #C7C0B4;
+    --oc-ink-muted:      #9A9285;
+    --oc-ink-inverse:    #171614;
+
+    --oc-border:         #302C27;
+    --oc-border-strong:  #454038;
+    --oc-border-control: #6E675C;
+
+    --oc-accent:         #4FA97A;
+    --oc-accent-hover:   #62BC8C;
+    --oc-accent-active:  #3E8F65;
+    --oc-accent-soft:    #1B2E24;
+    --oc-accent-ink:     #9BD9B6;
+
+    --oc-positive:       #4FA97A;
+    --oc-positive-soft:  #1B2E24;
+    --oc-positive-ink:   #9BD9B6;
+    --oc-warn:           #D79A3C;
+    --oc-warn-soft:      #33260F;
+    --oc-warn-ink:       #EFC684;
+    --oc-danger:         #E4756B;
+    --oc-danger-soft:    #351C19;
+    --oc-danger-ink:     #F2A79F;
+    --oc-neutral:        #9A9285;
+    --oc-neutral-soft:   #262320;
+    --oc-neutral-ink:    #C7C0B4;
+
+    --oc-series-1:       #199e70;
+    --oc-series-2:       #d95926;
+    --oc-series-3:       #9085e9;
+    --oc-series-4:       #c98500;
+    --oc-series-5:       #d55181;
+    --oc-chart-surface:  #201E1B;
+    --oc-chart-grid:     #302C27;
+    --oc-chart-axis:     #454038;
+
+    --oc-seq-1:          #1B2E24;
+    --oc-seq-2:          #24503A;
+    --oc-seq-3:          #2F7350;
+    --oc-seq-4:          #3E9668;
+    --oc-seq-5:          #4FA97A;
+
+    --oc-div-neg-2:      #E4756B;
+    --oc-div-neg-1:      #8A4B45;
+    --oc-div-mid:        #454038;
+    --oc-div-pos-1:      #35755A;
+    --oc-div-pos-2:      #4FA97A;
+
+    --oc-shadow-raised:  0 1px 2px rgba(0, 0, 0, 0.4);
+    --oc-shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+
+    --oc-focus-ring:     0 0 0 2px var(--oc-paper), 0 0 0 4px var(--oc-accent);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --oc-paper:          #171614;
+  --oc-surface:        #201E1B;
+  --oc-surface-sunken: #131211;
+  --oc-surface-hover:  #282521;
+  --oc-surface-active: #302C27;
+  --oc-scrim:          rgba(0, 0, 0, 0.62);
+
+  --oc-ink:            #F5F2EC;
+  --oc-ink-secondary:  #C7C0B4;
+  --oc-ink-muted:      #9A9285;
+  --oc-ink-inverse:    #171614;
+
+  --oc-border:         #302C27;
+  --oc-border-strong:  #454038;
+  --oc-border-control: #6E675C;
+
+  --oc-accent:         #4FA97A;
+  --oc-accent-hover:   #62BC8C;
+  --oc-accent-active:  #3E8F65;
+  --oc-accent-soft:    #1B2E24;
+  --oc-accent-ink:     #9BD9B6;
+
+  --oc-positive:       #4FA97A;
+  --oc-positive-soft:  #1B2E24;
+  --oc-positive-ink:   #9BD9B6;
+  --oc-warn:           #D79A3C;
+  --oc-warn-soft:      #33260F;
+  --oc-warn-ink:       #EFC684;
+  --oc-danger:         #E4756B;
+  --oc-danger-soft:    #351C19;
+  --oc-danger-ink:     #F2A79F;
+  --oc-neutral:        #9A9285;
+  --oc-neutral-soft:   #262320;
+  --oc-neutral-ink:    #C7C0B4;
+
+  --oc-series-1:       #199e70;
+  --oc-series-2:       #d95926;
+  --oc-series-3:       #9085e9;
+  --oc-series-4:       #c98500;
+  --oc-series-5:       #d55181;
+  --oc-chart-surface:  #201E1B;
+  --oc-chart-grid:     #302C27;
+  --oc-chart-axis:     #454038;
+
+  --oc-seq-1:          #1B2E24;
+  --oc-seq-2:          #24503A;
+  --oc-seq-3:          #2F7350;
+  --oc-seq-4:          #3E9668;
+  --oc-seq-5:          #4FA97A;
+
+  --oc-div-neg-2:      #E4756B;
+  --oc-div-neg-1:      #8A4B45;
+  --oc-div-mid:        #454038;
+  --oc-div-pos-1:      #35755A;
+  --oc-div-pos-2:      #4FA97A;
+
+  --oc-shadow-raised:  0 1px 2px rgba(0, 0, 0, 0.4);
+  --oc-shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ===========================================================================
+   High contrast — targets 7:1 on body text. Not a filter over the light
+   theme: its own token values.
+   ========================================================================= */
+:root[data-contrast="high"] {
+  --oc-paper:          #FFFFFF;
+  --oc-surface:        #FFFFFF;
+  --oc-surface-sunken: #EDEAE4;
+  --oc-ink:            #000000;
+  --oc-ink-secondary:  #26241F;
+  --oc-ink-muted:      #3D392F;
+  --oc-border:         #6E675C;
+  --oc-border-strong:  #26241F;
+  --oc-border-control: #000000;
+  --oc-accent:         #12432A;
+  --oc-accent-ink:     #0B2E1C;
+  --oc-warn:           #6E3D00;
+  --oc-danger:         #7A1710;
+}
+
+/* ===========================================================================
+   Reduced motion — honoured globally, not per-component.
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --oc-dur-instant: 1ms;
+    --oc-dur-quick:   1ms;
+    --oc-dur-reveal:  1ms;
+  }
+}
+
+/* ===========================================================================
+   UI scaling 80%–150%. Everything above is in rem, so one root font-size
+   change rescales the whole interface without reflowing component logic.
+   ========================================================================= */
+:root[data-ui-scale="80"]  { font-size: 12.8px; }
+:root[data-ui-scale="90"]  { font-size: 14.4px; }
+:root[data-ui-scale="100"] { font-size: 16px; }
+:root[data-ui-scale="115"] { font-size: 18.4px; }
+:root[data-ui-scale="130"] { font-size: 20.8px; }
+:root[data-ui-scale="150"] { font-size: 24px; }

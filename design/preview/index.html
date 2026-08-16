@@ -1,0 +1,749 @@
+<title>Matchday Paper</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+/* ===========================================================================
+   Tokens — mirrored from design/tokens/one-career-light.css
+   Light is the bare :root. Dark is an option, declared under both scopes.
+   ========================================================================= */
+:root{
+  color-scheme:light;
+  --paper:#F7F5F1; --surface:#FFFFFF; --sunken:#EFECE6; --hover:#F2EFE9;
+  --ink:#1B1A17; --ink-2:#55504A; --ink-3:#6B6459; --ink-inv:#FFFFFF;
+  --line:#E2DDD4; --line-2:#C8C0B3; --line-ctrl:#948A7A;
+  --accent:#1F6F43; --accent-h:#185735; --accent-soft:#E6F0E9; --accent-ink:#14532D;
+  --warn:#A05A00; --warn-soft:#FBEDD8; --warn-ink:#7A4400;
+  --danger:#B3261E; --danger-soft:#FBE9E6; --danger-ink:#8C1D18;
+  --neutral:#6B6459; --neutral-soft:#EFECE6;
+  --s1:#1baf7a; --s2:#eb6834; --s3:#4a3aa7; --s4:#eda100; --s5:#e87ba4;
+  --grid:#E2DDD4;
+  --pitch:#E8EFE7; --pitch-line:#C3D3C0;
+  --shadow:0 1px 2px rgba(60,52,40,.06);
+  --shadow-lg:0 8px 24px rgba(60,52,40,.12),0 2px 6px rgba(60,52,40,.08);
+  --sans:"Segoe UI","Noto Sans Hebrew","Arial Hebrew",system-ui,-apple-system,sans-serif;
+  --r:8px; --r-sm:4px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#171614; --surface:#201E1B; --sunken:#131211; --hover:#282521;
+    --ink:#F5F2EC; --ink-2:#C7C0B4; --ink-3:#9A9285; --ink-inv:#171614;
+    --line:#302C27; --line-2:#454038; --line-ctrl:#6E675C;
+    --accent:#4FA97A; --accent-h:#62BC8C; --accent-soft:#1B2E24; --accent-ink:#9BD9B6;
+    --warn:#D79A3C; --warn-soft:#33260F; --warn-ink:#EFC684;
+    --danger:#E4756B; --danger-soft:#351C19; --danger-ink:#F2A79F;
+    --neutral:#9A9285; --neutral-soft:#262320;
+    --s1:#199e70; --s2:#d95926; --s3:#9085e9; --s4:#c98500; --s5:#d55181;
+    --grid:#302C27;
+    --pitch:#1C231B; --pitch-line:#33402F;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+    --shadow-lg:0 8px 24px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#171614; --surface:#201E1B; --sunken:#131211; --hover:#282521;
+  --ink:#F5F2EC; --ink-2:#C7C0B4; --ink-3:#9A9285; --ink-inv:#171614;
+  --line:#302C27; --line-2:#454038; --line-ctrl:#6E675C;
+  --accent:#4FA97A; --accent-h:#62BC8C; --accent-soft:#1B2E24; --accent-ink:#9BD9B6;
+  --warn:#D79A3C; --warn-soft:#33260F; --warn-ink:#EFC684;
+  --danger:#E4756B; --danger-soft:#351C19; --danger-ink:#F2A79F;
+  --neutral:#9A9285; --neutral-soft:#262320;
+  --s1:#199e70; --s2:#d95926; --s3:#9085e9; --s4:#c98500; --s5:#d55181;
+  --grid:#302C27;
+  --pitch:#1C231B; --pitch-line:#33402F;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.4);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+:focus-visible{outline:none; box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--accent); border-radius:var(--r-sm)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 96px}
+
+/* --- masthead ----------------------------------------------------------- */
+.mast{
+  border-bottom:1px solid var(--line-2); margin-bottom:40px;
+  padding:32px 0 20px; display:flex; flex-wrap:wrap; gap:20px;
+  align-items:flex-end; justify-content:space-between;
+}
+.mast h1{
+  margin:0; font-size:clamp(28px,4.4vw,42px); line-height:1.05; letter-spacing:-.02em;
+  font-weight:800; text-wrap:balance;
+}
+.mast h1 span{color:var(--accent)}
+.mast p{margin:8px 0 0;color:var(--ink-2);max-width:56ch;font-size:15px}
+.eyebrow{
+  font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:700; margin:0 0 6px;
+}
+.tglrow{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.tgl{
+  font:inherit;font-size:13px;font-weight:600;cursor:pointer;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line-ctrl);
+  border-radius:999px;padding:7px 14px;transition:background .18s;
+}
+.tgl:hover{background:var(--hover)}
+.tgl[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* --- section scaffolding ------------------------------------------------ */
+.sec{margin:0 0 56px}
+.sec-head{display:flex;gap:12px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:18px;flex-wrap:wrap}
+.sec-head h2{margin:0;font-size:20px;font-weight:750;letter-spacing:-.01em}
+.sec-head .rule{margin:0;color:var(--ink-3);font-size:13px}
+.note{
+  background:var(--accent-soft); color:var(--accent-ink);
+  border-inline-start:3px solid var(--accent); border-radius:0 var(--r-sm) var(--r-sm) 0;
+  padding:10px 14px; font-size:13.5px; margin:0 0 18px;
+}
+
+/* --- screen frame ------------------------------------------------------- */
+.screen{
+  background:var(--surface); border:1px solid var(--line-2); border-radius:12px;
+  box-shadow:var(--shadow-lg); overflow:hidden;
+}
+.topbar{
+  display:flex;align-items:center;gap:14px;padding:10px 16px;
+  border-bottom:1px solid var(--line); background:var(--surface);
+}
+.crest{
+  width:30px;height:30px;border-radius:6px;flex-shrink:0;
+  background:var(--club,#008D36); display:grid;place-items:center;
+  color:#fff;font-size:11px;font-weight:800;letter-spacing:.02em;
+}
+.club-name{font-weight:700;font-size:14px;line-height:1.2}
+.club-sub{font-size:11.5px;color:var(--ink-3);line-height:1.2}
+nav.tabs{display:flex;gap:2px;margin-inline-start:auto;flex-wrap:wrap}
+nav.tabs button{
+  font:inherit;font-size:13px;font-weight:600;cursor:pointer;
+  background:none;border:none;color:var(--ink-2);
+  padding:7px 12px;border-radius:var(--r-sm);position:relative;
+}
+nav.tabs button:hover{background:var(--hover);color:var(--ink)}
+nav.tabs button[aria-current="true"]{color:var(--ink);background:var(--sunken)}
+nav.tabs button[aria-current="true"]::after{
+  content:"";position:absolute;inset-inline:10px;bottom:-11px;height:2px;background:var(--club,var(--accent));
+}
+.body{display:grid;grid-template-columns:1.55fr 1fr;gap:1px;background:var(--line)}
+@media (max-width:860px){.body{grid-template-columns:1fr}}
+.pane{background:var(--surface);padding:18px}
+
+/* --- generic bits ------------------------------------------------------- */
+.lbl{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.card{border:1px solid var(--line);border-radius:var(--r);padding:14px;background:var(--surface)}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;align-items:center}
+.spread{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3)}
+.sm{font-size:13px}
+.xs{font-size:11.5px}
+
+.chip{
+  display:inline-flex;align-items:center;gap:5px;border-radius:999px;
+  padding:3px 9px;font-size:11.5px;font-weight:700;line-height:1.5;
+  background:var(--neutral-soft);color:var(--ink-2);border:1px solid transparent;
+}
+.chip.ok{background:var(--accent-soft);color:var(--accent-ink)}
+.chip.warn{background:var(--warn-soft);color:var(--warn-ink)}
+.chip.bad{background:var(--danger-soft);color:var(--danger-ink)}
+.chip::before{content:attr(data-i);font-size:11px}
+
+.btn{
+  font:inherit;font-size:13.5px;font-weight:650;cursor:pointer;border-radius:var(--r-sm);
+  padding:8px 14px;border:1px solid var(--line-ctrl);background:var(--surface);color:var(--ink);
+  transition:background .18s,border-color .18s;
+}
+.btn:hover{background:var(--hover)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover{background:var(--accent-h);border-color:var(--accent-h)}
+
+/* certainty encoding: border style + icon, colour only reinforces */
+.cert{border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px;font-size:13px}
+.cert .tag{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;display:block;margin-bottom:3px}
+.cert.fact{border-style:solid;color:var(--ink)}
+.cert.fact .tag{color:var(--ink-3)}
+.cert.est{border-style:dashed;color:var(--ink-2)}
+.cert.est .tag{color:var(--ink-3)}
+.cert.rumor{border-style:dotted;color:var(--ink-3)}
+.cert.rumor .tag{color:var(--ink-3)}
+
+/* meters */
+.meter{height:8px;border-radius:999px;background:var(--sunken);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+.meter i.warn{background:var(--warn)}
+.meter i.bad{background:var(--danger)}
+
+/* timeline */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.day{
+  border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 5px;text-align:center;
+  font-size:11px;background:var(--surface);
+}
+.day b{display:block;font-size:10px;letter-spacing:.06em;color:var(--ink-3);font-weight:700;margin-bottom:3px}
+.day.match{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.day.rest{background:var(--sunken);color:var(--ink-3)}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 8px;text-align:start;border-bottom:1px solid var(--line)}
+th{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+tbody tr:nth-child(even){background:var(--sunken)}
+tbody tr.you{background:var(--accent-soft)}
+tbody tr.you td{font-weight:700;color:var(--accent-ink)}
+td.n{text-align:end;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-inline-end:7px;vertical-align:baseline}
+
+/* KPI bars — single series, direct-labelled (relief rule) */
+.kpi{display:flex;flex-direction:column;gap:11px;margin-top:4px}
+.kpi .k{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.kpi .kname{font-size:13px}
+.kpi .kval{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.track{grid-column:1/-1;height:10px;background:var(--sunken);border-radius:3px;position:relative;overflow:hidden}
+.track i{position:absolute;inset-block:0;inset-inline-start:0;background:var(--accent);border-radius:0 3px 3px 0}
+.track u{position:absolute;inset-block:-2px;width:2px;background:var(--ink-3);text-decoration:none}
+
+/* --- skill moment ------------------------------------------------------- */
+.moment{background:var(--pitch);border:1px solid var(--line-2);border-radius:12px;padding:16px}
+.pitchbox{
+  position:relative;aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;
+  background:var(--pitch);border:1px solid var(--pitch-line);
+}
+.pitchbox svg{display:block;width:100%;height:100%}
+.momentui{display:grid;grid-template-columns:1fr 260px;gap:16px;margin-top:14px}
+@media (max-width:760px){.momentui{grid-template-columns:1fr}}
+.choices{display:flex;flex-direction:column;gap:7px}
+.choice{
+  font:inherit;font-size:13px;text-align:start;cursor:pointer;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink);
+  border-radius:var(--r-sm);padding:9px 11px;transition:border-color .15s,background .15s;
+}
+.choice:hover{background:var(--hover)}
+.choice[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);font-weight:650}
+.choice small{display:block;color:var(--ink-3);font-size:11.5px;font-weight:400;margin-top:2px}
+.choice[aria-pressed="true"] small{color:var(--accent-ink);opacity:.85}
+.choice.unlocked{border-inline-start:3px solid var(--s4)}
+
+.powerbar{
+  position:relative;height:26px;border-radius:var(--r-sm);background:var(--sunken);
+  border:1px solid var(--line-2);overflow:hidden;margin-top:6px;
+}
+.sweet{position:absolute;inset-block:0;background:var(--accent-soft);border-inline:2px solid var(--accent)}
+.needle{position:absolute;inset-block:0;width:3px;background:var(--ink);border-radius:2px}
+.readout{
+  font-variant-numeric:tabular-nums;font-size:13px;min-height:44px;
+  border-radius:var(--r-sm);padding:8px 10px;background:var(--surface);border:1px solid var(--line);
+}
+
+/* --- negotiation -------------------------------------------------------- */
+.terms{display:flex;flex-direction:column;gap:9px}
+.term{display:grid;grid-template-columns:1fr auto;gap:3px 10px;align-items:center;
+  border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px}
+.term .tn{font-size:13px;font-weight:600}
+.term .tv{font-size:13px;font-variant-numeric:tabular-nums;font-weight:700}
+.term .th{grid-column:1/-1;font-size:11.5px;color:var(--ink-3)}
+.term.push{border-color:var(--warn);background:var(--warn-soft)}
+.term.push .th{color:var(--warn-ink)}
+.term.give{border-color:var(--line-2);background:var(--sunken)}
+.tension{height:8px;border-radius:999px;background:var(--sunken);overflow:hidden;margin-top:4px}
+.tension i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--warn) 62%,var(--danger))}
+
+/* --- swatches ----------------------------------------------------------- */
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.swatch{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.swatch .cap{height:52px}
+.swatch .meta{padding:8px 10px;font-size:11.5px;line-height:1.45}
+.swatch .meta b{display:block;font-size:12.5px}
+.swatch .meta code{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+.killed{
+  border:1px dashed var(--danger);background:var(--danger-soft);color:var(--danger-ink);
+  border-radius:var(--r);padding:12px 14px;font-size:13.5px;
+}
+footer{border-top:1px solid var(--line-2);margin-top:56px;padding-top:18px;color:var(--ink-3);font-size:12.5px}
+</style>
+
+<div class="wrap" dir="rtl" lang="he">
+
+  <header class="mast">
+    <div>
+      <p class="eyebrow">ONE CAREER · GDD v0.2 · כיוון ממשק</p>
+      <h1>Matchday <span>Paper</span></h1>
+      <p>שפת הממשק הבהירה שמחליפה את הכיוון הכחול־שחור. נייר חם, דיו כהה, ואקסנט ירוק־דשא יחיד. כחול אינו קיים באף משטח, אקסנט, סטטוס או בקר.</p>
+    </div>
+    <div class="tglrow">
+      <span class="lbl">ערכת נושא</span>
+      <button class="tgl" id="tL" aria-pressed="true">בהיר</button>
+      <button class="tgl" id="tD" aria-pressed="false">כהה</button>
+    </div>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>1 · Portal — היום</h2>
+      <p class="rule">הבטחת 10 השניות: מה דחוף, למה אני מסופסל, מה מצב הגוף, מה ההחלטה הבאה.</p>
+    </div>
+
+    <div class="screen" style="--club:#008D36">
+      <div class="topbar">
+        <div class="crest">MHA</div>
+        <div>
+          <div class="club-name">מכבי חיפה</div>
+          <div class="club-sub num">ליגת העל · מחזור 9 · עונה 2</div>
+        </div>
+        <nav class="tabs">
+          <button aria-current="true">היום</button>
+          <button>השחקן</button>
+          <button>המועדון</button>
+          <button>קריירה</button>
+          <button>דאטה</button>
+          <button>עולם</button>
+        </nav>
+      </div>
+
+      <div class="body">
+        <div class="pane stack">
+          <div>
+            <span class="lbl">השבוע</span>
+            <div class="week">
+              <div class="day"><b>ב׳</b>וידאו</div>
+              <div class="day"><b>ג׳</b>טקטי</div>
+              <div class="day rest"><b>ד׳</b>התאוששות</div>
+              <div class="day"><b>ה׳</b>סוכן</div>
+              <div class="day"><b>ו׳</b>חדות</div>
+              <div class="day match"><b>ש׳</b>הפועל ב״ש</div>
+              <div class="day rest"><b>א׳</b>מנוחה</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="spread" style="margin-bottom:10px">
+              <span class="lbl">שלוש המשימות</span>
+              <span class="chip warn" data-i="▲">עומס עולה</span>
+            </div>
+            <div class="stack" style="gap:9px">
+              <div class="cert fact">
+                <span class="tag">עובדה · מאמן העמדה</span>
+                המאמן ביקש שתעבוד על סגירת קו המסירה הפנימי לפני שבת.
+              </div>
+              <div class="cert est">
+                <span class="tag">הערכה · אנליסט</span>
+                בשלושת המשחקים האחרונים אתה מגיע ללחץ 0.4 שנייה מאוחר מדי מול חמישייה אחורית.
+              </div>
+              <div class="cert rumor">
+                <span class="tag">שמועה · סוכן</span>
+                מדברים על סקאוט מדרג שני בצרפת שיגיע בשבת. לא אושר.
+              </div>
+            </div>
+            <div class="row" style="margin-top:12px">
+              <button class="btn pri">לפתוח את לוח ההכנה</button>
+              <button class="btn">לדחות להמשך השבוע</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pane stack">
+          <div class="card">
+            <span class="lbl">מצב גוף</span>
+            <div class="stack" style="gap:10px;margin-top:9px">
+              <div>
+                <div class="spread sm"><span>כשירות</span><span class="num" style="font-weight:700">72%</span></div>
+                <div class="meter"><i style="width:72%"></i></div>
+              </div>
+              <div>
+                <div class="spread sm"><span>חדות</span><span class="num" style="font-weight:700">61%</span></div>
+                <div class="meter"><i class="warn" style="width:61%"></i></div>
+              </div>
+              <div>
+                <div class="spread sm"><span>עומס מצטבר</span><span class="num" style="font-weight:700">84%</span></div>
+                <div class="meter"><i class="bad" style="width:84%"></i></div>
+              </div>
+            </div>
+            <p class="xs muted" style="margin:10px 0 0">מדען הספורט ממליץ על מנוחה. המאמן רוצה אימון לחץ. שתי הדעות מוצגות — אין תשובה נכונה אחת.</p>
+          </div>
+
+          <div class="card">
+            <span class="lbl">מעמד בסגל</span>
+            <p class="sm" style="margin:8px 0 10px">רוטציה · מתחרה ישיר חזר מפציעה לפני שבועיים</p>
+            <div class="stack" style="gap:6px">
+              <div class="spread xs"><span>דקות ב-5 האחרונים</span><span class="num">168׳</span></div>
+              <div class="spread xs"><span>אמון מאמן</span><span class="chip ok" data-i="▲">עולה</span></div>
+              <div class="spread xs"><span>הבטחה פתוחה</span><span class="chip warn" data-i="◷">דקות עד נובמבר</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>2 · לוח ההכנה</h2>
+      <p class="rule">המסך שממיר ניהול למשחקיות. כל שורה מראה מה היא נותנת ברגע על הדשא.</p>
+    </div>
+    <p class="note"><b>זו התשובה ל״ניהול יותר מעמוק״.</b> החלטת אימון ביום שלישי אינה מספר שעולה — היא אפשרות בחירה נוספת שנפתחת בדקה 63 בשבת. המידע גם מתיישן: יריב שהחליף מאמן מאפס את מה שידעת עליו.</p>
+
+    <div class="screen">
+      <div class="topbar">
+        <div class="crest" style="background:#E4002B">HBS</div>
+        <div>
+          <div class="club-name">הכנה — הפועל באר שבע (ח)</div>
+          <div class="club-sub num">שבת 20:00 · טרנר · 4 פעולות פנויות</div>
+        </div>
+        <nav class="tabs"><button aria-current="true">הכנה</button><button>טקטיקה</button><button>מפת עומק</button></nav>
+      </div>
+      <div class="pane">
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th>פעולת הכנה</th><th>עלות</th><th>מה זה נותן ברגע</th><th>תוקף</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>ניתוח וידאו של היריב</td><td class="n">1</td><td>‎+0.3 שנייה לזמן הקריאה מולם</td><td><span class="chip ok" data-i="✓">3 מפגשים</span></td></tr>
+              <tr><td>ישיבת אנליסט אישית</td><td class="n">1</td><td>פותח אפשרות בחירה נוספת ב-2–4 מצבים</td><td><span class="chip ok" data-i="✓">המשחק הזה</span></td></tr>
+              <tr><td>שיחה עם מאמן העמדה</td><td class="n">½</td><td>מסמן את החולשה של המקביל שלך</td><td><span class="chip" data-i="◷">עונה</span></td></tr>
+              <tr><td>אימון תבנית עם היחידה</td><td class="n">1</td><td>ריצות של חברים מסומנות מוקדם יותר</td><td><span class="chip warn" data-i="!">עד שינוי הרכב</span></td></tr>
+              <tr><td>לימוד מצבים נייחים</td><td class="n">1</td><td>פותח רגעי כדור עצור</td><td><span class="chip" data-i="◷">קבוע</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>3 · Skill Moment</h2>
+      <p class="rule">קלט ישיר בסגנון New Star Soccer — אבל עם שלב קריאה והחלטה לפניו.</p>
+    </div>
+    <p class="note">בחרו כוונה, ואז עצרו את המד. שימו לב שהאפשרות המסומנת בפס צהוב נפתחה <b>רק בזכות ניתוח הווידאו מיום שני</b>. זהו הגשר: הניהול מרחיב את מרחב הפעולה שלכם ברגע האמת.</p>
+
+    <div class="moment">
+      <div class="pitchbox">
+        <svg viewBox="0 0 640 360" role="img" aria-label="מצב משחק: אתה מקבל כדור בקצה הקופסה, מגן צמוד מאחור, חבר לקבוצה מבצע ריצה לעמוד הרחוק">
+          <rect width="640" height="360" fill="var(--pitch)"/>
+          <g stroke="var(--pitch-line)" stroke-width="2" fill="none">
+            <rect x="14" y="14" width="612" height="332" rx="3"/>
+            <rect x="14" y="86" width="132" height="188"/>
+            <rect x="14" y="140" width="52" height="80"/>
+            <path d="M146 130 A 62 62 0 0 1 146 230"/>
+            <line x1="620" y1="14" x2="620" y2="346"/>
+          </g>
+          <!-- teammate run -->
+          <path d="M300 292 C 232 276 186 250 158 226" stroke="var(--s1)" stroke-width="3" stroke-dasharray="7 6" fill="none" stroke-linecap="round"/>
+          <circle cx="300" cy="292" r="10" fill="var(--s1)"/>
+          <text x="300" y="296" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">9</text>
+          <!-- pressure -->
+          <path d="M430 118 L 372 146" stroke="var(--danger)" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M378 138 L 366 149 L 381 153 Z" fill="var(--danger)"/>
+          <circle cx="438" cy="114" r="10" fill="var(--danger)"/>
+          <!-- you -->
+          <circle cx="352" cy="158" r="13" fill="var(--accent)" stroke="var(--surface)" stroke-width="3"/>
+          <text x="352" y="163" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">8</text>
+          <circle cx="336" cy="172" r="5.5" fill="var(--ink)"/>
+          <text x="352" y="196" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink-2)">אתה</text>
+          <!-- read timer -->
+          <rect x="440" y="300" width="186" height="34" rx="6" fill="var(--surface)" stroke="var(--line-2)"/>
+          <text x="533" y="322" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">זמן קריאה · 1.4 שנ׳</text>
+        </svg>
+      </div>
+
+      <div class="momentui">
+        <div>
+          <span class="lbl">בחירת כוונה</span>
+          <div class="choices" id="choices" style="margin-top:7px">
+            <button class="choice" aria-pressed="false" data-sweet="26" data-w="34">
+              בעיטה מסובבת לעמוד הרחוק
+              <small>סיכון גבוה · הרגל החזקה · אזור אופטימלי צר</small>
+            </button>
+            <button class="choice" aria-pressed="false" data-sweet="48" data-w="26">
+              מסירה קצרה אחורה ולשמור החזקה
+              <small>סיכון נמוך · דוח התפקיד לא ייפגע</small>
+            </button>
+            <button class="choice unlocked" aria-pressed="false" data-sweet="62" data-w="21">
+              כדור עומק לריצה של מס׳ 9
+              <small>נפתח מניתוח וידאו — הקו שלהם גבוה ולא מתקן</small>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <span class="lbl">עוצמה ותזמון</span>
+          <div class="powerbar" id="bar" aria-hidden="true">
+            <div class="sweet" id="sweet"></div>
+            <div class="needle" id="needle"></div>
+          </div>
+          <div class="row" style="margin-top:9px">
+            <button class="btn pri" id="fire">עצור את המד</button>
+            <button class="btn" id="again">מצב חדש</button>
+          </div>
+          <div class="readout" id="out" role="status" style="margin-top:9px">בחרו כוונה כדי להתחיל.</div>
+          <p class="xs muted" style="margin:8px 0 0">האזור הירוק מתרחב עם התכונה הרלוונטית ומצטמצם עם עייפות, כאב ולחץ.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>4 · Negotiation Board</h2>
+      <p class="rule">כל תנאי העסקה על מסך אחד. 2D מהיר במקום cutscene איטי.</p>
+    </div>
+
+    <div class="screen">
+      <div class="topbar">
+        <div class="crest" style="background:#003DA5">LIL</div>
+        <div>
+          <div class="club-name">LOSC ליל — הצעה ראשונה</div>
+          <div class="club-sub">סוכן: בונה הקריירה · עמלה 5%</div>
+        </div>
+        <nav class="tabs"><button aria-current="true">תנאים</button><button>חלופות</button><button>השפעה כספית</button></nav>
+      </div>
+      <div class="body">
+        <div class="pane">
+          <span class="lbl">תנאי העסקה</span>
+          <div class="terms" style="margin-top:9px">
+            <div class="term push">
+              <span class="tn">מעמד בסגל</span><span class="tv">שחקן רוטציה</span>
+              <span class="th">אתה דוחף ל״מסובב ראשון״. המועדון עמיד — יש להם מטרה אחרת באותה עמדה.</span>
+            </div>
+            <div class="term">
+              <span class="tn">שכר בסיס</span><span class="tv num">‎€24k / שבוע</span>
+              <span class="th">בטווח שהסוכן העריך. הוא לא בטוח לגבי התקרה.</span>
+            </div>
+            <div class="term give">
+              <span class="tn">סעיף שחרור</span><span class="tv num">‎€14M</span>
+              <span class="th">ויתרת כאן כדי ללחוץ על המעמד. החלטה נכונה אם תשחק.</span>
+            </div>
+            <div class="term">
+              <span class="tn">אורך חוזה</span><span class="tv num">4 שנים</span>
+              <span class="th">ארוך. מגן עליך בפציעה, כובל אותך אם המאמן יתחלף.</span>
+            </div>
+            <div class="term">
+              <span class="tn">מעבר משפחה ושפה</span><span class="tv">כלול</span>
+              <span class="th">מוריד את סיכון הבדידות בשנה הראשונה.</span>
+            </div>
+          </div>
+        </div>
+        <div class="pane stack">
+          <div class="card">
+            <div class="spread"><span class="lbl">מתח במו״מ</span><span class="chip warn" data-i="!">גבוה</span></div>
+            <div class="tension" style="margin-top:9px"><i style="width:74%"></i></div>
+            <p class="xs muted" style="margin:9px 0 0">עוד דחיפה אחת על המעמד והמועדון עשוי לסגת. לכל צד יש תקציב מתח.</p>
+          </div>
+          <div class="card">
+            <span class="lbl">מה אתה לא יודע</span>
+            <div class="stack" style="gap:7px;margin-top:9px">
+              <div class="cert est"><span class="tag">הערכה</span>תקרת השכר האמיתית שלהם</div>
+              <div class="cert rumor"><span class="tag">שמועה</span>שיש מועדון נוסף בתמונה</div>
+            </div>
+          </div>
+          <div class="row"><button class="btn pri">לשלוח נגדית</button><button class="btn">לקחת שבוע</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>5 · דאטה ועולם</h2>
+      <p class="rule">כל גרף מתחיל בכותרת מסקנה. הגרף מוכיח — הוא לא מחליף הסבר.</p>
+    </div>
+
+    <div class="screen">
+      <div class="body">
+        <div class="pane">
+          <span class="lbl">Analyst Story · קשר מרכזי</span>
+          <p style="margin:6px 0 4px;font-size:16px;font-weight:700;line-height:1.35;text-wrap:balance">
+            אתה מקבל כדור עמוק יותר מכל קשר אחר בליגה — אבל מאבד יותר תחת לחץ.
+          </p>
+          <p class="xs muted" style="margin:0 0 14px">אחוזון מול קשרים מרכזיים בליגת העל · 9 מחזורים · מדגם קטן</p>
+          <div class="kpi">
+            <div class="k">
+              <span class="kname">קידום כדור למגרש הקדמי</span><span class="kval num">אחוזון 91</span>
+              <span class="track"><i style="width:91%"></i><u style="inset-inline-start:50%"></u></span>
+            </div>
+            <div class="k">
+              <span class="kname">שבירת קווים במסירה</span><span class="kval num">אחוזון 78</span>
+              <span class="track"><i style="width:78%"></i><u style="inset-inline-start:50%"></u></span>
+            </div>
+            <div class="k">
+              <span class="kname">שמירה על כדור תחת לחץ</span><span class="kval num">אחוזון 34</span>
+              <span class="track"><i style="width:34%;background:var(--warn)"></i><u style="inset-inline-start:50%"></u></span>
+            </div>
+            <div class="k">
+              <span class="kname">סגירת קו מסירה בהגנה</span><span class="kval num">אחוזון 66</span>
+              <span class="track"><i style="width:66%"></i><u style="inset-inline-start:50%"></u></span>
+            </div>
+          </div>
+          <p class="xs muted" style="margin:12px 0 0">הקו האנכי הוא חציון הליגה. כל ערך מתויג ישירות — אין הסתמכות על צבע בלבד.</p>
+        </div>
+
+        <div class="pane">
+          <span class="lbl">ליגת העל · מחזור 9</span>
+          <div class="tablewrap" style="margin-top:8px">
+            <table>
+              <thead><tr><th>#</th><th>מועדון</th><th class="n">מש׳</th><th class="n">נק׳</th></tr></thead>
+              <tbody>
+                <tr><td class="num">1</td><td><span class="dot" style="background:#FFDD00"></span>מכבי ת״א</td><td class="n">9</td><td class="n">21</td></tr>
+                <tr class="you"><td class="num">2</td><td><span class="dot" style="background:#008D36"></span>מכבי חיפה</td><td class="n">9</td><td class="n">19</td></tr>
+                <tr><td class="num">3</td><td><span class="dot" style="background:#E4002B"></span>הפועל באר שבע</td><td class="n">9</td><td class="n">17</td></tr>
+                <tr><td class="num">4</td><td><span class="dot" style="background:#FFDD00"></span>בית״ר ירושלים</td><td class="n">9</td><td class="n">15</td></tr>
+                <tr><td class="num">5</td><td><span class="dot" style="background:#E4002B"></span>הפועל ת״א</td><td class="n">9</td><td class="n">14</td></tr>
+                <tr><td class="num">6</td><td><span class="dot" style="background:#FFDD00"></span>מכבי נתניה</td><td class="n">9</td><td class="n">12</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="xs muted" style="margin:10px 0 0">
+            נתונים אמיתיים מ-<code>data/leagues/isr.json</code> · 14 מועדונים · פורמט פלייאוף אמיתי: 26 מחזורים ואז עליון 6 / תחתון 8.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>6 · הטוקנים</h2>
+      <p class="rule">כל ערך נמדד. כל טוקן טקסט עובר 4.5:1 על כל משטח שמותר לו לשבת עליו.</p>
+    </div>
+
+    <div class="killed" style="margin-bottom:16px">
+      <b>מה נמחק:</b> ‎<code>#0B1B2B</code> ו-<code>#12263A</code> — הרקע הכחול־שחור מגרסה 0.1. אין כחול באף משטח, אקסנט, סטטוס או בקר בגרסה 0.2.
+    </div>
+
+    <div class="sw">
+      <div class="swatch"><div class="cap" style="background:#F7F5F1;border-bottom:1px solid var(--line)"></div><div class="meta"><b>נייר</b><code>#F7F5F1</code><br>רקע האפליקציה</div></div>
+      <div class="swatch"><div class="cap" style="background:#FFFFFF;border-bottom:1px solid var(--line)"></div><div class="meta"><b>משטח</b><code>#FFFFFF</code><br>כרטיסים</div></div>
+      <div class="swatch"><div class="cap" style="background:#1B1A17"></div><div class="meta"><b>דיו</b><code>#1B1A17</code><br>15.98:1 על נייר</div></div>
+      <div class="swatch"><div class="cap" style="background:#6B6459"></div><div class="meta"><b>דיו עמום</b><code>#6B6459</code><br>5.37:1 על נייר</div></div>
+      <div class="swatch"><div class="cap" style="background:#1F6F43"></div><div class="meta"><b>אקסנט · דשא</b><code>#1F6F43</code><br>6.15:1 · פעולה ראשית</div></div>
+      <div class="swatch"><div class="cap" style="background:#A05A00"></div><div class="meta"><b>אזהרה</b><code>#A05A00</code><br>5.31:1 · עומס, חוזה</div></div>
+      <div class="swatch"><div class="cap" style="background:#B3261E"></div><div class="meta"><b>סכנה</b><code>#B3261E</code><br>6.54:1 · פציעה</div></div>
+      <div class="swatch"><div class="cap" style="background:#6B6459;opacity:.5"></div><div class="meta"><b>ניטרלי</b><code>#6B6459</code><br>אין שינוי / לא ידוע</div></div>
+    </div>
+
+    <p class="lbl" style="margin:22px 0 8px">פלטת סדרות לגרפים — סדר קבוע, ללא מחזוריות, מקסימום 5</p>
+    <div class="sw">
+      <div class="swatch"><div class="cap" style="background:#1baf7a"></div><div class="meta"><b>סדרה 1</b><code>#1baf7a</code></div></div>
+      <div class="swatch"><div class="cap" style="background:#eb6834"></div><div class="meta"><b>סדרה 2</b><code>#eb6834</code></div></div>
+      <div class="swatch"><div class="cap" style="background:#4a3aa7"></div><div class="meta"><b>סדרה 3</b><code>#4a3aa7</code></div></div>
+      <div class="swatch"><div class="cap" style="background:#eda100"></div><div class="meta"><b>סדרה 4</b><code>#eda100</code></div></div>
+      <div class="swatch"><div class="cap" style="background:#e87ba4"></div><div class="meta"><b>סדרה 5</b><code>#e87ba4</code></div></div>
+    </div>
+    <p class="xs muted" style="margin:10px 0 0">
+      אומתה מול המשטח הבהיר: תחום בהירות ✓ · רוויה ✓ · הפרדה לעיוורי צבעים ΔE 9.2 ✓ · הפרדה לראייה תקינה ΔE 19.6 ✓.
+      שלושת הגוונים הראשונים בלבד עוברים אימות בכל הזוגות — לכן תרשימי פיזור מוגבלים אליהם.
+      סדרות 1, 4 ו-5 אינן מגיעות ל-3:1 מול הרקע, ולכן כל גרף שמשתמש בהן חייב תוויות ישירות או תצוגת טבלה.
+    </p>
+  </section>
+
+  <footer>
+    ONE CAREER · GDD v0.2 · <code>design/tokens/one-career-light.css</code> — הטוקנים המלאים, מצב כהה, מצב ניגודיות גבוהה וסקיילינג 80%–150%.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* --- theme ---------------------------------------------------------- */
+  var tL = document.getElementById("tL"), tD = document.getElementById("tD");
+  function setTheme(t){
+    document.documentElement.setAttribute("data-theme", t);
+    tL.setAttribute("aria-pressed", String(t === "light"));
+    tD.setAttribute("aria-pressed", String(t === "dark"));
+  }
+  tL.addEventListener("click", function(){ setTheme("light"); });
+  tD.addEventListener("click", function(){ setTheme("dark"); });
+
+  /* --- skill moment ---------------------------------------------------- */
+  var choices = Array.prototype.slice.call(document.querySelectorAll(".choice"));
+  var needle = document.getElementById("needle");
+  var sweet  = document.getElementById("sweet");
+  var out    = document.getElementById("out");
+  var fire   = document.getElementById("fire");
+  var again  = document.getElementById("again");
+
+  var raf = null, pos = 0, dir = 1, active = null, speed = 1.05;
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function paintSweet(){
+    if(!active){ sweet.style.display = "none"; return; }
+    var w = parseFloat(active.dataset.w), c = parseFloat(active.dataset.sweet);
+    sweet.style.display = "block";
+    sweet.style.insetInlineStart = Math.max(0, c - w / 2) + "%";
+    sweet.style.width = w + "%";
+  }
+
+  function tick(){
+    pos += dir * speed;
+    if(pos >= 100){ pos = 100; dir = -1; }
+    if(pos <= 0){ pos = 0; dir = 1; }
+    needle.style.insetInlineStart = "calc(" + pos + "% - 1.5px)";
+    raf = requestAnimationFrame(tick);
+  }
+
+  function start(){
+    if(raf) cancelAnimationFrame(raf);
+    pos = 0; dir = 1;
+    if(reduce){
+      needle.style.insetInlineStart = "calc(50% - 1.5px)";
+      pos = 50;
+      return;
+    }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function stop(){ if(raf){ cancelAnimationFrame(raf); raf = null; } }
+
+  choices.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      choices.forEach(function(b){ b.setAttribute("aria-pressed", "false"); });
+      btn.setAttribute("aria-pressed", "true");
+      active = btn;
+      paintSweet();
+      out.textContent = "עצרו את המד בתוך האזור הירוק.";
+      start();
+    });
+  });
+
+  fire.addEventListener("click", function(){
+    if(!active){ out.textContent = "בחרו כוונה קודם."; return; }
+    stop();
+    var c = parseFloat(active.dataset.sweet), w = parseFloat(active.dataset.w);
+    var off = Math.abs(pos - c), half = w / 2;
+    var label = active.firstChild.textContent.trim();
+    var msg;
+    if(off <= half * 0.4){
+      msg = "ביצוע נקי · " + label + ". הפעולה יצאה בדיוק כפי שהתכוונת.";
+    } else if(off <= half){
+      msg = "ביצוע סביר · " + label + ". יצא, אבל לא מושלם — התוצאה תלויה עכשיו גם בחבר לקבוצה וביריב.";
+    } else if(off <= half * 1.8){
+      msg = "ביצוע לקוי · " + label + ". איבדת דיוק. דוח התפקיד עדיין יכיר בבחירה הנכונה.";
+    } else {
+      msg = "כישלון ביצוע · " + label + ". הכדור אבד. זה לא Game Over — זה שורה בדוח.";
+    }
+    out.textContent = msg + " (סטייה " + off.toFixed(0) + "%)";
+  });
+
+  again.addEventListener("click", function(){
+    stop();
+    choices.forEach(function(b){ b.setAttribute("aria-pressed", "false"); });
+    active = null;
+    sweet.style.display = "none";
+    needle.style.insetInlineStart = "-3px";
+    out.textContent = "בחרו כוונה כדי להתחיל.";
+  });
+
+  sweet.style.display = "none";
+  needle.style.insetInlineStart = "-3px";
+})();
+</script>
