@@ -666,6 +666,96 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 }
 .ratebig .num.w{background:var(--warn)} .ratebig .num.b{background:var(--bad)} .ratebig .num.g{background:var(--gold)}
 
+/* ── the database: club pages and player cards ─────────────────── */
+.db{background:var(--paper)}
+.dbhead{display:flex;align-items:center;gap:14px;padding:16px 18px;position:relative}
+.dbhead .dbcrest{
+  width:52px;height:52px;border-radius:13px;background:#fff;display:grid;place-items:center;
+  font-weight:900;font-size:16px;flex:0 0 auto;box-shadow:0 2px 0 rgba(0,0,0,.18)
+}
+.dbtitle h2{margin:0;font-size:19px;font-weight:900;letter-spacing:-.02em}
+.dbtitle p{margin:3px 0 0;font-size:12px;opacity:.86;font-weight:700}
+.dbx{
+  position:absolute;inset-inline-end:14px;top:14px;width:32px;height:32px;border:0;cursor:pointer;
+  border-radius:9px;background:rgba(255,255,255,.22);color:inherit;font-size:15px;font-weight:800
+}
+.dbwatch{
+  margin-inline-start:auto;margin-inline-end:44px;border:0;cursor:pointer;border-radius:99px;
+  padding:8px 14px;font-size:12px;font-weight:850;background:rgba(255,255,255,.9);color:#1B1A17
+}
+.dbwatch.on{background:var(--gold);color:#241F20}
+.dbtabs{display:flex;gap:6px;padding:10px 18px 0;border-bottom:1px solid var(--line);background:var(--card)}
+.dbtab{
+  border:0;background:transparent;cursor:pointer;padding:9px 14px;border-radius:10px 10px 0 0;
+  font-size:13px;font-weight:850;color:var(--ink3)
+}
+.dbtab.on{background:var(--sunken);color:var(--ink)}
+.dbbody{flex:1;overflow-y:auto;padding:16px;display:flex;justify-content:center}
+.dbbody>*{width:min(900px,100%)}
+.xiwrap{display:flex;flex-direction:column;gap:14px}
+.xipitch{
+  position:relative;border-radius:14px;padding:14px 10px;display:grid;gap:9px;
+  grid-template-columns:repeat(5,1fr);
+  background:
+    repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 26px, rgba(0,0,0,.03) 26px 52px),
+    linear-gradient(180deg,#2E8B57,#1F6F43);
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)
+}
+.xidot{
+  border:0;cursor:pointer;border-radius:11px;padding:7px 4px;display:flex;flex-direction:column;
+  align-items:center;gap:2px;background:rgba(255,255,255,.94);box-shadow:0 2px 0 rgba(0,0,0,.2)
+}
+.xidot .o{font-size:15px;font-weight:900;color:var(--accent-ink);font-variant-numeric:tabular-nums}
+.xidot .nm{font-size:10.5px;font-weight:800;line-height:1.15;text-align:center}
+.xidot .ps{font-size:9.5px;font-weight:800;color:var(--ink3)}
+.xidot.r0{grid-column:3}
+.xidot.r1:nth-of-type(2){grid-column:1} .xidot.r1:nth-of-type(3){grid-column:2}
+.xidot.r1:nth-of-type(4){grid-column:4} .xidot.r1:nth-of-type(5){grid-column:5}
+.xidot.r2:nth-of-type(6){grid-column:2} .xidot.r2:nth-of-type(7){grid-column:3}
+.xidot.r2:nth-of-type(8){grid-column:4}
+.xidot.r3:nth-of-type(9){grid-column:2} .xidot.r3:nth-of-type(10){grid-column:4}
+.xidot.r3:nth-of-type(11){grid-column:3}
+.clickrow{cursor:pointer}
+.clickrow:hover{background:var(--sunken)}
+.sortbar{display:flex;gap:6px;margin-bottom:8px}
+.sortb{
+  border:1px solid var(--line);background:var(--card);cursor:pointer;border-radius:99px;
+  padding:4px 11px;font-size:11.5px;font-weight:800;color:var(--ink2)
+}
+.sortb.on{background:var(--accent);color:#fff;border-color:transparent}
+.clubchip{
+  border:0;background:transparent;cursor:pointer;font:inherit;color:inherit;padding:0;
+  text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px
+}
+.clubchip:hover{text-decoration-color:var(--accent);color:var(--accent-ink)}
+
+.pcard .pcbox{
+  width:min(460px,94vw);max-height:92vh;overflow-y:auto;border-radius:18px;background:var(--card);
+  box-shadow:0 24px 60px rgba(0,0,0,.3)
+}
+.pcard .pcbar .l{text-align:start}
+.pchead{display:flex;align-items:center;gap:13px;padding:15px 16px;position:relative;border-radius:18px 18px 0 0}
+.pcovr{
+  width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,.94);color:#1B1A17;
+  display:grid;place-items:center;font-size:23px;font-weight:900;font-variant-numeric:tabular-nums
+}
+.pcid h3{margin:0;font-size:17px;font-weight:900}
+.pcid p{margin:3px 0 0;font-size:11.5px;font-weight:700;opacity:.88}
+.pcbody{padding:15px 16px 17px;background:var(--card);border-radius:0 0 18px 18px}
+.pcbars{display:flex;flex-direction:column;gap:7px}
+.pcbar{display:grid;grid-template-columns:62px 1fr 30px;align-items:center;gap:9px;font-size:12px}
+.pcbar .l{font-weight:800;color:var(--ink2)}
+.pcbar .t{height:9px;border-radius:99px;background:var(--sunken);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.pcbar .t>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),#6FCB96)}
+.pcbar .v{font-weight:900;font-variant-numeric:tabular-nums;text-align:left}
+.pccmp{margin-top:14px;padding:12px;border-radius:12px;background:var(--sunken);border:1px solid var(--line)}
+.cmprow{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0}
+.cmprow b.up{color:var(--accent)} .cmprow b.dn{color:var(--bad)}
+.scoutline{margin:9px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.pcacts{display:flex;gap:8px;margin-top:13px}
+.pcacts .btn{flex:1}
+.mktbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}
+
 /* ── the box score and the rating breakdown ────────────────────── */
 .statwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 18px}
 .statgrp>p{margin:0 0 4px}
@@ -1141,6 +1231,7 @@ function newState(name, pos, startId){
     cup:null, cupRound:0,
     coach:null, coachWeeks:0,
     slCd:{}, slPending:null, slEchoes:[], promises:[], board:null, euroRep:0,
+    watch:[], watchClubs:[],
     euro:null,
     readMode:"normal",
     seed: (Date.now()%100000)
@@ -2050,7 +2141,7 @@ function viewLeague(){
   + rows.map(function(r,i){
       var cls = r.c.id===S.club ? "me" : (i<2 ? "cl" : (i>=relLine ? "rel" : ""));
       return '<tr class="'+cls+'"><td class="n">'+(i+1)+'</td>'
-        + '<td><span class="sw" style="background:'+r.c.c+'"></span>'+r.c.n+'</td>'
+        + '<td><button class="clubchip" data-club="'+r.c.id+'"><span class="sw" style="background:'+r.c.c+'"></span>'+r.c.n+'</button></td>'
         + '<td class="r">'+r.t.p+'</td><td class="r">'+r.t.w+'</td><td class="r">'+r.t.d+'</td><td class="r">'+r.t.l+'</td>'
         + '<td class="r">'+(r.gd>0?"+":"")+r.gd+'</td><td class="r"><b>'+r.t.pts+'</b></td></tr>';
     }).join("")
@@ -2063,7 +2154,7 @@ function viewLeague(){
           var o = club(f.opp);
           var done = i < S.week-1;
           return '<tr'+(i===S.week-1?' class="me"':'')+'><td class="n">'+(i+1)+'</td>'
-            + '<td><span class="sw" style="background:'+o.c+'"></span>'+o.n+'</td>'
+            + '<td><button class="clubchip" data-club="'+o.id+'"><span class="sw" style="background:'+o.c+'"></span>'+o.n+'</button></td>'
             + '<td>'+(f.home?"בית":"חוץ")+'</td>'
             + '<td class="r">'+(done?(f.res||"—"):(i===S.week-1?'<span class="tag ok">הבא</span>':""))+'</td></tr>';
         }).join("")
@@ -2097,9 +2188,60 @@ function viewWorld(){
       }).join("")
     : '<div class="empty">העולם עוד לא התחיל לזוז. שחק מחזור.</div>';
 
+  /* the market: the part of a management game you can lose an hour in */
+  var mkt = marketRows(24);
+  var FAMS = [["all","הכל"],["GK","שוער"],["CB","בלם"],["FB","מגן"],["CM","קשר"],["WIDE","כנף"],["ST","חלוץ"]];
+  var mktHtml = '<div class="p"><h3>שוק השחקנים <span class="r">היקרים בעולם</span></h3><div class="pb tight">'
+    + '<div class="mktbar">'
+      + '<button class="sortb'+(MKT_LG==="all"?" on":"")+'" data-mkt="lg:all">כל הליגות</button>'
+      + LG_IDS.map(function(id){
+          return '<button class="sortb'+(MKT_LG===id?" on":"")+'" data-mkt="lg:'+id+'">'+LEAGUES[id].flag+' '+LEAGUES[id].n+'</button>';
+        }).join("")
+    + '</div>'
+    + '<div class="mktbar">'
+      + FAMS.map(function(f){
+          return '<button class="sortb'+(MKT_POS===f[0]?" on":"")+'" data-mkt="pos:'+f[0]+'">'+f[1]+'</button>';
+        }).join("")
+    + '</div>'
+    + '<table><thead><tr><th>#</th><th>שחקן</th><th>מועדון</th><th class="r">גיל</th>'
+    + '<th class="r">OVR</th><th class="r">שווי</th></tr></thead><tbody>'
+    + (mkt.length ? mkt.map(function(pl,i){
+        return '<tr class="clickrow" data-pc="'+pl.club+'#'+pl.i+'"><td class="n">'+(i+1)+'</td>'
+          + '<td><bdi>'+pl.n+'</bdi> <span class="muted xs">'+POS[pl.pos].short+'</span></td>'
+          + '<td><span class="sw" style="background:'+club(pl.club).c+'"></span>'+club(pl.club).ab+'</td>'
+          + '<td class="r">'+pl.age+'</td><td class="r"><b>'+pl.ovr+'</b></td>'
+          + '<td class="r">'+money(pl.val)+'</td></tr>';
+      }).join("") : '<tr><td colspan="6" class="muted">אין תוצאות לסינון הזה.</td></tr>')
+    + '</tbody></table></div></div>';
+
+  /* your own watchlist — the reason to open the database at all */
+  var wl = (S.watch||[]).map(function(k){
+    var q = k.split("#"), pl = clubSquad(q[0]).filter(function(x){ return x.i === +q[1]; })[0];
+    return pl ? {p:pl, k:k} : null;
+  }).filter(Boolean);
+  var wc = (S.watchClubs||[]).filter(function(c){ return club(c); });
+  var watchHtml = '<div class="p"><h3>רשימת המעקב שלך</h3><div class="pb tight">'
+    + (wl.length || wc.length
+      ? (wc.length ? '<div class="mktbar">' + wc.map(function(c){
+            return '<button class="sortb" data-club="'+c+'"><span class="sw" style="background:'+club(c).c+'"></span>'+club(c).n+'</button>';
+          }).join("") + '</div>' : '')
+        + (wl.length ? '<table><tbody>' + wl.map(function(w){
+            var cmp = w.p.ovr - ovr();
+            return '<tr class="clickrow" data-pc="'+w.p.club+'#'+w.p.i+'">'
+              + '<td><bdi>'+w.p.n+'</bdi></td><td>'+POS[w.p.pos].short+'</td>'
+              + '<td><span class="sw" style="background:'+club(w.p.club).c+'"></span>'+club(w.p.club).ab+'</td>'
+              + '<td class="r"><b>'+w.p.ovr+'</b></td>'
+              + '<td class="r"><span class="tag '+(cmp>0?"b":"ok")+'">'+(cmp>0?"+"+cmp+" מעליך":(cmp===0?"שווה לך":(-cmp)+" מתחתיך"))+'</span></td>'
+              + '<td class="r">'+money(w.p.val)+'</td></tr>';
+          }).join("") + '</tbody></table>' : '')
+      : '<div class="empty">עוד לא עקבת אחרי אף אחד. פתח מועדון מהטבלה, לחץ על שחקן — ותוכל לעקוב אחרי מי שמעניין אותך.</div>')
+    + '</div></div>';
+
   return '<div class="grid g2">'
+  + '<div style="display:flex;flex-direction:column;gap:14px">'
   + '<div class="p"><h3>חדשות העולם</h3><div class="pb" style="display:flex;flex-direction:column;gap:6px">'
     + newsHtml + '</div></div>'
+  + watchHtml + '</div>'
   + '<div style="display:flex;flex-direction:column;gap:14px">'
     + '<div class="p"><h3>כישרונות צעירים <span class="r">'+LEAGUES[S.league].n+' · מקום '+myRank+'</span></h3>'
     + '<div class="pb tight"><table><thead><tr><th>#</th><th>שחקן</th><th>קבוצה</th><th class="r">גיל</th><th class="r">OVR</th><th class="r">פוט׳</th></tr></thead><tbody>'
@@ -2115,11 +2257,12 @@ function viewWorld(){
         var c = topOf(id), pts = S.tables[id][c.id].pts, played = S.tables[id][c.id].p;
         return '<tr><td>'+LEAGUES[id].flag+' '+LEAGUES[id].n+'</td>'
           + (played
-             ? '<td><span class="sw" style="background:'+c.c+'"></span>'+c.n+'</td><td class="r n">'+pts+'</td>'
+             ? '<td><button class="clubchip" data-club="'+c.id+'"><span class="sw" style="background:'+c.c+'"></span>'+c.n+'</button></td><td class="r n">'+pts+'</td>'
              : '<td class="muted">טרם החלה</td><td class="r muted">—</td>')
           + '</tr>';
       }).join("")
     + '</tbody></table></div></div>'
+    + mktHtml
   + '</div></div>';
 }
 
@@ -2276,6 +2419,21 @@ function bind(){
 
   Array.prototype.forEach.call(stage.querySelectorAll("[data-lg]"), function(b){
     b.onclick = function(){ viewLid = b.getAttribute("data-lg"); render(); };
+  });
+
+  /* anything that names a club opens that club */
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-club]"), function(b){
+    b.onclick = function(e){ e.stopPropagation(); openClub(b.getAttribute("data-club")); };
+  });
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-mkt]"), function(b){
+    b.onclick = function(){
+      var v = b.getAttribute("data-mkt");
+      if(v.indexOf("lg:") === 0) MKT_LG = v.slice(3); else MKT_POS = v.slice(4);
+      render();
+    };
+  });
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-pc]"), function(b){
+    b.onclick = function(){ var q = b.getAttribute("data-pc").split("#"); openPlayerCard(q[0], +q[1]); };
   });
 
   Array.prototype.forEach.call(stage.querySelectorAll(".spend"), function(b){
@@ -3092,6 +3250,384 @@ function skipToEnd(){
   document.getElementById("mHG").textContent = M.hg;
   document.getElementById("mAG").textContent = M.ag;
   finishMatch();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   THE DATABASE
+   Every club in the world has a squad you can open, read and compare
+   yourself against — the part of a management game that has nothing to
+   do with the next ninety minutes. Squads are generated deterministically
+   from the club id, so the same club always has the same players, and
+   they are generated by their own random stream so that browsing never
+   disturbs the match engine's seed.
+   ════════════════════════════════════════════════════════════════ */
+
+/* names by country, transliterated — a Bundesliga squad should not read
+   like a Ligat ha'Al squad */
+var NAMES = {
+  isr:{f:FIRST, l:LAST},
+  eng:{f:["ג׳יימי","הארי","קאלום","מייסון","ריס","ג׳ורדן","טיילר","קונור","אוליבר","ג׳ק","לואיס","דקלן","פיל","טרנט","בן","קיל","מרקוס","ארצ׳י"],
+       l:["סמית׳","טיילור","וילסון","ג׳ונסון","בראון","ווקר","קלארק","הריסון","בייקר","טרנר","מיטשל","קרול","וורד","גריי","האנט","פרייס","דיקסון","בנט"]},
+  esp:{f:["פאבלו","סרחיו","חאבי","מרקו","אלכס","הוגו","דני","איקר","ראול","קרלוס","מיקל","גאבי","אדריאן","חורחה","ניקו","פרן","מרטין","איבן"],
+       l:["גרסיה","מרטינס","לופס","סאנצ׳ס","רודריגס","פרננדס","גומס","טורס","רמוס","נאבארו","מורנו","קסטרו","אורטגה","סרנו","וגה","בלנקו","סוארס","דלגאדו"]},
+  ita:{f:["מרקו","לורנצו","מטאו","אנדריאה","דויד","ג׳אקומו","ריקרדו","סימונה","פדריקו","סטפאנו","לוקה","אלסנדרו","ניקולו","טומאזו","פביו","דניאלה","מנואל","פייטרו"],
+       l:["רוסי","פרארי","קונטי","ריצי","גאלו","קוסטה","ברוני","מרינו","גרקו","לומברדי","מורטי","ביאנקי","קטלנו","סנטורו","פונטנה","באסו","וילה","מרטיני"]},
+  ger:{f:["לוקאס","יונאס","פליקס","טים","ניקלס","מקס","לאון","פין","דויד","מוריץ","יאן","פאול","טוביאס","קווין","מריוס","סבן","נילס","אליאס"],
+       l:["מולר","שמידט","וגנר","בקר","הופמן","קלר","נוימן","ריכטר","וולף","שולץ","קרוגר","וובר","הרטמן","לנג","זימר","בראון","קונץ","האס"]},
+  fra:{f:["לוקא","הוגו","נתן","תיאו","אנזו","מתיס","ז׳ול","קלמן","רומן","אקסל","נואה","גבריאל","אנטואן","ז׳ורדן","יוסף","קרים","אמין","סמיר"],
+       l:["מרטן","ברנאר","דיבואה","לורן","ז׳ירארד","מורו","פורנייה","רו","בונה","לפב","מרסייה","ריאר","נואל","פראן","דיאלו","טראורה","סי","קמארה"]}
+};
+function countryOf(lid){ return (lid||"isr").replace(/[0-9]/g, ""); }
+
+/* a small independent generator — never touches S.seed */
+function hashOf(str){
+  var h = 2166136261;
+  for(var i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = (h * 16777619) >>> 0; }
+  return h >>> 0;
+}
+function streamFrom(seed){
+  var st = seed >>> 0;
+  return function(){ st = (st * 1664525 + 1013904223) >>> 0; return st / 4294967296; };
+}
+
+var DB_FORMATION = ["GK","GK","GK","CB","CB","CB","CB","LB","LB","RB","RB","LWB","RWB",
+  "CDM","CDM","CM","CM","CM","CAM","CAM","LM","RM","LW","LW","RW","RW","CF","ST","ST","ST"];
+
+/* market value for anyone who is not you — same curve as your own */
+function valueOf(o, age, pot){
+  var base = 25000 * Math.pow(1.185, o - 40), m;
+  if(age <= 19)      m = 1.55;
+  else if(age <= 22) m = 1.40;
+  else if(age <= 25) m = 1.20;
+  else if(age <= 28) m = 1.00;
+  else if(age <= 31) m = 0.72;
+  else if(age <= 34) m = 0.42;
+  else               m = 0.20;
+  var ph = 1 + clamp((pot||o) - o, 0, 25) * 0.022;
+  return Math.round(base * m * ph);
+}
+
+var DB_CACHE = {};
+function clubSquad(cid){
+  if(DB_CACHE[cid]) return DB_CACHE[cid];
+  var c = club(cid);
+  var R = streamFrom(hashOf(cid) ^ 0x5f3a);
+  var pool = NAMES[countryOf(c.lg)] || NAMES.isr;
+  var used = {};
+  var sq = DB_FORMATION.map(function(pp, i){
+    /* the spine is stronger than the fringe, the way a real squad is */
+    var tier = i < 14 ? 1 : (i < 22 ? 0.55 : 0.2);
+    var o = clamp(Math.round(c.rep + (R()-0.34)*15 + tier*6 - 4), 30, 94);
+    var age = 17 + Math.floor(Math.pow(R(), 0.75) * 20);
+    var pot = clamp(o + Math.round((R()*22) * clamp((26-age)/9, 0, 1)), o, 95);
+    var nm, guard = 0;
+    do { nm = pool.f[Math.floor(R()*pool.f.length)] + " " + pool.l[Math.floor(R()*pool.l.length)]; }
+    while(used[nm] && ++guard < 12);
+    used[nm] = 1;
+    return {
+      i:i, n:nm, pos:pp, ovr:o, age:age, pot:pot, club:cid,
+      val: valueOf(o, age, pot),
+      wage: Math.max(2, Math.round(o*o/95 + R()*6)),
+      years: 1 + Math.floor(R()*4),
+      form: Math.round((5.9 + R()*1.7) * 10) / 10,
+      g: Math.floor(Math.pow(R(), 2.2) * (["ST","CF","LW","RW","CAM"].indexOf(pp)>=0 ? 19 : 6)),
+      a: Math.floor(Math.pow(R(), 2.0) * (["CAM","LW","RW","LM","RM"].indexOf(pp)>=0 ? 14 : 5)),
+      apps: 4 + Math.floor(R()*30),
+      nat: R() < 0.22
+    };
+  });
+  sq.sort(function(a,b){ return b.ovr - a.ovr; });
+  DB_CACHE[cid] = sq;
+  return sq;
+}
+
+/* the eleven a manager would actually pick out of that squad */
+var XI_SHAPE = [
+  {slot:"GK",  fam:["GK"]},
+  {slot:"RB",  fam:["RB","RWB","CB"]},
+  {slot:"CB",  fam:["CB"]},
+  {slot:"CB",  fam:["CB"]},
+  {slot:"LB",  fam:["LB","LWB","CB"]},
+  {slot:"CDM", fam:["CDM","CM"]},
+  {slot:"CM",  fam:["CM","CDM","CAM"]},
+  {slot:"CAM", fam:["CAM","CM","CF"]},
+  {slot:"RW",  fam:["RW","RM","LW"]},
+  {slot:"LW",  fam:["LW","LM","RW"]},
+  {slot:"ST",  fam:["ST","CF"]}
+];
+function bestXI(sq){
+  var taken = {}, out = [];
+  XI_SHAPE.forEach(function(sh){
+    var pick = null;
+    for(var t=0;t<sh.fam.length && !pick;t++){
+      for(var i=0;i<sq.length;i++){
+        if(taken[i]) continue;
+        if(sq[i].pos === sh.fam[t]){ pick = {p:sq[i], idx:i, slot:sh.slot}; break; }
+      }
+    }
+    if(!pick){
+      for(var j=0;j<sq.length;j++){ if(!taken[j] && sq[j].pos !== "GK"){ pick = {p:sq[j], idx:j, slot:sh.slot}; break; } }
+    }
+    if(pick){ taken[pick.idx] = 1; out.push(pick); }
+  });
+  return out;
+}
+
+function clubStanding(cid){
+  var c = club(cid), T = S.tables[c.lg];
+  if(!T) return null;
+  var rows = LEAGUES[c.lg].clubs.map(function(x){ return {c:x, t:T[x.id], gd:T[x.id].gf - T[x.id].ga}; })
+    .sort(function(a,b){ return b.t.pts - a.t.pts || b.gd - a.gd || b.t.gf - a.t.gf; });
+  for(var i=0;i<rows.length;i++) if(rows[i].c.id === cid) return {pos:i+1, t:rows[i].t, of:rows.length, gd:rows[i].gd};
+  return null;
+}
+
+/* ── the club page ─────────────────────────────────────────────── */
+var DB_TAB = "xi", DB_CLUB = null;
+
+function openClub(cid){
+  if(!club(cid)) return;
+  DB_CLUB = cid; DB_TAB = "xi";
+  var el = document.getElementById("dbLayer");
+  if(!el){ el = document.createElement("div"); el.className = "match db"; el.id = "dbLayer"; document.body.appendChild(el); }
+  paintClub();
+}
+function closeDb(){
+  var el = document.getElementById("dbLayer"); if(el) el.remove();
+  DB_CLUB = null;
+}
+
+function paintClub(){
+  var el = document.getElementById("dbLayer"); if(!el) return;
+  var cid = DB_CLUB, c = club(cid), L = LEAGUES[c.lg];
+  var sq = clubSquad(cid), st = clubStanding(cid);
+  var xi = bestXI(sq);
+  var squadVal = sq.reduce(function(t,p){ return t + p.val; }, 0);
+  var avgAge = sq.reduce(function(t,p){ return t + p.age; }, 0) / sq.length;
+  var avgOvr = Math.round(xi.reduce(function(t,x){ return t + x.p.ovr; }, 0) / xi.length);
+  var mine = cid === S.club;
+  var watched = S.watchClubs && S.watchClubs.indexOf(cid) >= 0;
+
+  var body = "";
+  if(DB_TAB === "xi"){
+    body = '<div class="xiwrap"><div class="xipitch">'
+      + xi.map(function(x, i){
+          var row = i===0 ? 0 : (i<5 ? 1 : (i<8 ? 2 : 3));
+          return '<button class="xidot r'+row+'" data-pl="'+x.p.i+'">'
+            + '<span class="o">'+x.p.ovr+'</span><span class="nm"><bdi>'+x.p.n+'</bdi></span>'
+            + '<span class="ps">'+POS[x.p.pos].short+'</span></button>';
+        }).join("")
+      + '</div>'
+      + '<div class="p" style="margin:0"><h3>הספסל</h3><div class="pb tight"><table><tbody>'
+      + sq.filter(function(p){ return !xi.some(function(x){ return x.p === p; }); }).slice(0,8).map(function(p){
+          return '<tr data-pl="'+p.i+'" class="clickrow"><td>'+POS[p.pos].short+'</td><td><bdi>'+p.n+'</bdi></td>'
+            + '<td class="r">'+p.age+'</td><td class="r"><b>'+p.ovr+'</b></td><td class="r muted">'+money(p.val)+'</td></tr>';
+        }).join("")
+      + '</tbody></table></div></div></div>';
+  }
+  else if(DB_TAB === "squad"){
+    var sorted = sq.slice().sort(function(a,b){
+      return DB_SORT === "val" ? b.val - a.val : (DB_SORT === "age" ? a.age - b.age : b.ovr - a.ovr);
+    });
+    body = '<div class="p" style="margin:0"><h3>הסגל המלא <span class="r">'+sq.length+' שחקנים</span></h3>'
+      + '<div class="pb tight">'
+      + '<div class="sortbar">'
+        + ['ovr|OVR','val|שווי','age|גיל'].map(function(o){ var q=o.split("|");
+            return '<button class="sortb'+(DB_SORT===q[0]?" on":"")+'" data-sort="'+q[0]+'">'+q[1]+'</button>'; }).join("")
+      + '</div>'
+      + '<table><thead><tr><th>עמדה</th><th>שחקן</th><th class="r">גיל</th><th class="r">OVR</th>'
+      + '<th class="r">פוט׳</th><th class="r">ציון</th><th class="r">ש/ב</th><th class="r">שווי</th></tr></thead><tbody>'
+      + sorted.map(function(p){
+          return '<tr data-pl="'+p.i+'" class="clickrow"><td>'+POS[p.pos].short+'</td>'
+            + '<td><bdi>'+p.n+'</bdi>'+(p.nat?' <span class="tag" style="padding:1px 5px">🌍</span>':'')+'</td>'
+            + '<td class="r">'+p.age+'</td><td class="r"><b>'+p.ovr+'</b></td>'
+            + '<td class="r muted">'+p.pot+'</td><td class="r">'+p.form.toFixed(1)+'</td>'
+            + '<td class="r">'+p.g+'/'+p.a+'</td><td class="r">'+money(p.val)+'</td></tr>';
+        }).join("")
+      + '</tbody></table></div></div>';
+  }
+  else {
+    var fx = (c.lg === S.league) ? S.fixtures : null;
+    var scorers = (S.scorers[c.lg]||[]).filter(function(x){ return x.club === cid; })
+                    .sort(function(a,b){ return b.g - a.g; }).slice(0,5);
+    body = '<div class="grid g2">'
+      + '<div class="p"><h3>העונה</h3><div class="pb">'
+        + (st
+          ? '<div class="kv"><span>מיקום בטבלה</span><b class="n">'+st.pos+' מתוך '+st.of+'</b></div>'
+            + '<div class="kv"><span>משחקים</span><b class="n">'+st.t.p+'</b></div>'
+            + '<div class="kv"><span>נצחונות · תיקו · הפסדים</span><b class="n">'+st.t.w+' · '+st.t.d+' · '+st.t.l+'</b></div>'
+            + '<div class="kv"><span>שערים</span><b class="n">'+st.t.gf+' : '+st.t.ga+'</b></div>'
+            + '<div class="kv"><span>הפרש</span><b class="n">'+(st.gd>0?"+":"")+st.gd+'</b></div>'
+            + '<div class="kv"><span>נקודות</span><b class="n" style="color:var(--accent)">'+st.t.pts+'</b></div>'
+          : '<div class="empty">העונה טרם החלה.</div>')
+      + '</div></div>'
+      + '<div class="p"><h3>המועדון</h3><div class="pb">'
+        + '<div class="kv"><span>ליגה</span><b>'+L.flag+' '+L.n+'</b></div>'
+        + '<div class="kv"><span>מוניטין</span><b class="n">'+c.rep+'</b></div>'
+        + '<div class="kv"><span>שווי סגל</span><b class="n">'+money(squadVal)+'</b></div>'
+        + '<div class="kv"><span>גיל ממוצע</span><b class="n">'+avgAge.toFixed(1)+'</b></div>'
+        + '<div class="kv"><span>OVR של ההרכב</span><b class="n">'+avgOvr+'</b></div>'
+        + '<div class="kv"><span>שכר שבועי (סגל)</span><b class="n">₪'+sq.reduce(function(t,p){return t+p.wage},0)+'k</b></div>'
+      + '</div></div>'
+      + (scorers.length
+        ? '<div class="p"><h3>הכובשים של המועדון</h3><div class="pb tight"><table><tbody>'
+          + scorers.map(function(x,i){ return '<tr><td class="n">'+(i+1)+'</td><td><bdi>'+x.n+'</bdi></td><td class="r"><b>'+x.g+'</b></td></tr>'; }).join("")
+          + '</tbody></table></div></div>'
+        : '')
+      + (fx
+        ? '<div class="p"><h3>הצלב שלך מולם</h3><div class="pb tight"><table><tbody>'
+          + fx.filter(function(f){ return f.opp === cid; }).map(function(f,i){
+              return '<tr><td>'+(f.home?"בית":"חוץ")+'</td><td class="r">'+(f.res||"טרם שוחק")+'</td></tr>'; }).join("")
+          + '</tbody></table></div></div>'
+        : '')
+      + '</div>';
+  }
+
+  el.innerHTML = ''
+  + '<div class="dbhead" style="background:'+c.c+';color:'+c.t+'">'
+    + '<button class="dbx" id="dbClose">✕</button>'
+    + '<div class="dbcrest" style="color:'+c.c+'">'+c.ab+'</div>'
+    + '<div class="dbtitle"><h2><bdi>'+c.n+'</bdi></h2>'
+      + '<p>'+L.flag+' '+L.n+(st?' · מקום '+st.pos:'')+' · מוניטין '+c.rep+(mine?' · <b>המועדון שלך</b>':'')+'</p></div>'
+    + (mine ? '' : '<button class="dbwatch'+(watched?" on":"")+'" id="dbWatch">'+(watched?"במעקב ✓":"עקוב אחרי המועדון")+'</button>')
+  + '</div>'
+  + '<div class="dbtabs">'
+    + [['xi','הרכב'],['squad','סגל'],['info','נתונים']].map(function(t){
+        return '<button class="dbtab'+(DB_TAB===t[0]?" on":"")+'" data-dbt="'+t[0]+'">'+t[1]+'</button>'; }).join("")
+  + '</div>'
+  + '<div class="dbbody">'+body+'</div>';
+
+  document.getElementById("dbClose").onclick = closeDb;
+  var wb = document.getElementById("dbWatch");
+  if(wb) wb.onclick = function(){ toggleWatchClub(cid); paintClub(); };
+  Array.prototype.forEach.call(el.querySelectorAll("[data-dbt]"), function(b){
+    b.onclick = function(){ DB_TAB = b.getAttribute("data-dbt"); paintClub(); };
+  });
+  Array.prototype.forEach.call(el.querySelectorAll("[data-sort]"), function(b){
+    b.onclick = function(){ DB_SORT = b.getAttribute("data-sort"); paintClub(); };
+  });
+  Array.prototype.forEach.call(el.querySelectorAll("[data-pl]"), function(b){
+    b.onclick = function(){ openPlayerCard(cid, +b.getAttribute("data-pl")); };
+  });
+}
+var DB_SORT = "ovr";
+
+function toggleWatchClub(cid){
+  if(!S.watchClubs) S.watchClubs = [];
+  var i = S.watchClubs.indexOf(cid);
+  if(i >= 0){ S.watchClubs.splice(i,1); toast("הוסר מהמעקב"); }
+  else { S.watchClubs.push(cid); toast("👁 " + club(cid).n + " נוסף למעקב"); }
+  saveGame();
+}
+function toggleWatchPlayer(cid, idx){
+  if(!S.watch) S.watch = [];
+  var k = cid + "#" + idx;
+  var i = S.watch.indexOf(k);
+  if(i >= 0){ S.watch.splice(i,1); toast("הוסר מרשימת המעקב"); }
+  else {
+    S.watch.push(k);
+    var p = clubSquad(cid).filter(function(x){ return x.i === idx; })[0];
+    toast("👁 " + (p ? p.n : "השחקן") + " נוסף לרשימה");
+  }
+  saveGame();
+}
+
+/* ── the player card ───────────────────────────────────────────── */
+function openPlayerCard(cid, idx){
+  var p = clubSquad(cid).filter(function(x){ return x.i === idx; })[0];
+  if(!p) return;
+  var c = club(cid);
+  var watched = S.watch && S.watch.indexOf(cid + "#" + idx) >= 0;
+
+  /* his face stats, derived from his position's own weights so that a
+     centre-back reads like a centre-back and not like a diluted striker */
+  var W = POS[p.pos].w, faces = POS[p.pos].face;
+  var R = streamFrom(hashOf(cid + idx) ^ 0x77aa);
+  var bars = faces.map(function(g){
+    var lean = (W[g] || 0.05);
+    var v = clamp(Math.round(p.ovr - 12 + lean*74 + (R()-0.5)*10), 20, 99);
+    return {g:g, n:GRP[g].n, v:v};
+  });
+
+  var myOvr = ovr(), myVal = value();
+  var same = famOf(p.pos) === famOf(S.pos);
+
+  var el = document.createElement("div");
+  el.className = "moment pcard"; el.id = "pcardLayer";
+  el.innerHTML = '<div class="pcbox">'
+    + '<div class="pchead" style="background:'+c.c+';color:'+c.t+'">'
+      + '<div class="pcovr">'+p.ovr+'</div>'
+      + '<div class="pcid"><h3><bdi>'+p.n+'</bdi></h3>'
+        + '<p>'+POS[p.pos].n+' · בן '+p.age+' · <bdi>'+c.n+'</bdi></p></div>'
+      + '<button class="dbx" id="pcX">✕</button>'
+    + '</div>'
+    + '<div class="pcbody">'
+      + '<div class="pcbars">'
+        + bars.map(function(b){
+            return '<div class="pcbar"><span class="l">'+b.n+'</span>'
+              + '<span class="t"><i style="width:'+b.v+'%"></i></span>'
+              + '<b class="v">'+b.v+'</b></div>';
+          }).join("")
+      + '</div>'
+      + '<div class="grid g2" style="margin-top:12px">'
+        + '<div><div class="kv"><span>שווי שוק</span><b class="n" style="color:var(--accent)">'+money(p.val)+'</b></div>'
+          + '<div class="kv"><span>שכר משוער</span><b class="n">₪'+p.wage+'k לשבוע</b></div>'
+          + '<div class="kv"><span>חוזה</span><b class="n">'+p.years+' שנים</b></div>'
+          + '<div class="kv"><span>פוטנציאל</span><b class="n">'+p.pot+'</b></div></div>'
+        + '<div><div class="kv"><span>הופעות</span><b class="n">'+p.apps+'</b></div>'
+          + '<div class="kv"><span>שערים · בישולים</span><b class="n">'+p.g+' · '+p.a+'</b></div>'
+          + '<div class="kv"><span>ציון ממוצע</span><b class="n">'+p.form.toFixed(1)+'</b></div>'
+          + '<div class="kv"><span>נבחרת</span><b class="n">'+(p.nat?"כן":"לא")+'</b></div></div>'
+      + '</div>'
+      + '<div class="pccmp">'
+        + '<p class="lbl">מולך</p>'
+        + '<div class="cmprow"><span>OVR</span>'
+          + '<b class="'+(myOvr>=p.ovr?"up":"dn")+'">'+myOvr+' מול '+p.ovr+'</b></div>'
+        + '<div class="cmprow"><span>שווי שוק</span>'
+          + '<b class="'+(myVal>=p.val?"up":"dn")+'">'+money(myVal)+' מול '+money(p.val)+'</b></div>'
+        + '<div class="cmprow"><span>גיל</span>'
+          + '<b class="'+(S.age<=p.age?"up":"dn")+'">'+S.age+' מול '+p.age+'</b></div>'
+        + '<p class="scoutline">'+scoutLine(p, myOvr, same)+'</p>'
+      + '</div>'
+      + '<div class="pcacts">'
+        + '<button class="btn ghost" id="pcWatch">'+(watched?"👁 במעקב — הסר":"👁 הוסף לרשימת המעקב")+'</button>'
+        + '<button class="btn ghost" id="pcClub">לעמוד המועדון</button>'
+      + '</div>'
+    + '</div></div>';
+  document.body.appendChild(el);
+  document.getElementById("pcX").onclick = function(){ el.remove(); };
+  document.getElementById("pcWatch").onclick = function(){ toggleWatchPlayer(cid, idx); el.remove(); openPlayerCard(cid, idx); };
+  document.getElementById("pcClub").onclick = function(){ el.remove(); openClub(cid); };
+}
+
+function scoutLine(p, myOvr, same){
+  var d = p.ovr - myOvr;
+  if(same && d >= 8)  return "בעמדה שלך, והוא לפניך בבירור. אם הוא במועדון שלך — אתה יושב.";
+  if(same && d >= 2)  return "אותה עמדה, קצת מעליך. פער שנסגר בשלוש עונות טובות.";
+  if(same && d > -3)  return "אותה עמדה, אותו מפלס. זה הכי קרוב שיש לשחקן שמתחרה בך על המשבצת.";
+  if(same)            return "אותה עמדה, ואתה כבר לפניו. סוכן טוב היה מזכיר את זה בשיחה הבאה.";
+  if(d >= 10)         return "רמה אחרת. שווה ללמוד ממנו ולא להשוות.";
+  if(d >= 3)          return "טיפה מעליך, ובעמדה אחרת — כדאי לראות איך הוא נכנס למרחבים.";
+  if(p.pot - p.ovr >= 12) return "עוד לא הגיע לשיא שלו. בעוד שנתיים השם הזה יעלה בכל שיחה.";
+  return "שחקן שאתה כבר יכול להסתכל עליו בגובה העיניים.";
+}
+
+/* ── the world market: everyone, sortable ──────────────────────── */
+var MKT_LG = "all", MKT_POS = "all";
+function marketRows(limit){
+  var out = [];
+  var ids = MKT_LG === "all" ? LG_IDS : [MKT_LG];
+  ids.forEach(function(lid){
+    LEAGUES[lid].clubs.forEach(function(c){
+      clubSquad(c.id).slice(0, 14).forEach(function(p){
+        if(MKT_POS !== "all" && famOf(p.pos) !== MKT_POS) return;
+        out.push(p);
+      });
+    });
+  });
+  out.sort(function(a,b){ return b.val - a.val; });
+  return out.slice(0, limit || 25);
 }
 
 /* ── the Skill Moment ──────────────────────────────────────────── */
