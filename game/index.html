@@ -264,29 +264,43 @@ button{font:inherit;color:inherit}
 .slot{width:22px;height:7px;border-radius:99px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)}
 .slot.f{background:var(--accent);box-shadow:none}
 
-/* ── FIFA-style card ───────────────────────────────────────────── */
+/* ── FIFA-style card, four tiers ───────────────────────────────── */
 .fcard{
-  border-radius:14px;padding:14px;color:#17150F;position:relative;overflow:hidden;
-  background:linear-gradient(150deg,#F7EFD2 0%,#EEDFAE 42%,#DFC97F 100%);
-  box-shadow:0 6px 18px rgba(90,70,20,.22),inset 0 0 0 1px rgba(255,255,255,.5);
+  border-radius:14px;padding:14px;position:relative;overflow:hidden;
+  color:var(--cink);background:var(--cbg);
+  box-shadow:0 8px 24px rgba(50,40,15,.26),inset 0 0 0 1px rgba(255,255,255,.35);
 }
 .fcard::after{
   content:"";position:absolute;inset-inline-end:-40px;top:-40px;width:150px;height:150px;
-  border-radius:50%;background:var(--cc);opacity:.13;
+  border-radius:50%;background:var(--cc);opacity:.15;
 }
-.fctop{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
+.fcard::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.30) 48%,transparent 62%);
+}
+.fcard.elite{box-shadow:0 10px 34px rgba(20,14,40,.5),inset 0 0 0 1px rgba(232,199,102,.55)}
+.fcard.elite::before{background:linear-gradient(115deg,transparent 32%,rgba(232,199,102,.28) 48%,transparent 64%)}
+.tierbadge{
+  position:absolute;inset-inline-start:12px;top:12px;z-index:2;
+  font-size:9px;font-weight:900;letter-spacing:.16em;opacity:.55;
+}
+.fctop{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;gap:6px}
 .fcovr{display:flex;flex-direction:column;align-items:center;line-height:1}
 .fcovr b{font-size:44px;font-weight:900;letter-spacing:-.04em}
 .fcovr span{font-size:13px;font-weight:900;letter-spacing:.06em;margin-top:2px;opacity:.72}
+.fcradar{flex:0 0 auto;opacity:.95}
+@media (max-width:400px){.fcradar{display:none}}
 .fcbadges{display:flex;flex-direction:column;align-items:center;gap:6px}
 .fcclub{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:900}
 .fclvl{
   width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
-  background:#17150F;color:#F7EFD2;font-size:12px;font-weight:900;
+  background:var(--cchip);color:var(--cchipink);font-size:12px;font-weight:900;
 }
+.fcnat{font-size:16px;line-height:1}
 .fcname{
   font-size:19px;font-weight:900;letter-spacing:-.02em;text-align:center;
-  margin:8px 0 10px;padding-bottom:9px;border-bottom:1.5px solid rgba(23,21,15,.28);position:relative;z-index:1;
+  margin:8px 0 10px;padding-bottom:9px;position:relative;z-index:1;
+  border-bottom:1.5px solid color-mix(in srgb, currentColor 30%, transparent);
 }
 .fcstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 4px;position:relative;z-index:1}
 .fs{display:flex;flex-direction:column;align-items:center;line-height:1.1}
@@ -294,7 +308,8 @@ button{font:inherit;color:inherit}
 .fs span{font-size:9.5px;font-weight:900;letter-spacing:.08em;opacity:.66}
 .fcfoot{
   display:flex;justify-content:space-between;align-items:center;margin-top:11px;
-  padding-top:9px;border-top:1.5px solid rgba(23,21,15,.28);position:relative;z-index:1;
+  padding-top:9px;position:relative;z-index:1;
+  border-top:1.5px solid color-mix(in srgb, currentColor 30%, transparent);
   font-size:11.5px;font-weight:800;
 }
 .fcfoot b{font-size:14px;font-weight:900;font-variant-numeric:tabular-nums}
@@ -343,6 +358,34 @@ button{font:inherit;color:inherit}
 .spk{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
 .spk>div{width:100%;max-width:22px;border-radius:4px 4px 0 0}
 .spk>span{font-size:10px;font-weight:800;color:var(--ink3)}
+
+/* coach card */
+.coachrow{display:flex;align-items:center;gap:11px}
+.coachrow b{display:block;font-size:14px;font-weight:850}
+.coachrow span{display:block;font-size:11.5px;color:var(--ink3);line-height:1.35}
+.cavatar{
+  width:40px;height:40px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;
+  background:var(--sunken);border:1px solid var(--line2);font-size:17px;font-weight:900;color:var(--ink2);
+}
+
+/* traits */
+.traitrow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;opacity:.42}
+.traitrow+.traitrow{border-top:1px solid var(--line)}
+.traitrow.on{opacity:1}
+.traitrow .ti{font-size:15px;color:var(--ink3);width:16px;text-align:center;flex:0 0 auto}
+.traitrow.on .ti{color:var(--gold)}
+.traitrow b{display:block;font-size:13px;font-weight:850}
+.traitrow span{display:block;font-size:11.5px;color:var(--ink3);line-height:1.35}
+
+.awardrow{display:flex;gap:11px;align-items:center;padding:9px 0}
+.awardrow+.awardrow{border-top:1px solid var(--line)}
+.awardrow>span{font-size:20px}
+.awardrow b{display:block;font-size:14px;font-weight:850}
+.awardrow div>span{display:block;font-size:11.5px;color:var(--ink3)}
+
+/* boot separator */
+.bootsep{display:flex;align-items:center;gap:12px;color:var(--ink3);font-size:11.5px;font-weight:800}
+.bootsep::before,.bootsep::after{content:"";flex:1;height:1px;background:var(--line)}
 
 .badges{display:flex;flex-wrap:wrap;gap:6px}
 .bdg{
@@ -619,6 +662,31 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 .cbig em{font-style:normal;opacity:.45}
 .csub{font-size:14px;font-weight:800;opacity:.75}
 
+/* ── juice ─────────────────────────────────────────────────────── */
+.fxcanvas{position:fixed;inset:0;z-index:120;pointer-events:none}
+.goalflash{
+  position:fixed;inset:0;z-index:110;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  animation:gflash .9s cubic-bezier(.2,0,.1,1) forwards;
+}
+.goalflash.mine{background:radial-gradient(circle at 50% 45%,rgba(31,111,67,.5),rgba(31,111,67,0) 62%)}
+.goalflash.them{background:radial-gradient(circle at 50% 45%,rgba(174,35,24,.34),rgba(174,35,24,0) 62%)}
+.goalflash b{
+  font-size:clamp(44px,11vw,110px);font-weight:900;letter-spacing:-.05em;color:#fff;
+  text-shadow:0 6px 30px rgba(0,0,0,.55);animation:gpop2 .9s cubic-bezier(.2,0,.1,1);
+}
+.goalflash.them b{font-size:clamp(30px,7vw,64px);opacity:.9}
+@keyframes gflash{0%{opacity:0}18%{opacity:1}72%{opacity:1}100%{opacity:0}}
+@keyframes gpop2{0%{transform:scale(.5) rotate(-4deg)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
+.shake{animation:shk .45s cubic-bezier(.36,.07,.19,.97)}
+@keyframes shk{
+  10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(4px)}
+  30%,50%,70%{transform:translateX(-7px)} 40%,60%{transform:translateX(7px)}
+}
+/* screen transition */
+.stage{animation:stagein .22s cubic-bezier(.2,0,.1,1)}
+@keyframes stagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
 .toast{
   position:fixed;inset-block-end:18px;inset-inline-start:50%;transform:translateX(50%);
   background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:99px;
@@ -854,7 +922,8 @@ function value(){
   var fr = S.ratings.length ? avgRating() : (S.lastSeasonRating || 6.6);
   var form = 1 + clamp(fr - 6.6, -0.8, 1.2) * 0.16;
   var con  = S.contractYears <= 0 ? 0.55 : (S.contractYears === 1 ? 0.82 : 1);
-  return Math.round(base * m * pot * form * con);
+  var idol = hasTrait("idol") ? 1.08 : 1;
+  return Math.round(base * m * pot * form * con * idol);
 }
 function money(v){
   if(v >= 1000000) return "€" + (v/1000000).toFixed(v >= 10000000 ? 0 : 1) + "M";
@@ -920,8 +989,11 @@ function newState(name, pos, startId){
     tables:{}, scorers:{}, fixtures:[],
     interest:[], inbox:[], news:[], seen:0, offers:[],
     contractYears:2, wage:4,
-    valuePrev:0, ovrPrev:0, badges:[], squad:[], rivals:[],
+    valuePrev:0, ovrPrev:0, badges:[], traits:[], squad:[], rivals:[],
     history:[], honours:[],
+    natCaps:0, natGoals:0, natCalled:false, natWatch:0,
+    cup:null, cupRound:0,
+    coach:null, coachWeeks:0,
     readMode:"normal",
     seed: (Date.now()%100000)
   };
@@ -933,7 +1005,46 @@ function newState(name, pos, startId){
   s.valuePrev = value();
   s.squad = buildSquad();
   s.rivals = buildRivals();
+  s.coach = newCoach();
+  s.cup = newCup();
   return s;
+}
+
+/* ── the manager: philosophy, patience, and a job he can lose ───── */
+var COACH_STYLES = [
+  {id:"press",  n:"לחץ גבוה",       d:"רוצה רדיפה מהרגע הראשון", likes:["sta","agg","acc"],  bonus:"PHY"},
+  {id:"poss",   n:"החזקה",           d:"מסירות קצרות, סבלנות",     likes:["spa","vis","cmp"],  bonus:"PAS"},
+  {id:"counter",n:"מעבר מהיר",       d:"להגן נמוך ולרוץ",           likes:["spd","acc","fin"],  bonus:"PAC"},
+  {id:"direct", n:"משחק ישיר",       d:"כדורים ארוכים וקרבות",      likes:["str","hdr","lpa"],  bonus:"PHY"},
+  {id:"youth",  n:"מאמין בצעירים",   d:"נותן דקות לבוגרי אקדמיה",   likes:["agi","drb","ctl"],  bonus:"DRI"}
+];
+var COACH_FIRST = ["רוני","אבי","שרון","ניר","סלבן","אלון","יוסי","ברק","גיא","מרקו","דייגו","פאולו"];
+var COACH_LAST  = ["לוי","כהן","ברדה","קליין","גרשון","אלמליח","טלקר","פרננדס","רוסי","מולר","דוראן"];
+
+function newCoach(){
+  var st = COACH_STYLES[ri(0, COACH_STYLES.length-1)];
+  return {
+    n: COACH_FIRST[ri(0,COACH_FIRST.length-1)] + " " + COACH_LAST[ri(0,COACH_LAST.length-1)],
+    style: st.id, styleName: st.n, styleDesc: st.d, likes: st.likes, bonus: st.bonus,
+    patience: ri(50, 85), youth: st.id === "youth" ? 22 : ri(-6, 10)
+  };
+}
+
+/* how well you fit what the manager actually wants */
+function coachFit(){
+  if(!S.coach) return 50;
+  var t = 0;
+  S.coach.likes.forEach(function(k){ t += (S.a[k] || 40); });
+  return clamp(Math.round(t / S.coach.likes.length), 1, 99);
+}
+
+/* ── domestic cup: a real knockout you can win ──────────────────── */
+var CUP_NAMES = {isr1:"גביע המדינה", isr2:"גביע המדינה", eng1:"גביע ה-FA",
+                 esp1:"קופה דל ריי", ita1:"קופה איטליה", ger1:"גביע גרמניה", fra1:"גביע צרפת"};
+var CUP_ROUNDS = ["1/16", "שמינית", "רבע", "חצי", "גמר"];
+
+function newCup(){
+  return {name: CUP_NAMES[S.league] || "גביע", round:0, out:false, won:false};
 }
 
 /* ── world: every modelled league keeps its own table and scorers ─── */
@@ -978,6 +1089,36 @@ function buildRivals(){
     });
   }
   return out;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TRAITS — perks unlocked by play, each one changes a moment
+   ════════════════════════════════════════════════════════════════ */
+var TRAITS = [
+  {id:"clutch",  n:"קר רוח בלחץ",     d:"האזור המתוק גדל ב-15% בדקות 75+",
+   t:function(){ return S.careerApps>=12 && avgRating()>=6.9; }},
+  {id:"reader",  n:"קורא משחק",        d:"‎+1.2 שניות לזמן הקריאה",
+   t:function(){ return grpVal(S.pos==="GK"?"POS":"PAS")>=62; }},
+  {id:"finisher",n:"גימור קר",         d:"סיכוי גבוה יותר שביצוע מצוין יסתיים בשער",
+   t:function(){ return S.careerGoals>=8; }},
+  {id:"engine",  n:"מנוע",             d:"העומס עולה לאט יותר אחרי משחקים",
+   t:function(){ return S.a.sta>=68; }},
+  {id:"leader",  n:"מנהיג",            d:"אמון המאמן יורד לאט יותר אחרי משחק חלש",
+   t:function(){ return S.careerApps>=30 && S.trust>=65; }},
+  {id:"idol",    n:"אהוב הקהל",        d:"שווי השוק מקבל בונוס של 8%",
+   t:function(){ return S.bestStreak>=5; }},
+  {id:"iron",    n:"גוף ברזל",         d:"סיכון הפציעה יורד בשליש",
+   t:function(){ return S.a.str>=70; }},
+  {id:"wonder",  n:"כישרון דור",       d:"‎+25% XP מכל מקור",
+   t:function(){ return S.age<=21 && ovr()>=72; }}
+];
+function hasTrait(id){ return S.traits && S.traits.indexOf(id) >= 0; }
+function checkTraits(){
+  var got = [];
+  TRAITS.forEach(function(tr){
+    if(S.traits.indexOf(tr.id) < 0 && tr.t()){ S.traits.push(tr.id); got.push(tr); }
+  });
+  return got;
 }
 
 /* ── badges: one-shot milestones, each fires a celebration ─────────── */
@@ -1142,10 +1283,12 @@ function acceptOffer(i){
   S.rivals = buildRivals();
   S.fixtures = buildFixtures(S.club);
   S.interest = []; S.offers = []; viewLid = null;
+  S.cup = newCup();
   S.honours.push({s:S.season, t:"עבר מ"+from+" ל"+o.n+" תמורת "+money(o.fee)});
   push("חתמת ב" + o.n + " (" + o.lgName + ") תמורת " + money(o.fee) + ".", "ok");
   S.news.unshift({w:S.week, k:"ok", t:"💰 " + o.n + " חתמו על " + S.name + " תמורת " + money(o.fee) + "."});
   S.screen = "hub";
+  saveGame();
   render();
   celebrate('<span class="ctag">העברה הושלמה</span>'
     + '<div class="cbig" style="font-size:30px">'+o.n+'</div>'
@@ -1156,6 +1299,7 @@ function declineOffers(){
   S.offers = [];
   push("דחית את ההצעות. הסוכן: \"בסדר. אבל דלת שנסגרת לא תמיד נפתחת שוב.\"", "w");
   S.trust = clamp(S.trust + 3, 0, 100);
+  saveGame();
   render();
 }
 
@@ -1178,12 +1322,13 @@ function grow(keys, amount){
   return out;
 }
 function addXp(n){
+  if(hasTrait("wonder")) n = Math.round(n*1.25);
   S.xp += n;
   var levels = 0;
   while(S.xp >= xpNeed(S.level)){
     S.xp -= xpNeed(S.level);
     S.level++;
-    S.tp += 3 + (S.level % 5 === 0 ? 3 : 0);
+    S.tp += 2 + (S.level % 5 === 0 ? 3 : 0);
     levels++;
   }
   return levels;
@@ -1259,7 +1404,7 @@ function render(){
 
 /* ── HUB ───────────────────────────────────────────────────────── */
 function viewHub(){
-  var fx = S.fixtures[S.week-1];
+  var fx = S.fixtures[S.week-1] || S.fixtures[S.fixtures.length-1];
   var opp = club(fx.opp);
   var me = club(S.club);
   var loadCls = S.load>72 ? "b" : (S.load>52 ? "w" : "");
@@ -1301,7 +1446,7 @@ function viewHub(){
       + '<div class="heroband">'
         + '<div class="hb"><div class="hbc" style="background:'+me.c+';color:'+me.t+'">'+me.ab+'</div>'
           + '<div><b>'+me.n+'</b><span>'+(fx.home?"בית":"חוץ")+'</span></div></div>'
-        + '<div class="hvs"><span class="lbl">מחזור '+S.week+'</span><b>VS</b><span class="lbl">ליגת העל</span></div>'
+        + '<div class="hvs"><span class="lbl">מחזור '+S.week+'</span><b>VS</b><span class="lbl">'+LEAGUES[S.league].n+'</span></div>'
         + '<div class="hb away"><div class="hbc" style="background:'+opp.c+';color:'+opp.t+'">'+opp.ab+'</div>'
           + '<div><b>'+opp.n+'</b><span>מקום '+oppPlace(opp.id)+' בטבלה</span></div></div>'
       + '</div>'
@@ -1337,6 +1482,28 @@ function viewHub(){
       + '<div class="kv"><span>ציון ממוצע</span><b class="n">'+avgRating().toFixed(2)+'</b></div>'
     + '</div></div>'
 
+    + '<div class="p"><h3>המאמן</h3><div class="pb">'
+      + '<div class="coachrow">'
+        + '<div class="cavatar">'+S.coach.n.charAt(0)+'</div>'
+        + '<div><b>'+S.coach.n+'</b><span>'+S.coach.styleName+' · '+S.coach.styleDesc+'</span></div>'
+      + '</div>'
+      + '<div class="kv" style="margin-top:9px"><span>התאמה לשיטה</span>'
+        + '<b class="n">'+coachFit()+'</b></div>'
+      + '<div class="bar"><i class="'+(coachFit()<45?"b":(coachFit()<60?"w":""))+'" style="width:'+coachFit()+'%"></i></div>'
+      + '<p class="hint" style="margin:9px 0 0">התאמה טקטית היא ציון נפרד מאמון. היא מזיזה את הדקות שלך בכל שבוע.</p>'
+    + '</div></div>'
+
+    + '<div class="p"><h3>עונה</h3><div class="pb">'
+      + '<div class="kv"><span>🏆 '+S.cup.name+'</span><b>'
+        + (S.cup.won ? '<span class="tag g">זכייה!</span>'
+           : (S.cup.out ? '<span class="tag b">הודחתם</span>'
+              : '<span class="tag ok">'+CUP_ROUNDS[Math.min(S.cup.round,4)]+'</span>')) + '</b></div>'
+      + '<div class="kv"><span>🇮🇱 נבחרת</span><b>'
+        + (S.natCaps ? '<span class="tag ok">'+S.natCaps+' הופעות · '+S.natGoals+' שערים</span>'
+           : (S.natCalled ? '<span class="tag ok">זומנת</span>' : '<span class="tag">טרם זומנת</span>')) + '</b></div>'
+      + (S.traits.length ? '<div class="kv"><span>✦ תכונות</span><b><span class="tag g">'+S.traits.length+'</span></b></div>' : '')
+    + '</div></div>'
+
     + '<div class="p"><h3>הודעות</h3><div class="pb">'+inboxHtml+'</div></div>'
 
   + '</div></div>';
@@ -1364,26 +1531,62 @@ function expectedMinutes(){
 }
 
 /* ── PLAYER ────────────────────────────────────────────────────── */
-function viewPlayer(){
-  var p = POS[S.pos], c = club(S.club), o = ovr();
+/* ── the card ──────────────────────────────────────────────────── */
+function cardTier(o){
+  if(o >= 85) return {id:"elite",  n:"אליט", bg:"linear-gradient(150deg,#33304A 0%,#17162A 55%,#443A63 100%)", ink:"#F3E9CB", chip:"#F3E9CB", chipInk:"#17162A"};
+  if(o >= 75) return {id:"gold",   n:"זהב",  bg:"linear-gradient(150deg,#FAF2D8 0%,#E9D496 42%,#D6BA6E 100%)", ink:"#1A160C", chip:"#1A160C", chipInk:"#FAF2D8"};
+  if(o >= 62) return {id:"silver", n:"כסף",  bg:"linear-gradient(150deg,#F5F5F3 0%,#DCDCD8 45%,#BEBEB9 100%)", ink:"#17150F", chip:"#17150F", chipInk:"#F5F5F3"};
+  return                {id:"bronze", n:"ארד",  bg:"linear-gradient(150deg,#F2E2D0 0%,#DCBE9B 45%,#C39F76 100%)", ink:"#221609", chip:"#221609", chipInk:"#F2E2D0"};
+}
 
-  /* FIFA-style card */
-  var faceHtml = p.face.map(function(g){
-    return '<div class="fs"><b class="n">'+grpVal(g)+'</b><span>'+g+'</span></div>';
+/* six-axis radar — the shape of a player, not a list of numbers */
+function radarSvg(vals, labels, ink){
+  var R = 45, cx = 67, cy = 66, n = vals.length;
+  function pt(i, r){
+    var a = -Math.PI/2 + i*2*Math.PI/n;
+    return [(cx + Math.cos(a)*r).toFixed(1), (cy + Math.sin(a)*r).toFixed(1)];
+  }
+  var rings = [0.25,0.5,0.75,1].map(function(f){
+    var pts = []; for(var i=0;i<n;i++) pts.push(pt(i, R*f).join(","));
+    return '<polygon points="'+pts.join(" ")+'" fill="none" stroke="'+ink+'" stroke-opacity="'+(f===1?.34:.15)+'" stroke-width="1"/>';
   }).join("");
+  var spokes = ""; for(var i=0;i<n;i++){ var e = pt(i,R); spokes += '<line x1="'+cx+'" y1="'+cy+'" x2="'+e[0]+'" y2="'+e[1]+'" stroke="'+ink+'" stroke-opacity=".15"/>'; }
+  var shape = []; for(var j=0;j<n;j++) shape.push(pt(j, R*clamp(vals[j]/99,0.08,1)).join(","));
+  var labs = ""; for(var k=0;k<n;k++){ var lp = pt(k, R+13);
+    labs += '<text x="'+lp[0]+'" y="'+lp[1]+'" font-size="8.5" font-weight="900" text-anchor="middle" dominant-baseline="middle" fill="'+ink+'" fill-opacity=".62">'+labels[k]+'</text>'; }
+  return '<svg viewBox="0 0 134 132" width="128" height="126" aria-hidden="true">'
+    + rings + spokes
+    + '<polygon points="'+shape.join(" ")+'" fill="'+ink+'" fill-opacity=".20" stroke="'+ink+'" stroke-opacity=".78" stroke-width="2" stroke-linejoin="round"/>'
+    + labs + '</svg>';
+}
 
-  var card = '<div class="fcard" style="--cc:'+c.c+'">'
+function playerCard(){
+  var p = POS[S.pos], c = club(S.club), o = ovr(), T = cardTier(o);
+  var vals = p.face.map(grpVal);
+  var faceHtml = p.face.map(function(g,i){
+    return '<div class="fs"><b class="n">'+vals[i]+'</b><span>'+g+'</span></div>';
+  }).join("");
+  return '<div class="fcard '+T.id+'" style="--cc:'+c.c+';--cbg:'+T.bg+';--cink:'+T.ink+';--cchip:'+T.chip+';--cchipink:'+T.chipInk+'">'
+    + '<span class="tierbadge">'+T.n+'</span>'
     + '<div class="fctop">'
       + '<div class="fcovr"><b class="n">'+o+'</b><span>'+S.pos+'</span></div>'
+      + '<div class="fcradar">'+radarSvg(vals, p.face, T.ink)+'</div>'
       + '<div class="fcbadges">'
         + '<div class="fcclub" style="background:'+c.c+';color:'+c.t+'">'+c.ab+'</div>'
-        + '<div class="fclvl">'+S.level+'</div>'
+        + '<div class="fclvl" title="רמה">'+S.level+'</div>'
+        + (S.natCaps ? '<div class="fcnat" title="נבחרת">🇮🇱</div>' : '')
       + '</div>'
     + '</div>'
     + '<div class="fcname">'+S.name+'</div>'
     + '<div class="fcstats">'+faceHtml+'</div>'
     + '<div class="fcfoot"><span>'+p.n+' · גיל '+S.age+'</span><b>'+money(value())+'</b></div>'
   + '</div>';
+}
+
+function viewPlayer(){
+  var p = POS[S.pos], c = club(S.club), o = ovr();
+
+  var card = playerCard();
 
   /* attribute groups with spend buttons */
   var groups = p.face.map(function(g){
@@ -1442,6 +1645,15 @@ function viewPlayer(){
 
     + '<div class="p"><h3>מגמת ציונים <span class="r">10 אחרונים</span></h3>'
     + '<div class="pb"><div class="sparks">'+spark+'</div></div></div>'
+
+    + '<div class="p"><h3>תכונות מיוחדות <span class="r">'+S.traits.length+'/'+TRAITS.length+'</span></h3><div class="pb">'
+      + TRAITS.map(function(tr){
+          var got = hasTrait(tr.id);
+          return '<div class="traitrow'+(got?" on":"")+'">'
+            + '<span class="ti">'+(got?"✦":"·")+'</span>'
+            + '<div><b>'+tr.n+'</b><span>'+tr.d+'</span></div></div>';
+        }).join("")
+    + '</div></div>'
 
     + '<div class="p"><h3>הישגים <span class="r">'+earned.length+'/'+BADGES.length+'</span></h3><div class="pb">'
       + (earned.length ? '<div class="badges">'+earned.map(function(b){
@@ -1645,13 +1857,32 @@ function viewCareer(){
     + '<button class="btn" id="declineAll" style="margin-top:10px">להישאר ב'+club(S.club).n+'</button>'
     + '</div></div>' : '';
 
+  var renewHtml = S.pendingRenewal ? '<div class="p" style="border-color:var(--accent);margin-bottom:14px">'
+    + '<h3>📝 המועדון מציע חידוש חוזה</h3><div class="pb">'
+    + '<div class="oterms">'
+      + '<div><span class="lbl">שכר שבועי</span><b>₪'+S.pendingRenewal.wage+'k</b></div>'
+      + '<div><span class="lbl">אורך</span><b>'+S.pendingRenewal.years+' שנים</b></div>'
+      + '<div><span class="lbl">מעמד</span><b>'+S.pendingRenewal.role+'</b></div>'
+      + '<div><span class="lbl">נוכחי</span><b>₪'+S.wage+'k</b></div>'
+    + '</div>'
+    + '<div class="row" style="margin-top:11px"><button class="btn pri" id="renewYes">לחתום</button>'
+    + '<button class="btn" id="renewNo">לדחות</button></div>'
+    + '<p class="hint" style="margin:9px 0 0">חוזה שנגמר מוריד את שווי השוק שלך ב-45%, אבל נותן כוח מיקוח מול מועדונים אחרים.</p>'
+    + '</div></div>' : '';
+
   var honHtml = S.honours.length
     ? S.honours.map(function(h){ return '<div class="kv"><span>'+h.t+'</span><span class="tag">עונה '+h.s+'</span></div>'; }).join("")
     : '<div class="empty">עוד לא נכתבה היסטוריה.</div>';
 
-  return offersHtml + '<div class="grid g2">'
+  return renewHtml + offersHtml + '<div class="grid g2">'
   + '<div class="p"><h3>עניין ממועדונים</h3><div class="pb">'+intHtml
   + '<p class="hint" style="margin:11px 0 0">מסדרונות ההעברות אמיתיים: קפיצה של עד ~14 נקודות מוניטין מעל ה-OVR שלך. הצעה ממשית מגיעה רק אחרי שסקאוט באמת ראה אותך.</p>'
+  + '</div></div>'
+  + '<div class="p"><h3>נבחרת ישראל</h3><div class="pb">'
+    + '<div class="kv"><span>סטטוס</span><b>'+(S.natCalled?'<span class="tag ok">בסגל</span>':'<span class="tag">מחוץ לסגל</span>')+'</b></div>'
+    + '<div class="kv"><span>הופעות</span><b class="n">'+S.natCaps+'</b></div>'
+    + '<div class="kv"><span>שערים</span><b class="n">'+S.natGoals+'</b></div>'
+    + '<p class="hint" style="margin:10px 0 0">הזימון נגזר מ-OVR, מהציון הממוצע ומדקות המשחק — והרף עולה מעונה לעונה.</p>'
   + '</div></div>'
   + '<div class="p"><h3>היסטוריית קריירה</h3><div class="pb">'+honHtml+'</div></div>'
   + '<div class="p"><h3>חוזה</h3><div class="pb">'
@@ -1685,6 +1916,8 @@ function bind(){
   });
   var dec = document.getElementById("declineAll");
   if(dec) dec.onclick = declineOffers;
+  var ry = document.getElementById("renewYes"); if(ry) ry.onclick = acceptRenewal;
+  var rn = document.getElementById("renewNo");  if(rn) rn.onclick = rejectRenewal;
 
   Array.prototype.forEach.call(stage.querySelectorAll("[data-lg]"), function(b){
     b.onclick = function(){ viewLid = b.getAttribute("data-lg"); render(); };
@@ -1754,7 +1987,7 @@ function startWeek(){
   S.load  = clamp(S.load, 0, 100);
   S.morale= clamp(S.morale - 1, 0, 100);
 
-  if(S.load > 86 && rnd() < 0.17){
+  if(S.load > 86 && rnd() < (hasTrait("iron") ? 0.11 : 0.17)){
     var wks = ri(1,3);
     push("פציעה: מתיחה בירך. " + wks + " שבועות בחוץ. העומס לא היה סוד.", "b");
     S.load = 30; S.fit = 55; S.sharp = 30; S.trust -= 2;
@@ -1775,7 +2008,7 @@ function startWeek(){
 var M = null;
 
 function openMatch(){
-  var fx = S.fixtures[S.week-1];
+  var fx = S.fixtures[S.week-1] || S.fixtures[S.fixtures.length-1];
   var opp = club(fx.opp);
   var me  = club(S.club);
   var exp = expectedMinutes();
@@ -1864,13 +2097,15 @@ function initPitch(){
     + '<rect x="16" y="156" width="132" height="308"/><rect x="852" y="156" width="132" height="308"/>'
     + '<rect x="16" y="236" width="50" height="148"/><rect x="934" y="236" width="50" height="148"/>'
     + '</g><circle cx="500" cy="310" r="5" fill="var(--turf-line)"/>'
+    + '<polyline id="pTrail" fill="none" stroke="#FFFFFF" stroke-opacity=".38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'
     + '<g id="pPlayers"></g>'
-    + '<circle id="pBall" cx="500" cy="310" r="8" fill="#fff" stroke="#17150F" stroke-width="2.5"/>'
+    + '<circle id="pBall" cx="500" cy="310" r="8.5" fill="#fff" stroke="#17150F" stroke-width="2.5"/>'
     + '</svg>';
 
   var g = document.getElementById("pPlayers");
   var myIdx = {GK:0, CB:2, W:8, CM:6, ST:9}[S.pos];
-  P = {ball:{x:50,y:50}, bt:{x:50,y:50}, poss:"h", men:[], possH:50, t:0};
+  var NUMS = [1,2,4,5,3,6,8,10,7,9,11];
+  P = {ball:{x:50,y:50}, bt:{x:50,y:50}, poss:"h", men:[], possH:50, t:0, trail:[]};
 
   for(var side=0; side<2; side++){
     for(var i=0;i<11;i++){
@@ -1879,23 +2114,32 @@ function initPitch(){
       var by = side===0 ? f.y : 100-f.y;
       var team = side===0 ? M.home : M.away;
       var isMe = (side === (M.home===M.me ? 0 : 1)) && i===myIdx;
-      var el = document.createElementNS("http://www.w3.org/2000/svg","circle");
-      el.setAttribute("r", isMe ? 13 : 9);
-      el.setAttribute("fill", team.c);
-      el.setAttribute("stroke", isMe ? "#17150F" : "rgba(255,255,255,.85)");
-      el.setAttribute("stroke-width", isMe ? 4 : 2);
-      g.appendChild(el);
-      var lbl = null;
+
       if(isMe){
-        lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
-        lbl.setAttribute("text-anchor","middle");
-        lbl.setAttribute("font-size","11");
-        lbl.setAttribute("font-weight","900");
-        lbl.setAttribute("fill", team.t);
-        lbl.textContent = S.pos;
-        g.appendChild(lbl);
+        var halo = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        halo.setAttribute("r", 20); halo.setAttribute("fill", "none");
+        halo.setAttribute("stroke", "#FFE27A"); halo.setAttribute("stroke-width", 3);
+        halo.setAttribute("stroke-opacity", ".85");
+        g.appendChild(halo);
       }
-      P.men.push({bx:bx, by:by, x:bx, y:by, el:el, lbl:lbl, side:side, me:isMe, gk:i===0});
+      var el = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      el.setAttribute("r", isMe ? 13 : 10);
+      el.setAttribute("fill", team.c);
+      el.setAttribute("stroke", isMe ? "#17150F" : "rgba(255,255,255,.9)");
+      el.setAttribute("stroke-width", isMe ? 3.5 : 2);
+      g.appendChild(el);
+
+      var lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
+      lbl.setAttribute("text-anchor","middle");
+      lbl.setAttribute("font-size", isMe ? "11" : "9");
+      lbl.setAttribute("font-weight","900");
+      lbl.setAttribute("fill", team.t);
+      lbl.setAttribute("pointer-events","none");
+      lbl.textContent = isMe ? S.pos : NUMS[i];
+      g.appendChild(lbl);
+
+      P.men.push({bx:bx, by:by, x:bx, y:by, el:el, lbl:lbl, halo:isMe?halo:null,
+                  side:side, me:isMe, gk:i===0});
     }
   }
   pitchFrame();
@@ -1920,20 +2164,37 @@ function pitchFrame(){
   P.ball.x += (P.bt.x - P.ball.x) * 0.055;
   P.ball.y += (P.bt.y - P.ball.y) * 0.055;
 
+  var bx = 16 + P.ball.x*9.68, by = 16 + P.ball.y*5.88;
   var b = document.getElementById("pBall");
-  if(b){ b.setAttribute("cx", 16 + P.ball.x*9.68); b.setAttribute("cy", 16 + P.ball.y*5.88); }
+  if(b){ b.setAttribute("cx", bx); b.setAttribute("cy", by); }
+
+  /* ball trail */
+  P.trail.push([bx,by]);
+  if(P.trail.length > 14) P.trail.shift();
+  var tr = document.getElementById("pTrail");
+  if(tr && P.t % 2 === 0){
+    tr.setAttribute("points", P.trail.map(function(q){return q[0].toFixed(0)+","+q[1].toFixed(0)}).join(" "));
+  }
 
   var shift = (P.ball.x - 50) * 0.30;
   for(var i=0;i<P.men.length;i++){
     var m = P.men[i];
     var tx = m.gk ? m.bx + shift*0.12 : m.bx + shift;
     var ty = m.gk ? 50 + (P.ball.y-50)*0.16 : m.by + (P.ball.y - 50) * 0.20;
-    // nearest outfielder of the possessing side presses the ball
+    /* the closest outfielder on the possessing side steps toward the ball */
+    if(!m.gk && ((P.poss==="h") === (m.side===0))){
+      var d = Math.abs(m.x - P.ball.x) + Math.abs(m.y - P.ball.y);
+      if(d < 22){ tx = tx + (P.ball.x - tx)*0.55; ty = ty + (P.ball.y - ty)*0.55; }
+    }
     m.x += (clamp(tx,3,97) - m.x) * 0.045;
     m.y += (clamp(ty,5,95) - m.y) * 0.045;
     var px = 16 + m.x*9.68, py = 16 + m.y*5.88;
     m.el.setAttribute("cx", px); m.el.setAttribute("cy", py);
-    if(m.lbl){ m.lbl.setAttribute("x", px); m.lbl.setAttribute("y", py+4); }
+    if(m.lbl){ m.lbl.setAttribute("x", px); m.lbl.setAttribute("y", py + (m.me?4:3.2)); }
+    if(m.halo){
+      m.halo.setAttribute("cx", px); m.halo.setAttribute("cy", py);
+      m.halo.setAttribute("r", 18 + Math.sin(P.t/12)*3);
+    }
   }
 
   var pv = document.getElementById("mPoss");
@@ -1995,9 +2256,16 @@ function tickMatch(){
     else  { M.ag++; document.getElementById("mAG").textContent = M.ag; }
     var scorer = hs ? M.home : M.away;
     var good = (scorer === M.me);
-    addEv(M.min, "שער! " + scorer.n + " " + M.hg + "–" + M.ag, good?"goal":"bad");
-  } else if(rnd() < 0.05){
-    addEv(M.min, ["הזדמנות שהוחמצה.","כרטיס צהוב.","קרן.","החלפה בקבוצה היריבה.","הכדור יצא לקו."][ri(0,4)], "");
+    addEv(M.min, (good?"⚽ ":"😞 ") + "שער! " + scorer.n + " " + M.hg + "–" + M.ag, good?"goal":"bad");
+    goalFlash(good);
+  } else if(rnd() < 0.075){
+    var ev = [
+      "🎯 הזדמנות גדולה שהוחמצה.", "🟨 כרטיס צהוב.", "🚩 קרן.",
+      "🔁 חילוף בקבוצה היריבה.", "⬜ הכדור יצא לקו.", "🧤 הצלה גדולה של השוער.",
+      "🅾 העמוד! כמעט שער.", "⚕ הפסקה קצרה לטיפול רפואי.", "📣 הקהל דורש לחץ גבוה.",
+      "🟥 כרטיס אדום! היריבה בעשרה.", "⏱ שלוש דקות תוספת."
+    ];
+    addEv(M.min, ev[ri(0,ev.length-1)], "");
   }
 
   M.timer = setTimeout(tickMatch, M.onPitch ? 105 : 42);
@@ -2020,6 +2288,24 @@ function skipToEnd(){
       if(hs) M.hg++; else M.ag++;
     }
   }
+
+  /* A simulated match still has to produce a scoreline for YOU. Without this,
+     skipping meant a striker could play 40 games and score nothing. */
+  if(M.playing){
+    var share = M.mins/90;
+    var gRate = {ST:0.52, W:0.30, CM:0.17, CB:0.07, GK:0}[S.pos] || 0.15;
+    var aRate = {ST:0.20, W:0.34, CM:0.30, CB:0.06, GK:0.01}[S.pos] || 0.15;
+    var quality = 0.55 + (grpVal("SHO")-45)/110 + (S.sharp-50)/220;
+    var creat   = 0.55 + (grpVal("PAS")-45)/110 + (S.sharp-50)/220;
+    var g = 0, a = 0;
+    if(rnd() < gRate*share*clamp(quality,0.3,1.9)) g++;
+    if(g && rnd() < 0.16) g++;
+    if(rnd() < aRate*share*clamp(creat,0.3,1.9)) a++;
+    for(var q=0;q<g;q++){ if(M.me===M.home) M.hg++; else M.ag++; }
+    if(g){ S.goals+=g; S.careerGoals+=g; M.gAdded+=g; M.score += g*1.4; }
+    if(a){ S.assists+=a; S.careerAssists+=a; M.aAdded+=a; M.score += a*1.0; }
+  }
+
   document.getElementById("mHG").textContent = M.hg;
   document.getElementById("mAG").textContent = M.ag;
   finishMatch();
@@ -2093,6 +2379,7 @@ function openMoment(m){
      finish three Hebrew options, let alone weigh them. Base is now generous
      and the attributes/preparation extend it further. */
   var readBase = 4.2 + iq()/16 + (S.prep.video ? 1.6 : 0)
+               + (hasTrait("reader") ? 1.2 : 0)
                - (1 - S.fit/100)*1.6 - (S.load/100)*1.2;
   var mult = S.readMode === "long" ? 1.8 : 1;
   var readTime = S.readMode === "off" ? 999 : clamp(readBase*mult, 2.6, 14);
@@ -2224,6 +2511,7 @@ function pickChoice(i, btn){
   var at = S.a[c.at] || 45;
   // sweet zone width: attribute + sharpness + coach intel − load − risk
   var w = 13 + at*0.22 + S.sharp*0.06 + (S.prep.coach?4:0) - S.load*0.05 + c.w*0.55;
+  if(hasTrait("clutch") && M && M.min >= 75) w *= 1.15;
   w = clamp(w, 7, 42);
   MO.w = w;
   MO.center = clamp(30 + rnd()*40, 15, 80);
@@ -2273,15 +2561,15 @@ function resolveMoment(choice, grade, silent){
   M.score += pts; M.count++;
 
   var outcome = "";
-  if(grade==="great" && risky && rnd()<0.42){
+  if(grade==="great" && risky && rnd() < (hasTrait("finisher") ? 0.55 : 0.42)){
     if(S.pos==="ST" || S.pos==="W"){
       if(M.me===M.home){M.hg++;} else {M.ag++;}
       S.goals++; S.careerGoals++; M.gAdded++; outcome = " שער!";
-      if(!silent) addEv(M.min, "שער שלך! "+M.home.ab+" "+M.hg+"–"+M.ag+" "+M.away.ab, "goal");
+      if(!silent){ addEv(M.min, "⚽ שער שלך! "+M.home.ab+" "+M.hg+"–"+M.ag+" "+M.away.ab, "goal"); goalFlash(true); }
     } else {
       S.assists++; S.careerAssists++; M.aAdded++; outcome = " בישול!";
       if(M.me===M.home){M.hg++;} else {M.ag++;}
-      if(!silent) addEv(M.min, "בישול שלך — הכדור מגיע ומסתיים ברשת.", "goal");
+      if(!silent){ addEv(M.min, "🅰 בישול שלך — הכדור מגיע ומסתיים ברשת.", "goal"); goalFlash(true); }
     }
     var hg = document.getElementById("mHG"), ag = document.getElementById("mAG");
     if(hg) hg.textContent = M.hg; if(ag) ag.textContent = M.ag;
@@ -2324,7 +2612,7 @@ function finishMatch(){
   M.running = false;
 
   var rating = M.playing ? liveRating() : 0;
-  var fx = S.fixtures[S.week-1];
+  var fx = M.fx;
   fx.res = M.hg + "–" + M.ag;
 
   var myG = M.me===M.home ? M.hg : M.ag;
@@ -2340,9 +2628,11 @@ function finishMatch(){
     S.streak = rating >= 7 ? S.streak + 1 : 0;
     if(S.streak > S.bestStreak) S.bestStreak = S.streak;
     var dTrust = (rating-6.6)*4.2 + (myG>opG?1.5:(myG<opG?-0.8:0.3));
+    if(hasTrait("leader") && dTrust < 0) dTrust *= 0.6;
+    dTrust += (coachFit()-55) * 0.05;
     S.trust = clamp(S.trust + dTrust, 0, 100);
     S.sharp = clamp(S.sharp + 9, 0, 100);
-    S.load  = clamp(S.load + M.mins*0.28, 0, 100);
+    S.load  = clamp(S.load + M.mins*(hasTrait("engine") ? 0.21 : 0.28), 0, 100);
     S.fit   = clamp(S.fit - M.mins*0.09, 20, 100);
     S.morale= clamp(S.morale + (myG>opG?7:(myG<opG?-4:1)) + (rating-6.6)*3, 0, 100);
   } else {
@@ -2393,10 +2683,11 @@ function finishMatch(){
   S.ovrPrev = ovrBefore;
 
   var badges = checkBadges();
+  var newTraits = checkTraits();
 
   showPostMatch(rating, myG, opG, scoutHit, {
     xp:xp, rows:xpRows, levels:levels, gains:matchGains,
-    ovrBefore:ovrBefore, ovrAfter:ovrAfter, badges:badges
+    ovrBefore:ovrBefore, ovrAfter:ovrAfter, badges:badges, traits:newTraits
   });
   S.trainXp = 0; S.trainGains = [];
 }
@@ -2584,6 +2875,9 @@ function showPostMatch(rating, myG, opG, scoutHit, R){
   (R.badges||[]).forEach(function(b){
     setTimeout(function(){ showBadge(b); }, q); q += 2000;
   });
+  (R.traits||[]).forEach(function(tr){
+    setTimeout(function(){ showTrait(tr); }, q); q += 2100;
+  });
 }
 
 function countXp(total){
@@ -2613,6 +2907,7 @@ function celebrate(html, cls){
 }
 
 function showOvrUp(a, b){
+  confetti(60, ["#E8C766","#1F6F43","#FFFFFF"]);
   celebrate(
     '<span class="ctag">דירוג כללי עלה</span>'
     + '<div class="cbig n">'+a+' <em>→</em> '+b+'</div>'
@@ -2621,10 +2916,18 @@ function showOvrUp(a, b){
 }
 
 function showLevelUp(n){
+  confetti(70, ["#1F6F43","#6FCB96","#FFFFFF"]);
   celebrate(
     '<span class="ctag">עלית רמה</span>'
     + '<div class="cbig n">רמה '+S.level+'</div>'
     + '<div class="csub">🎁 '+S.tp+' נקודות אימון לחלוקה</div>', "green");
+}
+
+function showTrait(tr){
+  confetti(60, ["#E8C766","#4a3aa7","#FFFFFF"]);
+  celebrate('<span class="ctag">תכונה מיוחדת נפתחה</span>'
+    + '<div class="cbig" style="font-size:32px">✦ '+tr.n+'</div>'
+    + '<div class="csub">'+tr.d+'</div>', "gold");
 }
 
 function showBadge(b){
@@ -2655,9 +2958,143 @@ function nextWeek(){
   S.week++;
   S.picked = [];
   S.prep = {video:0, analyst:0, coach:0, unit:0, sp:0};
+  S.coachWeeks++;
+
+  runCupWeek();
+  runCoachMarket();
+  runNationalTeam();
+  saveGame();
+
   if(S.week > S.maxWeek) return endSeason();
   S.screen = "hub"; S.seen = S.inbox.length;
   render();
+}
+
+/* ── cup: a tie every third week ────────────────────────────────── */
+function runCupWeek(){
+  if(!S.cup || S.cup.out || S.cup.won) return;
+  if(S.week % 3 !== 0) return;
+  var opp = anyClubIn(S.league);
+  var edge = (club(S.club).rep - opp.rep)/26 + (avgRating()-6.5)*0.16 + 0.05;
+  var win = rnd() < clamp(0.5 + edge, 0.16, 0.88);
+  var label = CUP_ROUNDS[Math.min(S.cup.round, CUP_ROUNDS.length-1)];
+  if(win){
+    S.cup.round++;
+    var scored = S.apps>0 && rnd()<0.3;
+    if(scored){ S.goals++; S.careerGoals++; }
+    push("🏆 " + S.cup.name + " · " + label + ": ניצחון על " + opp.n + (scored?" — ואתה כבשת.":"."), "ok");
+    addXp(90);
+    if(S.cup.round >= CUP_ROUNDS.length){
+      S.cup.won = true;
+      S.honours.push({s:S.season, t:"זכייה ב" + S.cup.name});
+      confetti(120, ["#E8C766","#1F6F43","#FFFFFF"]);
+      celebrate('<span class="ctag">תואר</span><div class="cbig" style="font-size:32px">🏆 '+S.cup.name+'</div>'
+        + '<div class="csub">'+club(S.club).n+' אלופת הגביע</div>', "gold");
+      addXp(400);
+    }
+  } else {
+    S.cup.out = true;
+    push("🏆 " + S.cup.name + " · " + label + ": הפסד ל" + opp.n + ". יצאתם מהגביע.", "b");
+  }
+}
+function anyClubIn(lid){
+  var pool = LEAGUES[lid].clubs.filter(function(c){ return c.id !== S.club; });
+  return pool[ri(0, pool.length-1)];
+}
+
+/* ── the manager can be sacked, and the new one may not rate you ── */
+function runCoachMarket(){
+  if(S.coachWeeks < 5) return;
+  var T = S.tables[S.league][S.club];
+  var ppg = T.p ? T.pts/T.p : 1.4;
+  var risk = ppg < 0.9 ? 0.22 : (ppg < 1.3 ? 0.08 : 0.02);
+  if(rnd() > risk) return;
+
+  var old = S.coach.n;
+  S.coach = newCoach();
+  S.coachWeeks = 0;
+  var fit = coachFit();
+  var delta = clamp((fit - 55) * 0.6, -22, 18);
+  S.trust = clamp(50 + delta, 8, 92);
+  push("🔁 " + old + " פוטר. " + S.coach.n + " נכנס — " + S.coach.styleName + ".",
+       delta >= 0 ? "ok" : "b");
+  push(delta >= 0
+    ? "המאמן החדש אוהב את הפרופיל שלך. אתה מתחיל מנקודה טובה."
+    : "השיטה החדשה לא מתאימה לך. תצטרך להוכיח את עצמך מחדש.", delta >= 0 ? "ok" : "w");
+  celebrate('<span class="ctag">מאמן חדש</span>'
+    + '<div class="cbig" style="font-size:26px">'+S.coach.n+'</div>'
+    + '<div class="csub">'+S.coach.styleName+' · התאמה '+fit+'</div>',
+    delta >= 0 ? "green" : "gold");
+}
+
+/* ── national team ──────────────────────────────────────────────── */
+function runNationalTeam(){
+  if(S.age < 18) return;
+  if(S.week % 5 !== 0) return;
+  var score = ovr() + (avgRating()-6.5)*12 + Math.min(20, S.minutes/40) + (S.natCaps?6:0);
+  var bar = 62 + S.season*1.5;
+  if(!S.natCalled && score >= bar){
+    S.natCalled = true;
+    push("🇮🇱 זומנת לנבחרת ישראל בפעם הראשונה.", "ok");
+    confetti(80, ["#0A3A7A","#FFFFFF","#1F6F43"]);
+    celebrate('<span class="ctag">זימון לנבחרת</span><div class="cbig" style="font-size:30px">🇮🇱 נבחרת ישראל</div>'
+      + '<div class="csub">הבכורה שלך בדרך</div>', "green");
+    addXp(320);
+    return;
+  }
+  if(S.natCalled && score >= bar - 6){
+    S.natCaps++;
+    var g = rnd() < clamp((grpVal("SHO")-45)/160, 0.03, 0.34) ? 1 : 0;
+    S.natGoals += g;
+    S.load = clamp(S.load + 12, 0, 100);
+    addXp(120 + g*160);
+    push("🇮🇱 משחק נבחרת (" + S.natCaps + " הופעות)" + (g ? " — ואתה כבשת!" : "."), g ? "ok" : "");
+    if(g) confetti(50, ["#0A3A7A","#FFFFFF"]);
+  } else if(S.natCalled && score < bar - 14){
+    S.natCalled = false;
+    push("🇮🇱 לא נכללת בסגל הנבחרת הפעם.", "w");
+  }
+}
+
+/* ── end-of-season awards ──────────────────────────────────────── */
+function seasonAwards(place){
+  var out = [];
+  var board = S.rivals.concat([{n:S.name, ovr:ovr(), me:true}]);
+  board.sort(function(a,b){ return b.ovr-a.ovr; });
+  if(board[0] && board[0].me && S.age <= 23) out.push({t:"שחקן צעיר של העונה", d:LEAGUES[S.league].n});
+  var top = S.scorers[S.league].slice().sort(function(a,b){return b.g-a.g})[0];
+  if(S.goals > (top ? top.g : 999)) out.push({t:"מלך השערים", d:S.goals + " שערים"});
+  if(avgRating() >= 7.4 && S.apps >= 8) out.push({t:"סגל העונה", d:"ציון ממוצע " + avgRating().toFixed(2)});
+  if(place === 1) out.push({t:"אליפות " + LEAGUES[S.league].n, d:club(S.club).n});
+  else if(place <= 3) out.push({t:"מקום " + place + " בליגה", d:club(S.club).n});
+  if(S.cup && S.cup.won) out.push({t:"זכייה ב" + S.cup.name, d:club(S.club).n});
+  out.forEach(function(a){ S.honours.push({s:S.season, t:a.t}); });
+  return out;
+}
+
+/* ── contract renewal ──────────────────────────────────────────── */
+function renewalOffer(){
+  if(S.contractYears > 1) return null;
+  return {
+    wage: Math.max(S.wage + 1, Math.round(S.wage * (1 + (ovr()-50)/26) + ri(2,8))),
+    years: ri(3,5),
+    role: S.trust >= 66 ? "שחקן מפתח" : (S.trust >= 46 ? "מסובב ראשון" : "רוטציה")
+  };
+}
+function acceptRenewal(){
+  var r = S.pendingRenewal; if(!r) return;
+  S.wage = r.wage; S.contractYears = r.years; S.status = r.role;
+  S.pendingRenewal = null;
+  S.honours.push({s:S.season, t:"חידש חוזה ב" + club(S.club).n});
+  push("חתמת על חוזה חדש: ₪" + r.wage + "k לשבוע, " + r.years + " שנים, " + r.role + ".", "ok");
+  saveGame(); render();
+  celebrate('<span class="ctag">חוזה חדש</span><div class="cbig" style="font-size:30px">₪'+r.wage+'k</div>'
+    + '<div class="csub">'+r.years+' שנים · '+r.role+'</div>', "green");
+}
+function rejectRenewal(){
+  S.pendingRenewal = null;
+  push("דחית את הצעת החידוש. החוזה שלך נגמר — והשוק יודע את זה.", "w");
+  saveGame(); render();
 }
 
 function endSeason(){
@@ -2665,6 +3102,8 @@ function endSeason(){
   var rows = LEAGUES[S.league].clubs.map(function(c){ return {c:c, t:T[c.id]}; })
     .sort(function(a,b){ return b.t.pts-a.t.pts || (b.t.gf-b.t.ga)-(a.t.gf-a.t.ga); });
   var place = rows.findIndex(function(r){return r.c.id===S.club}) + 1;
+  var awards = seasonAwards(place);
+  S.pendingRenewal = renewalOffer();
 
   var el = document.createElement("div");
   el.className = "match"; el.id = "matchLayer";
@@ -2683,6 +3122,10 @@ function endSeason(){
     + '</div></div>'
     + '<p class="hint" style="margin:13px 0 0">'+seasonVerdict(place)+'</p>'
   + '</div></div>'
+  + (awards.length ? '<div class="p" style="border-color:var(--gold)"><h3>🏅 פרסי העונה</h3><div class="pb">'
+      + awards.map(function(a){
+          return '<div class="awardrow"><span>🏅</span><div><b>'+a.t+'</b><span>'+a.d+'</span></div></div>';
+        }).join("") + '</div></div>' : '')
   + '<div class="p"><h3>מי מסתכל</h3><div class="pb">'
     + (S.interest.length ? S.interest.map(function(x){
         return '<div class="kv"><span><span class="sw" style="background:'+x.c+'"></span><b><bdi>'+x.n+'</bdi></b> · <bdi>'+x.lg+'</bdi></span>'
@@ -2692,6 +3135,14 @@ function endSeason(){
   + '<button class="btn pri big" id="nsBtn" style="align-self:flex-start">לעונה הבאה ▸</button>'
   + '</div></div>';
   document.body.appendChild(el);
+
+  if(awards.length){
+    confetti(130, ["#E8C766","#1F6F43","#FFFFFF"]);
+    setTimeout(function(){
+      celebrate('<span class="ctag">פרס עונה</span><div class="cbig" style="font-size:30px">🏅 '+awards[0].t+'</div>'
+        + '<div class="csub">'+awards[0].d+'</div>', "gold");
+    }, 400);
+  }
 
   document.getElementById("nsBtn").onclick = function(){
     el.remove();
@@ -2717,11 +3168,13 @@ function endSeason(){
     S.rivals.forEach(function(r){ r.age++; });
     resetWorld();
     S.fixtures = buildFixtures(S.club);
+    S.cup = newCup();
     push("עונה חדשה. הכל מתאפס חוץ ממה שאנשים זוכרים.", "");
     if(openTransferWindow()){
       S.screen="career"; render();
       toast("חלון ההעברות נפתח — " + S.offers.length + " הצעות");
     } else { S.screen="hub"; render(); }
+    saveGame();
   };
 }
 
@@ -2730,6 +3183,97 @@ function seasonVerdict(place){
   if(avgRating()>=7.2) return "עונה שמשנה תיקי גיוס. הבעיה הבאה שלך תהיה לבחור נכון, לא להיבחר.";
   if(S.apps<6) return "מעט דקות ומדגם קטן. סקאוטים לא מוחקים אותך — הם פשוט עוד לא ראו מספיק.";
   return "עונה שנבנתה על עקביות. זה איך שרוב הקריירות באמת מתקדמות.";
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SAVE / LOAD — one slot, written after every week
+   ════════════════════════════════════════════════════════════════ */
+var SAVE_KEY = "onecareer.save.v1";
+function saveGame(){
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
+}
+function hasSave(){
+  try { return !!localStorage.getItem(SAVE_KEY); } catch(e){ return false; }
+}
+function loadGame(){
+  try {
+    var raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    var s = JSON.parse(raw);
+    if(!s || !s.a || !s.pos) return false;
+    /* forward-compat: fill anything a newer build expects */
+    if(!s.traits) s.traits = [];
+    if(!s.honours) s.honours = [];
+    if(!s.news) s.news = [];
+    if(!s.offers) s.offers = [];
+    if(!s.coach) { S = s; s.coach = newCoach(); }
+    if(s.natCaps === undefined){ s.natCaps = 0; s.natGoals = 0; s.natCalled = false; }
+    S = s;
+    if(!S.cup) S.cup = newCup();
+    return true;
+  } catch(e){ return false; }
+}
+function wipeSave(){ try { localStorage.removeItem(SAVE_KEY); } catch(e){} }
+
+/* ══════════════════════════════════════════════════════════════════
+   JUICE — confetti, goal flash, screen shake
+   ════════════════════════════════════════════════════════════════ */
+var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function confetti(n, colors){
+  if(reduceMotion) return;
+  var cv = document.createElement("canvas");
+  cv.className = "fxcanvas";
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  document.body.appendChild(cv);
+  var ctx = cv.getContext("2d");
+  var cols = colors || ["#1F6F43","#E8C766","#E4574B","#4FA97A","#FFFFFF"];
+  var ps = [];
+  for(var i=0;i<n;i++){
+    ps.push({
+      x: cv.width*(0.3+Math.random()*0.4), y: cv.height*0.42,
+      vx: (Math.random()-0.5)*13, vy: -7-Math.random()*11,
+      s: 4+Math.random()*7, r: Math.random()*Math.PI,
+      vr: (Math.random()-0.5)*0.34, c: cols[Math.floor(Math.random()*cols.length)],
+      life: 1
+    });
+  }
+  var t0 = performance.now();
+  (function step(now){
+    var el = now - t0;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for(var i=0;i<ps.length;i++){
+      var p = ps[i];
+      p.vy += 0.36; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      p.life = Math.max(0, 1 - el/2100);
+      ctx.save(); ctx.globalAlpha = p.life;
+      ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s/2, -p.s/2, p.s, p.s*0.62);
+      ctx.restore();
+    }
+    if(el < 2200) requestAnimationFrame(step);
+    else cv.remove();
+  })(t0);
+}
+
+function goalFlash(mine){
+  var el = document.createElement("div");
+  el.className = "goalflash " + (mine ? "mine" : "them");
+  el.innerHTML = '<b>' + (mine ? "GOAL!" : "שער") + '</b>';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, mine ? 1500 : 900);
+  if(mine){
+    confetti(90);
+    shake();
+  }
+}
+
+function shake(){
+  if(reduceMotion) return;
+  var a = document.getElementById("matchLayer") || document.getElementById("app");
+  if(!a) return;
+  a.classList.remove("shake"); void a.offsetWidth; a.classList.add("shake");
+  setTimeout(function(){ a.classList.remove("shake"); }, 480);
 }
 
 function toast(msg){
@@ -2753,6 +3297,8 @@ function showBoot(){
   + '<div class="boothd"><h1>ONE <span>CAREER</span></h1>'
   + '<p>שחקן אחד. מהאקדמיה עד הפרישה. אתה לא מנהל את הקבוצה — אתה נאבק על דקות, קורא מאמן, ומחליט מה לעשות ברגע שהכדור מגיע אליך.</p></div>'
   + '<div class="bootbd">'
+    + (hasSave() ? '<button class="btn pri big" id="bCont">המשך קריירה שמורה ▸</button>'
+        + '<div class="bootsep"><span>או התחל חדשה</span></div>' : '')
     + '<div class="field"><span class="lbl">שם השחקן</span>'
       + '<input id="bName" maxlength="22" placeholder="למשל: יונתן אשל" value="">'
     + '</div>'
@@ -2788,10 +3334,27 @@ function showBoot(){
       b.classList.add("on");
     };
   });
+  var cont = document.getElementById("bCont");
+  if(cont) cont.onclick = function(){
+    if(loadGame()){
+      el.remove();
+      S.screen = "hub";
+      render();
+      toast("נטענה קריירה — עונה " + S.season + ", מחזור " + S.week);
+    } else {
+      toast("השמירה פגומה. מתחילים חדש.");
+      wipeSave();
+      cont.remove();
+    }
+  };
+
   document.getElementById("bGo").onclick = function(){
     var nm = document.getElementById("bName").value.trim() || "יונתן אשל";
+    wipeSave();
     S = newState(nm, boot.pos, boot.start);
     push("חתמת בחוזה נוער. עכשיו צריך שמישהו ישים לב.", "");
+    push("המאמן: " + S.coach.n + " — " + S.coach.styleDesc + ".", "");
+    saveGame();
     el.remove();
     render();
   };
