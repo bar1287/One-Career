@@ -5452,16 +5452,23 @@ function coachLine(r, won){
 
 function nextWeek(){
   var el = document.getElementById("matchLayer"); if(el) el.remove();
+
+  /* the bonuses are read from the match that just finished — which means
+     they have to be read before M is cleared, not after */
+  var played = M && M.playing;
+  var bonusG = played ? (M.gAdded||0) : 0;
+  var bonusA = played ? (M.aAdded||0) : 0;
   M = null;
+
   S.week++;
   S.picked = [];
   S.prep = {video:0, analyst:0, coach:0, unit:0, sp:0};
   S.coachWeeks++;
 
   S.money += S.wage;
-  if(M && M.playing){
+  if(played){
     S.money += Math.round(S.wage*0.10);                       // appearance
-    S.money += (M.gAdded||0)*Math.round(S.wage*0.35) + (M.aAdded||0)*Math.round(S.wage*0.2);
+    S.money += bonusG*Math.round(S.wage*0.35) + bonusA*Math.round(S.wage*0.2);
   }
 
   runCupWeek();
@@ -5738,7 +5745,7 @@ function endSeason(){
   var el = document.createElement("div");
   el.className = "match"; el.id = "matchLayer";
   el.innerHTML = '<div class="scorebug"><div class="sbteam"><div class="sbmini" style="background:'+club(S.club).c+';color:'+club(S.club).t+'">'+club(S.club).ab+'</div><b>סיכום עונה '+S.season+'</b></div></div>'
-  + '<div style="flex:1;overflow-y:auto;padding:20px;display:flex;justify-content:center">'
+  + '<div style="flex:1;overflow-y:auto;padding:20px;display:flex;justify-content:center;align-items:flex-start">'
   + '<div style="width:min(760px,100%);display:flex;flex-direction:column;gap:14px">'
   + '<div class="p"><h3>העונה שלך</h3><div class="pb">'
     + '<div class="ratebig"><div class="num">'+avgRating().toFixed(1)+'</div><div style="flex:1">'
