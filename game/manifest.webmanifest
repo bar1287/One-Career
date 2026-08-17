@@ -1,0 +1,18 @@
+{
+  "name": "ONE CAREER — סימולטור קריירה",
+  "short_name": "ONE CAREER",
+  "description": "סימולטור קריירה של כדורגלן — מהאקדמיה ועד הפרישה.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#17150F",
+  "theme_color": "#17150F",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

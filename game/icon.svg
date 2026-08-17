@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ONE CAREER">
+  <rect width="512" height="512" rx="104" fill="#17150F"/>
+  <circle cx="256" cy="256" r="150" fill="#F7F5F1"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#1F6F43" stroke-width="14"/>
+  <path d="M256 150 l38 28 -14 45 h-48 l-14 -45z" fill="#1F6F43"/>
+  <path d="M154 232 l44 -14 28 38 -15 46 -46 6z" fill="#1F6F43" opacity=".82"/>
+  <path d="M358 232 l-44 -14 -28 38 15 46 46 6z" fill="#1F6F43" opacity=".82"/>
+  <path d="M214 348 l-16 -44 42 -26 42 26 -16 44z" fill="#1F6F43" opacity=".9"/>
+  <rect x="196" y="404" width="120" height="16" rx="8" fill="#E8C766"/>
+</svg>

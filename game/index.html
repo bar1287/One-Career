@@ -1,5 +1,14 @@
 <title>ONE CAREER</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#17150F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ONE CAREER">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 
 <style>
 /* ═══════════════════════════════════════════════════════════════════
@@ -51,10 +60,9 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html,body{height:100%}
 body{
-  margin:0;background:var(--paper);color:var(--ink);font-family:var(--f);
-  font-size:14px;line-height:1.5;overflow:hidden;-webkit-font-smoothing:antialiased;
+  margin:0;color:var(--ink);font-family:var(--f);
+  font-size:13px;line-height:1.45;-webkit-font-smoothing:antialiased;
 }
 button{font:inherit;color:inherit}
 :focus-visible{outline:none;box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--accent);border-radius:6px}
@@ -113,16 +121,190 @@ button{font:inherit;color:inherit}
   background:var(--bad);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px;
 }
 
-.stage{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:18px 20px 28px;min-width:0}
-.stage::-webkit-scrollbar{width:10px}
-.stage::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px;border:3px solid var(--paper)}
 
-@media (max-width:720px){
-  .rail{flex:0 0 62px}
-  .rail button em{font-size:17px}
-  .rail button span{display:none}
-  .stage{padding:14px 12px 24px}
+
+/* ══════════════════════════════════════════════════════════════════
+   GAME DRESS
+   The same light identity, dressed as a game rather than a document:
+   a bezelled cabinet, a HUD band instead of a page header, an icon dock,
+   cards with a lit top edge, and controls that answer to a thumb.
+   ════════════════════════════════════════════════════════════════ */
+#app::after{                                  /* bezel and vignette */
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:30;border-radius:14px;
+  box-shadow:inset 0 0 0 1px rgba(23,21,15,.10), inset 0 0 44px rgba(23,21,15,.05);
 }
+.hdr{
+  height:46px;flex:0 0 46px;gap:9px;padding:0 12px;
+  background:linear-gradient(180deg, var(--surface), var(--sunken));
+  border-bottom:1px solid var(--line2);
+  box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 0 2px 8px rgba(23,21,15,.05);
+}
+.hdr::after{
+  content:"";position:absolute;inset-inline:0;bottom:-1px;height:2px;
+  background:linear-gradient(90deg, transparent, var(--accent), transparent);opacity:.5;
+}
+.crest{width:34px;height:34px;font-size:11px;border-radius:9px}
+.who b{font-size:12.5px} .who span{font-size:10px}
+.ovrchip{min-width:46px;height:34px}
+.ovrchip b{font-size:17px}
+.valchip{height:34px;padding:0 9px}
+.valchip b{font-size:12px} .valchip span{font-size:9px}
+.pill{height:26px;padding:0 9px;font-size:10.5px}
+.pill i{font-size:8.5px}
+.xpwrap{min-width:104px}
+.xptop{font-size:9.5px}
+.iconbtn{width:28px;height:28px;font-size:13px}
+
+.rail{
+  flex:0 0 62px;padding:7px 6px;gap:3px;overflow:hidden;
+  background:linear-gradient(180deg, var(--surface), var(--sunken));
+}
+.rail button{padding:6px 2px;border-radius:10px;gap:2px}
+.rail button em{font-size:16px}
+.rail button span{font-size:9px;letter-spacing:.02em}
+.rail button.on{
+  background:var(--accent-soft);color:var(--accent-ink);
+  box-shadow:inset 0 0 0 1px rgba(31,111,67,.28), 0 2px 6px rgba(31,111,67,.13);
+}
+
+.p{
+  border-radius:11px;box-shadow:0 1px 2px rgba(23,21,15,.05), 0 3px 10px rgba(23,21,15,.045);
+  position:relative;
+}
+.p::before{                                   /* the lit top edge */
+  content:"";position:absolute;inset-inline:10px;top:0;height:2px;border-radius:2px;
+  background:linear-gradient(90deg, transparent, var(--line2), transparent);
+}
+.p>h3{
+  padding:8px 11px;font-size:9.5px;letter-spacing:.15em;
+  background:linear-gradient(180deg, var(--sunken), var(--surface));
+}
+.p>h3 .r{font-size:9.5px}
+.pb{padding:10px 11px}
+.pb.tight{padding:6px 7px}
+.kv{font-size:12px;padding:4px 0}
+table{font-size:11.5px}
+th{font-size:9.5px !important}
+.btn{
+  border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:800;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 2px 0 rgba(23,21,15,.07);
+}
+.btn:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(255,255,255,.5) inset}
+.btn.pri{box-shadow:0 2px 0 rgba(20,80,48,.55), 0 4px 12px rgba(31,111,67,.22)}
+.btn.pri:active{transform:translateY(2px);box-shadow:0 0 0 rgba(20,80,48,.55)}
+.btn.big{padding:10px 18px;font-size:14px}
+.act{border-radius:11px}
+.tag{font-size:10px;padding:2px 8px}
+.lbl{font-size:9.5px}
+.hint{font-size:10.5px}
+.empty{font-size:11.5px;padding:12px}
+
+/* ══════════════════════════════════════════════════════════════════
+   THE GAME SHELL
+   A fixed landscape stage of 1100x520 logical pixels, scaled to fit
+   whatever device is holding it. Everything inside is laid out for that
+   box, which is why nothing in this game scrolls: content is paged
+   instead, the way a console UI pages. Because #app carries a transform
+   it also becomes the containing block for its fixed-position overlays,
+   so the match, the moments and the club pages all scale with it.
+   ════════════════════════════════════════════════════════════════ */
+html{
+  --sa-t:env(safe-area-inset-top, 0px);  --sa-b:env(safe-area-inset-bottom, 0px);
+  --sa-l:env(safe-area-inset-left, 0px); --sa-r:env(safe-area-inset-right, 0px);
+}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{
+  background:
+    radial-gradient(120% 100% at 50% 0%, #2A2620 0%, #17150F 60%, #0E0D0A 100%);
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;
+}
+#fit{position:fixed;inset:0;overflow:hidden}
+#app{
+  /* physical left, not logical: #app is dir="rtl", so inset-inline-start
+     would resolve to right and fight the translate below */
+  position:absolute;left:0;right:auto;top:0;width:1100px;height:520px;
+  transform-origin:0 0;
+  display:flex;flex-direction:column;background:var(--paper);color:var(--ink);
+  border-radius:14px;overflow:hidden;
+  box-shadow:0 30px 90px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.06);
+}
+#layers{position:absolute;inset:0;pointer-events:none;z-index:40}
+#layers>*{pointer-events:auto}
+
+/* portrait gate */
+#rotate{
+  position:fixed;inset:0;z-index:200;display:none;place-items:center;
+  background:radial-gradient(120% 100% at 50% 0%, #2A2620, #0E0D0A);
+}
+#rotate.on{display:grid}
+.rotcard{
+  text-align:center;color:#F7F5F1;max-width:300px;padding:26px;
+}
+.rotcard .roticon{font-size:56px;animation:rot 2.2s ease-in-out infinite}
+.rotcard b{display:block;font-size:20px;font-weight:900;margin:14px 0 8px}
+.rotcard span{display:block;font-size:13.5px;line-height:1.6;opacity:.75}
+@keyframes rot{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(-90deg) scale(1.06)}}
+
+/* ── boards and the pager: no scrolling anywhere ──────────────── */
+.board{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.stage{
+  flex:1 1 auto;overflow:hidden;padding:10px 12px 4px;min-width:0;position:relative;
+}
+.stage>.boardpage{
+  display:grid;gap:9px;align-content:start;height:100%;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.stage>.boardpage.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.stage>.boardpage.c1{grid-template-columns:minmax(0,1fr)}
+.stage>.boardpage[hidden]{display:none}
+.stage>.boardpage>.bcol{
+  display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0;overflow:hidden;align-content:start
+}
+.p.clipped{overflow:hidden}
+
+.ovbody{flex:1 1 auto;min-height:0;overflow:hidden;padding:9px 12px 2px;position:relative}
+.ovbody>.boardpage{display:grid;gap:9px;align-content:start;height:100%;grid-template-columns:repeat(3,minmax(0,1fr))}
+.ovbody>.boardpage.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ovbody>.boardpage.c1{grid-template-columns:minmax(0,1fr)}
+.ovbody>.boardpage[hidden]{display:none}
+.ovbody>.boardpage>.bcol{display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0;overflow:hidden}
+.pager.ov{flex:0 0 auto;padding:2px 12px 4px}
+.ovfoot{flex:0 0 auto;display:flex;justify-content:center;padding:5px 12px 9px}
+.ovfoot .btn{min-width:200px}
+.dbbody{padding:9px 12px 2px}
+.dbbody>.boardpage{display:grid;gap:9px;align-content:start;height:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+.dbbody>.boardpage.c1{grid-template-columns:minmax(0,1fr)}
+.dbbody>.boardpage[hidden]{display:none}
+.dbbody>.boardpage>.bcol{display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0;overflow:hidden}
+
+.pager{
+  flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:4px 12px 7px;min-height:26px;
+}
+.pager.off{visibility:hidden}
+.pgbtn{
+  width:26px;height:22px;border:0;border-radius:7px;background:var(--sunken);color:var(--ink2);
+  font-size:12px;font-weight:900;cursor:pointer;display:grid;place-items:center;
+}
+.pgbtn:disabled{opacity:.3}
+.pgdots{display:flex;gap:5px;align-items:center}
+.pgdot{
+  width:7px;height:7px;border-radius:99px;background:var(--line2);border:0;padding:0;cursor:pointer;
+}
+.pgdot.on{background:var(--accent);width:18px}
+.pgname{font-size:10.5px;font-weight:850;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase}
+
+/* table windowing: a list becomes a page, not a scroll */
+.twpager{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 2px 0}
+.twpager .n{font-size:10.5px;font-weight:850;color:var(--ink3)}
+.twbtn{
+  border:0;border-radius:6px;background:var(--sunken);color:var(--ink2);cursor:pointer;
+  font-size:11px;font-weight:900;padding:3px 9px;
+}
+.twbtn:disabled{opacity:.3}
+
+
 
 /* ── panels ────────────────────────────────────────────────────── */
 .grid{display:grid;gap:14px}
@@ -750,11 +932,10 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
   font-size:13px;font-weight:850;color:var(--ink3)
 }
 .dbtab.on{background:var(--sunken);color:var(--ink)}
-.dbbody{flex:1;overflow-y:auto;padding:16px;display:flex;justify-content:center;align-items:flex-start}
-.dbbody>*{width:min(900px,100%)}
+.dbbody{flex:1 1 auto;min-height:0;overflow:hidden}
 .xiwrap{display:flex;flex-direction:column;gap:14px}
 .xipitch{
-  position:relative;border-radius:14px;padding:14px 10px;display:grid;gap:9px;
+  position:relative;border-radius:12px;padding:8px 6px;display:grid;gap:6px;
   grid-template-columns:repeat(5,1fr);
   background:
     repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 26px, rgba(0,0,0,.03) 26px 52px),
@@ -762,12 +943,12 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)
 }
 .xidot{
-  border:0;cursor:pointer;border-radius:11px;padding:7px 4px;display:flex;flex-direction:column;
-  align-items:center;gap:2px;background:rgba(255,255,255,.94);box-shadow:0 2px 0 rgba(0,0,0,.2)
+  border:0;cursor:pointer;border-radius:9px;padding:4px 3px;display:flex;flex-direction:column;
+  align-items:center;gap:1px;background:rgba(255,255,255,.94);box-shadow:0 2px 0 rgba(0,0,0,.2)
 }
-.xidot .o{font-size:15px;font-weight:900;color:var(--accent-ink);font-variant-numeric:tabular-nums}
-.xidot .nm{font-size:10.5px;font-weight:800;line-height:1.15;text-align:center}
-.xidot .ps{font-size:9.5px;font-weight:800;color:var(--ink3)}
+.xidot .o{font-size:13px;font-weight:900;color:var(--accent-ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.xidot .nm{font-size:9px;font-weight:800;line-height:1.1;text-align:center}
+.xidot .ps{font-size:8px;font-weight:800;color:var(--ink3)}
 .xidot.r0{grid-column:3}
 .xidot.r1:nth-of-type(2){grid-column:1} .xidot.r1:nth-of-type(3){grid-column:2}
 .xidot.r1:nth-of-type(4){grid-column:4} .xidot.r1:nth-of-type(5){grid-column:5}
@@ -920,6 +1101,11 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 .hint{font-size:11.5px;color:var(--ink3);line-height:1.45}
 </style>
 
+<div id="rotate"><div class="rotcard"><div class="roticon">📱</div>
+  <b>סובב את המכשיר</b>
+  <span>ONE CAREER נבנה למסך רחב. סובב לרוחב כדי לשחק.</span></div></div>
+
+<div id="fit">
 <div id="app" dir="rtl" lang="he">
   <header class="hdr">
     <div class="crest" id="hCrest">—</div>
@@ -944,8 +1130,13 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 
   <div class="main">
     <nav class="rail" id="rail"></nav>
-    <div class="stage" id="stage"></div>
+    <div class="board" id="boardWrap">
+      <div class="stage" id="stage"></div>
+      <div class="pager" id="pager"></div>
+    </div>
   </div>
+  <div id="layers"></div>
+</div>
 </div>
 
 <script>
@@ -1832,7 +2023,7 @@ function render(){
   if(S.screen==="world")  stage.innerHTML = viewWorld();
   if(S.screen==="career") stage.innerHTML = viewCareer();
   bind();
-  stage.scrollTop = 0;
+  layoutBoards();
 }
 
 /* ── HUB ───────────────────────────────────────────────────────── */
@@ -2995,7 +3186,7 @@ function showStorylet(){
       + '<div class="res" id="slRes" style="display:none"></div>'
       + '<button class="btn pri" id="slNext" style="display:none;margin-top:10px">להמשיך ▸</button>'
     + '</div></div>';
-  document.body.appendChild(el);
+  layerHost().appendChild(el);
 
   var box = document.getElementById("slCh");
   d.choices.forEach(function(c, i){
@@ -3091,7 +3282,7 @@ function openMatch(){
   var el = document.createElement("div");
   el.className = "match"; el.id = "matchLayer";
   el.innerHTML = matchHtml();
-  document.body.appendChild(el);
+  layerHost().appendChild(el);
   paintPitch();
   document.getElementById("mStart").onclick = runClock;
   document.getElementById("mSkip").onclick = skipToEnd;
@@ -3502,6 +3693,281 @@ function skipToEnd(){
 
 
 
+
+
+/* ══════════════════════════════════════════════════════════════════
+   SHELL: FIT, ORIENTATION, AND PAGED BOARDS
+   The game is drawn once for a 1100x520 stage and then scaled. Nothing
+   scrolls: after each render the panels are measured and packed into
+   pages that fit the stage exactly, long tables are windowed into their
+   own pagers, and the player moves between pages with the arrows, the
+   dots, a swipe, or the arrow keys.
+   ════════════════════════════════════════════════════════════════ */
+var STAGE_W = 1100, STAGE_H = 520;
+
+function layerHost(){ return document.getElementById("layers") || document.body; }
+
+function fitStage(){
+  var app = document.getElementById("app");
+  if(!app) return;
+  /* the visual viewport, minus whatever the notch and home bar are taking */
+  var vv = window.visualViewport;
+  var vw = (vv ? vv.width : window.innerWidth);
+  var vh = (vv ? vv.height : window.innerHeight);
+  var cs = getComputedStyle(document.documentElement);
+  function ins(n){ return parseFloat(cs.getPropertyValue("--sa-" + n)) || 0; }
+  vw -= ins("l") + ins("r");
+  vh -= ins("t") + ins("b");
+  var k = Math.min(vw/STAGE_W, vh/STAGE_H);
+  var dx = ins("l") + (vw - STAGE_W*k)/2, dy = ins("t") + (vh - STAGE_H*k)/2;
+  /* explicit translate + scale from the top-left corner: no alignment guesswork,
+     and it behaves the same in RTL as in LTR */
+  app.style.transform = "translate(" + dx + "px," + dy + "px) scale(" + k + ")";
+  app.style.setProperty("--k", k);
+  var portrait = vh > vw * 1.02;
+  var small = Math.min(vw, vh) < 520;          /* phones and small tablets */
+  document.getElementById("rotate").classList.toggle("on", portrait && small);
+}
+
+/* browsers only grant these from a gesture, and only in fullscreen */
+function goFullscreen(){
+  var el = document.documentElement;
+  var rq = el.requestFullscreen || el.webkitRequestFullscreen;
+  if(rq) { try { rq.call(el).then(lockLandscape, lockLandscape); } catch(e){ lockLandscape(); } }
+  else lockLandscape();
+}
+function lockLandscape(){
+  try {
+    if(screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(function(){});
+  } catch(e){}
+}
+
+/* ── the pager ────────────────────────────────────────────────── */
+var BOARD = {page:0, pages:0};
+
+/* a table longer than the space it has becomes its own little pager */
+function windowTables(root, maxRows){
+  var tables = root.querySelectorAll("table");
+  Array.prototype.forEach.call(tables, function(tb){
+    var body = tb.querySelector("tbody");
+    if(!body) return;
+    var rows = Array.prototype.slice.call(body.children);
+    if(rows.length <= maxRows) return;
+    var pages = Math.ceil(rows.length/maxRows), cur = 0;
+    var bar = document.createElement("div");
+    bar.className = "twpager";
+    bar.innerHTML = '<button class="twbtn tprev">◀</button>'
+      + '<span class="n"></span>'
+      + '<button class="twbtn tnext">▶</button>';
+    tb.parentNode.insertBefore(bar, tb.nextSibling);
+    var lab = bar.querySelector(".n"), prev = bar.querySelector(".tprev"), next = bar.querySelector(".tnext");
+    function paint(){
+      rows.forEach(function(r,i){ r.hidden = (i < cur*maxRows || i >= (cur+1)*maxRows); });
+      lab.textContent = (cur*maxRows+1) + "–" + Math.min(rows.length, (cur+1)*maxRows) + " מתוך " + rows.length;
+      prev.disabled = cur === 0; next.disabled = cur >= pages-1;
+    }
+    prev.onclick = function(e){ e.stopPropagation(); if(cur>0){ cur--; paint(); } };
+    next.onclick = function(e){ e.stopPropagation(); if(cur<pages-1){ cur++; paint(); } };
+    paint();
+  });
+}
+
+/* ── the packer ───────────────────────────────────────────────────
+   Generic: give it a container and a pager slot and it turns whatever
+   panels are inside into pages that fit exactly. Used for the main
+   stage, the match report, the season summary and the club pages —
+   which is why no screen in this game scrolls. */
+function packBoards(stage, pager, colsHint, state){
+  if(!stage) return null;
+  state = state || {page:0, pages:0};
+
+  /* Only descend through LAYOUT wrappers. Anything else — a panel, a pitch
+     of eleven buttons, a shop grid — is atomic, or the packer would take it
+     apart and lay out its pieces as if they were panels. */
+  function isWrapper(el){
+    if(el.tagName !== "DIV") return false;
+    var c = (typeof el.className === "string") ? el.className : "";
+    if(/\bp\b|standalone|xipitch|shop|badges|gains|rewgrid|oterms|statwrap|mombar/.test(c)) return false;
+    if(c === "") return true;
+    if(/\bgrid\b|\bg2\b|\bg3\b|xiwrap|boardhost/.test(c)) return true;
+    var st = el.getAttribute("style") || "";
+    return /flex-direction\s*:\s*column/.test(st);
+  }
+  var panels = [];
+  function collect(el){
+    if(!el.children.length){ if(el.textContent.trim() || el.querySelector) panels.push(el); return; }
+    if(!isWrapper(el)){ panels.push(el); return; }
+    Array.prototype.slice.call(el.children).forEach(collect);
+  }
+  Array.prototype.slice.call(stage.children).forEach(collect);
+  if(!panels.length){
+    if(pager){ pager.innerHTML = ""; pager.className = "pager off"; }
+    state.pages = 0; return state;
+  }
+
+  var budget = stage.clientHeight;
+  var cols = colsHint || (panels.length <= 2 ? Math.max(1, panels.length) : 3);
+  if(panels.length < cols) cols = Math.max(1, panels.length);
+  var gap = 9;
+
+  var shape = document.createElement("div");
+  shape.className = "boardpage" + (cols===2?" c2":(cols===1?" c1":""));
+  for(var c0=0;c0<cols;c0++) shape.appendChild(document.createElement("div"));
+  stage.innerHTML = "";
+  stage.appendChild(shape);
+  var colW = shape.firstChild.getBoundingClientRect().width;
+  stage.innerHTML = "";
+
+  var probe = document.createElement("div");
+  probe.style.cssText = "position:absolute;left:-9999px;top:0;width:"
+    + colW + "px;visibility:hidden;pointer-events:none";
+  stage.appendChild(probe);
+  panels.forEach(function(pl){ probe.appendChild(pl); });
+
+  var rowBudget = Math.max(4, Math.floor((budget - 96)/25));
+  panels.forEach(function(pl){ windowTables(pl, rowBudget); });
+
+  var heights = panels.map(function(pl){ return pl.getBoundingClientRect().height; });
+  panels.forEach(function(pl, i){
+    if(heights[i] <= budget) return;
+    windowTables(pl, Math.max(3, Math.floor(rowBudget*0.55)));
+    var h2 = pl.getBoundingClientRect().height;
+    if(h2 > budget){ pl.classList.add("clipped"); pl.style.maxHeight = budget + "px"; }
+    heights[i] = Math.min(h2, budget);
+  });
+  probe.remove();
+
+  /* Fill in reading order — column by column, page by page. In RTL the grid
+     puts the first column on the right, so this is the order a Hebrew reader
+     expects, and it packs far denser than "shortest column first". */
+  var pages = [], page = null, colH = [], ci = 0;
+  function newPage(){
+    page = []; colH = [];
+    for(var i=0;i<cols;i++) colH.push(0);
+    pages.push(page);
+  }
+  newPage();
+  panels.forEach(function(pl, i){
+    var h = heights[i] + gap;
+    while(ci < cols && colH[ci] + h > budget + 2 && colH[ci] > 0) ci++;
+    if(ci >= cols){
+      if(page.length){ newPage(); ci = 0; } else ci = 0;
+    }
+    colH[ci] += h;
+    page.push({el:pl, col:ci});
+  });
+
+  stage.innerHTML = "";
+  pages.forEach(function(pg, i){
+    var el = document.createElement("div");
+    el.className = "boardpage" + (cols===2?" c2":(cols===1?" c1":""));
+    if(i !== 0) el.hidden = true;
+    var byCol = [];
+    for(var c=0;c<cols;c++) byCol.push([]);
+    pg.forEach(function(it){ byCol[it.col].push(it.el); });
+    for(var c2=0;c2<cols;c2++){
+      var colEl = document.createElement("div");
+      colEl.className = "bcol";
+      byCol[c2].forEach(function(x){ colEl.appendChild(x); });
+      el.appendChild(colEl);
+    }
+    stage.appendChild(el);
+  });
+
+  state.pages = pages.length;
+  state.page = 0;
+  state.stage = stage;
+  state.pager = pager;
+  paintPagerFor(state);
+  return state;
+}
+
+function layoutBoards(){
+  BOARD = packBoards(document.getElementById("stage"), document.getElementById("pager"), 0, BOARD);
+}
+
+/* an overlay gets the same treatment: a body, a pager, no scrolling */
+function packOverlay(bodyEl, cols){
+  if(!bodyEl) return null;
+  var pager = bodyEl.parentNode.querySelector(".pager.ov");
+  if(!pager){
+    pager = document.createElement("div");
+    pager.className = "pager ov";
+    bodyEl.parentNode.insertBefore(pager, bodyEl.nextSibling);
+  }
+  return packBoards(bodyEl, pager, cols || 0, {page:0, pages:0});
+}
+
+function paintPagerFor(st){
+  var pager = st.pager;
+  if(!pager) return;
+  if(st.pages <= 1){ pager.innerHTML = ""; pager.className = pager.className.replace("pager","pager off"); return; }
+  pager.className = pager.className.indexOf("ov") >= 0 ? "pager ov" : "pager";
+  pager.innerHTML = '<button class="pgbtn pgp">▶</button>'
+    + '<span class="pgdots"></span>'
+    + '<button class="pgbtn pgn">◀</button>'
+    + '<span class="pgname">' + (st.page+1) + ' / ' + st.pages + '</span>';
+  var dots = pager.querySelector(".pgdots");
+  for(var i=0;i<st.pages;i++){
+    var d = document.createElement("button");
+    d.className = "pgdot" + (i===st.page?" on":"");
+    d.onclick = (function(n){ return function(){ goPage(st, n); }; })(i);
+    dots.appendChild(d);
+  }
+  pager.querySelector(".pgp").onclick = function(){ goPage(st, st.page-1); };
+  pager.querySelector(".pgn").onclick = function(){ goPage(st, st.page+1); };
+  pager.querySelector(".pgp").disabled = st.page === 0;
+  pager.querySelector(".pgn").disabled = st.page >= st.pages-1;
+}
+
+function goPage(st, n){
+  if(!st || n < 0 || n >= st.pages) return;
+  var pages = st.stage.querySelectorAll(":scope > .boardpage");
+  for(var i=0;i<pages.length;i++) pages[i].hidden = (i !== n);
+  st.page = n;
+  paintPagerFor(st);
+}
+/* the main stage keeps its old entry points */
+function paintPager(){ paintPagerFor(BOARD); }
+function showPage(n){ goPage(BOARD, n); }
+
+/* swipe and keys move between pages */
+function bindShell(){
+  var stage = document.getElementById("stage");
+  var x0 = null, y0 = null;
+  stage.addEventListener("touchstart", function(e){
+    if(e.touches.length !== 1) return;
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, {passive:true});
+  stage.addEventListener("touchend", function(e){
+    if(x0 === null) return;
+    var t = e.changedTouches[0];
+    var dx = t.clientX - x0, dy = t.clientY - y0;
+    if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)*1.6){
+      /* RTL: swiping right goes forward */
+      showPage(BOARD.page + (dx > 0 ? 1 : -1));
+    }
+    x0 = null;
+  }, {passive:true});
+
+  document.addEventListener("keydown", function(e){
+    if(document.querySelector("#layers > *")) return;      /* an overlay owns the keys */
+    if(e.key === "ArrowRight") showPage(BOARD.page + 1);
+    if(e.key === "ArrowLeft")  showPage(BOARD.page - 1);
+  });
+
+  window.addEventListener("resize", fitStage);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", fitStage);
+    window.visualViewport.addEventListener("scroll", fitStage);
+  }
+  window.addEventListener("orientationchange", function(){ setTimeout(fitStage, 120); });
+  document.addEventListener("click", function once(){
+    document.removeEventListener("click", once);
+    if(Math.min(window.innerWidth, window.innerHeight) < 560) goFullscreen();
+  });
+  fitStage();
+}
 
 /* ══════════════════════════════════════════════════════════════════
    SEASON OBJECTIVES
@@ -4070,7 +4536,7 @@ function openHalftime(){
       + '<div class="choices" id="htCh"></div>'
       + '<div class="res" id="htRes">חדר ההלבשה מסתכל עליך.</div>'
     + '</div></div>';
-  document.body.appendChild(el);
+  layerHost().appendChild(el);
 
   var box = document.getElementById("htCh");
   talks.forEach(function(t){
@@ -4337,7 +4803,7 @@ function openClub(cid){
   if(!club(cid)) return;
   DB_CLUB = cid; DB_TAB = "xi";
   var el = document.getElementById("dbLayer");
-  if(!el){ el = document.createElement("div"); el.className = "match db"; el.id = "dbLayer"; document.body.appendChild(el); }
+  if(!el){ el = document.createElement("div"); el.className = "match db"; el.id = "dbLayer"; layerHost().appendChild(el); }
   paintClub();
 }
 function closeDb(){
@@ -4443,8 +4909,9 @@ function paintClub(){
     + [['xi','הרכב'],['squad','סגל'],['info','נתונים']].map(function(t){
         return '<button class="dbtab'+(DB_TAB===t[0]?" on":"")+'" data-dbt="'+t[0]+'">'+t[1]+'</button>'; }).join("")
   + '</div>'
-  + '<div class="dbbody">'+body+'</div>';
+  + '<div class="dbbody" id="dbBody">'+body+'</div>';
 
+  packOverlay(document.getElementById("dbBody"), DB_TAB === "xi" ? 2 : 1);
   document.getElementById("dbClose").onclick = closeDb;
   var wb = document.getElementById("dbWatch");
   if(wb) wb.onclick = function(){ toggleWatchClub(cid); paintClub(); };
@@ -4542,7 +5009,7 @@ function openPlayerCard(cid, idx){
         + '<button class="btn ghost" id="pcClub">לעמוד המועדון</button>'
       + '</div>'
     + '</div></div>';
-  document.body.appendChild(el);
+  layerHost().appendChild(el);
   document.getElementById("pcX").onclick = function(){ el.remove(); };
   document.getElementById("pcWatch").onclick = function(){ toggleWatchPlayer(cid, idx); el.remove(); openPlayerCard(cid, idx); };
   document.getElementById("pcClub").onclick = function(){ el.remove(); openClub(cid); };
@@ -5487,7 +5954,7 @@ function openMoment(m){
   var el = document.createElement("div");
   el.className = "moment"; el.id = "momentLayer";
   el.innerHTML = momentHtml();
-  document.body.appendChild(el);
+  layerHost().appendChild(el);
   drawMomentPitch();
   bindMoment();
   startRead();
@@ -6326,8 +6793,7 @@ function showPostMatch(rating, myG, opG, scoutHit, R){
     + '<div class="sbscore"><span class="g">'+M.hg+'</span><span class="clk">סיום</span><span class="g">'+M.ag+'</span></div>'
     + '<div class="sbteam away"><div class="sbmini" style="background:'+M.away.c+';color:'+M.away.t+'">'+M.away.ab+'</div><b>'+M.away.n+'</b></div>'
   + '</div>'
-  + '<div style="flex:1;overflow-y:auto;padding:18px;display:flex;justify-content:center;align-items:flex-start">'
-  + '<div style="width:min(880px,100%);display:flex;flex-direction:column;gap:14px">'
+  + '<div class="ovbody" id="pmBody">'
 
     + '<div class="p"><h3>הדוח שלך <span class="r">'+res+'</span></h3><div class="pb">'
       + (M.playing
@@ -6421,11 +6887,11 @@ function showPostMatch(rating, myG, opG, scoutHit, R){
           : '<p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink3)">אין תנועה בשוק אחרי המשחק הזה. מדגם אחד לא מזיז תיק גיוס.</p>')
       + '</div></div>'
     + '</div>'
-
-    + '<button class="btn pri big" id="pmNext" style="align-self:flex-start">לשבוע הבא ▸</button>'
-  + '</div></div>';
+  + '</div>'
+  + '<div class="ovfoot"><button class="btn pri big" id="pmNext">לשבוע הבא ▸</button></div>';
 
   document.getElementById("pmNext").onclick = nextWeek;
+  packOverlay(document.getElementById("pmBody"), 3);
 
   /* animated reward sequence */
   setTimeout(function(){ countXp(R.xp); }, 260);
@@ -6465,7 +6931,7 @@ function celebrate(html, cls){
   var el = document.createElement("div");
   el.className = "celeb " + (cls||"");
   el.innerHTML = '<div class="celebcard">'+html+'</div>';
-  document.body.appendChild(el);
+  layerHost().appendChild(el);
   el.onclick = function(){ el.remove(); };
   setTimeout(function(){ if(el.parentNode) el.remove(); }, 1900);
 }
@@ -6812,8 +7278,7 @@ function endSeason(){
   var el = document.createElement("div");
   el.className = "match"; el.id = "matchLayer";
   el.innerHTML = '<div class="scorebug"><div class="sbteam"><div class="sbmini" style="background:'+club(S.club).c+';color:'+club(S.club).t+'">'+club(S.club).ab+'</div><b>סיכום עונה '+S.season+'</b></div></div>'
-  + '<div style="flex:1;overflow-y:auto;padding:20px;display:flex;justify-content:center;align-items:flex-start">'
-  + '<div style="width:min(760px,100%);display:flex;flex-direction:column;gap:14px">'
+  + '<div class="ovbody" id="ssBody">'
   + '<div class="p"><h3>העונה שלך</h3><div class="pb">'
     + '<div class="ratebig"><div class="num">'+avgRating().toFixed(1)+'</div><div style="flex:1">'
     + '<div style="font-size:18px;font-weight:900">'+S.name+' · גיל '+S.age+'</div>'
@@ -6837,9 +7302,10 @@ function endSeason(){
           + '<span class="tag '+["","","w","ok"][x.lvl]+'">'+["","בירור","סקאוט","הצעה"][x.lvl]+'</span></div>';
       }).join("") : '<div class="empty">אף אחד. עונה נוספת.</div>')
   + '</div></div>'
-  + '<button class="btn pri big" id="nsBtn" style="align-self:flex-start">לעונה הבאה ▸</button>'
-  + '</div></div>';
-  document.body.appendChild(el);
+  + '</div>'
+  + '<div class="ovfoot"><button class="btn pri big" id="nsBtn">לעונה הבאה ▸</button></div>';
+  layerHost().appendChild(el);
+  packOverlay(document.getElementById("ssBody"), 3);
 
   if(awards.length){
     confetti(130, ["#E8C766","#1F6F43","#FFFFFF"]);
@@ -6963,7 +7429,7 @@ function confetti(n, colors){
   var cv = document.createElement("canvas");
   cv.className = "fxcanvas";
   cv.width = window.innerWidth; cv.height = window.innerHeight;
-  document.body.appendChild(cv);
+  layerHost().appendChild(cv);
   var ctx = cv.getContext("2d");
   var cols = colors || ["#1F6F43","#E8C766","#E4574B","#4FA97A","#FFFFFF"];
   var ps = [];
@@ -6998,7 +7464,7 @@ function goalFlash(mine){
   var el = document.createElement("div");
   el.className = "goalflash " + (mine ? "mine" : "them");
   el.innerHTML = '<b>' + (mine ? "GOAL!" : "שער") + '</b>';
-  document.body.appendChild(el);
+  layerHost().appendChild(el);
   setTimeout(function(){ el.remove(); }, mine ? 1500 : 900);
   if(mine){
     confetti(90);
@@ -7017,7 +7483,7 @@ function shake(){
 function toast(msg){
   var t = document.createElement("div");
   t.className = "toast"; t.textContent = msg;
-  document.body.appendChild(t);
+  layerHost().appendChild(t);
   setTimeout(function(){ t.remove(); }, 2600);
 }
 
@@ -7056,7 +7522,7 @@ function showBoot(){
     + '</div></div>'
     + '<button class="btn pri big" id="bGo">התחל קריירה ▸</button>'
   + '</div></div>';
-  document.body.appendChild(el);
+  layerHost().appendChild(el);
 
   el.querySelectorAll("[data-pos]").forEach(function(b){
     b.onclick = function(){
@@ -7098,5 +7564,6 @@ function showBoot(){
   };
 }
 
+bindShell();
 showBoot();
 </script>
