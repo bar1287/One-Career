@@ -410,6 +410,30 @@ button{font:inherit;color:inherit}
 .rel3 i{width:26px;height:5px;border-radius:99px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line);position:relative;overflow:hidden}
 .rel3 i>u{position:absolute;inset-block:0;inset-inline-start:0;background:var(--accent);text-decoration:none}
 
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.shopitem{
+  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;text-align:start;
+  border:1px solid var(--line2);background:var(--surface);border-radius:10px;padding:10px 11px;cursor:pointer;
+  transition:all .14s;
+}
+.shopitem:hover:not(:disabled){background:var(--hover);border-color:var(--gold)}
+.shopitem:disabled{opacity:.42;cursor:not-allowed}
+.shopitem.owned{opacity:.62;border-color:var(--accent);background:var(--accent-soft)}
+.shopitem .si{font-size:19px}
+.shopitem b{display:block;font-size:13px;font-weight:850}
+.shopitem div>span{display:block;font-size:11px;color:var(--ink3);line-height:1.35}
+.shopitem .sc{font-size:12px;font-weight:900;white-space:nowrap;direction:ltr;unicode-bidi:isolate}
+
+.moinfo{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.moinfo span{
+  font-size:10.5px;font-weight:800;color:var(--ink3);background:var(--sunken);
+  border:1px solid var(--line);border-radius:6px;padding:3px 7px;
+}
+.moinfo b{color:var(--ink);font-variant-numeric:tabular-nums}
+.posopt{text-align:center}
+.posopt b{font-size:15px;letter-spacing:.02em}
+.posopt span{font-size:10.5px}
+
 .awardrow{display:flex;gap:11px;align-items:center;padding:9px 0}
 .awardrow+.awardrow{border-top:1px solid var(--line)}
 .awardrow>span{font-size:20px}
@@ -740,6 +764,7 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
     </div>
     <div class="ovrchip"><b id="hOvr">50</b><span>OVR</span><u id="hOvrFrac"></u></div>
     <div class="valchip"><b id="hVal">€0</b><span id="hValD"></span></div>
+    <div class="valchip"><b id="hMoney">₪0</b><span>בבנק</span></div>
     <div class="xpwrap">
       <div class="xptop"><span class="lvl" id="hLvl">רמה 1</span><span class="n" id="hXpTxt">0 / 0 XP</span></div>
       <div class="xpbar"><i id="hXpFill" style="width:0%"></i></div>
@@ -898,28 +923,101 @@ var GRP = {
   POS:{n:"מיקום",  subs:["gpos"], gk:true}
 };
 
+/* 15 positions, FIFA-style. `slot` is where you stand on the 2D pitch,
+   `fam` groups them for the depth chart, `sit` is the situation mix. */
 var POS = {
-  ST:{n:"חלוץ", face:["PAC","SHO","PAS","DRI","DEF","PHY"],
-      w:{PAC:.18,SHO:.32,PAS:.10,DRI:.22,DEF:.02,PHY:.16},
-      kpi:["xG","נגיחות","לחץ ראשון"],
-      key:["fin","pow","acc","drb","str"]},
-  W :{n:"כנף", face:["PAC","SHO","PAS","DRI","DEF","PHY"],
-      w:{PAC:.28,SHO:.16,PAS:.18,DRI:.28,DEF:.02,PHY:.08},
-      kpi:["דריבל","הזנות","כדורי עומק"],
-      key:["acc","spd","drb","agi","crs"]},
-  CM:{n:"קשר מרכזי", face:["PAC","SHO","PAS","DRI","DEF","PHY"],
-      w:{PAC:.04,SHO:.12,PAS:.30,DRI:.22,DEF:.16,PHY:.16},
-      kpi:["קידום כדור","שבירת קווים","שמירה בלחץ"],
-      key:["vis","spa","lpa","ctl","sta"]},
-  CB:{n:"בלם", face:["PAC","SHO","PAS","DRI","DEF","PHY"],
-      w:{PAC:.12,SHO:.02,PAS:.10,DRI:.06,DEF:.42,PHY:.28},
-      kpi:["מניעת קבלה","דו־קרב","יציאה מלחץ"],
-      key:["mrk","tkl","itc","hdr","str"]},
-  GK:{n:"שוער", face:["DIV","HAN","KIC","REF","PAC","POS"],
-      w:{DIV:.21,HAN:.21,KIC:.05,REF:.21,PAC:.11,POS:.21},
-      kpi:["PSxG","יציאות","בנייה"],
-      key:["gref","gdiv","ghan","gpos","gkic"]}
+  GK :{n:"שוער", short:"שוער", fam:"GK", slot:0,
+       face:["DIV","HAN","KIC","REF","PAC","POS"],
+       w:{DIV:.21,HAN:.21,KIC:.05,REF:.21,PAC:.11,POS:.21},
+       kpi:["PSxG שנמנע","יציאות","בנייה מהיסוד"],
+       key:["gref","gdiv","ghan","gpos","gkic"]},
+
+  CB :{n:"בלם", short:"בלם", fam:"CB", slot:2,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.12,SHO:.02,PAS:.10,DRI:.06,DEF:.42,PHY:.28},
+       kpi:["מניעת קבלה","דו־קרב אווירי","יציאה מלחץ"],
+       key:["mrk","tkl","itc","hdr","str"]},
+
+  LB :{n:"מגן שמאלי", short:"מגן שמ׳", fam:"FB", slot:4,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.22,SHO:.04,PAS:.18,DRI:.16,DEF:.26,PHY:.14},
+       kpi:["הזנות מדויקות","1v1 הגנתי","חפיפות"],
+       key:["mrk","tkl","crs","spd","sta"]},
+
+  RB :{n:"מגן ימני", short:"מגן ימ׳", fam:"FB", slot:1,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.22,SHO:.04,PAS:.18,DRI:.16,DEF:.26,PHY:.14},
+       kpi:["הזנות מדויקות","1v1 הגנתי","חפיפות"],
+       key:["mrk","tkl","crs","spd","sta"]},
+
+  LWB:{n:"מגן כנף שמאלי", short:"כנף שמ׳", fam:"FB", slot:4,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.26,SHO:.06,PAS:.20,DRI:.20,DEF:.18,PHY:.10},
+       kpi:["מרחק שנרוץ","הזנות","השתלבות בהתקפה"],
+       key:["spd","sta","crs","drb","tkl"]},
+
+  RWB:{n:"מגן כנף ימני", short:"כנף ימ׳", fam:"FB", slot:1,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.26,SHO:.06,PAS:.20,DRI:.20,DEF:.18,PHY:.10},
+       kpi:["מרחק שנרוץ","הזנות","השתלבות בהתקפה"],
+       key:["spd","sta","crs","drb","tkl"]},
+
+  CDM:{n:"קשר אחורי", short:"קשר אח׳", fam:"CM", slot:6,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.06,SHO:.06,PAS:.24,DRI:.14,DEF:.32,PHY:.18},
+       kpi:["סגירת קווי מסירה","חילוצים","יציאה מלחץ"],
+       key:["itc","mrk","spa","tkl","cmp"]},
+
+  CM :{n:"קשר מרכזי", short:"קשר", fam:"CM", slot:6,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.06,SHO:.12,PAS:.30,DRI:.22,DEF:.16,PHY:.14},
+       kpi:["קידום כדור","שבירת קווים","שמירה בלחץ"],
+       key:["vis","spa","lpa","ctl","sta"]},
+
+  CAM:{n:"קשר התקפי", short:"קשר הת׳", fam:"CM", slot:6,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.10,SHO:.20,PAS:.30,DRI:.28,DEF:.04,PHY:.08},
+       kpi:["מסירות מפתח","xA","כניסות לקופסה"],
+       key:["vis","spa","drb","fin","cmp"]},
+
+  LM :{n:"קשר שמאלי", short:"קשר שמ׳", fam:"WIDE", slot:7,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.24,SHO:.12,PAS:.24,DRI:.26,DEF:.08,PHY:.06},
+       kpi:["הזנות","דריבל מוצלח","עבודה הגנתית"],
+       key:["crs","drb","spd","vis","sta"]},
+
+  RM :{n:"קשר ימני", short:"קשר ימ׳", fam:"WIDE", slot:5,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.24,SHO:.12,PAS:.24,DRI:.26,DEF:.08,PHY:.06},
+       kpi:["הזנות","דריבל מוצלח","עבודה הגנתית"],
+       key:["crs","drb","spd","vis","sta"]},
+
+  LW :{n:"כנף שמאלית", short:"כנף שמ׳", fam:"WIDE", slot:10,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.28,SHO:.18,PAS:.18,DRI:.30,DEF:.02,PHY:.04},
+       kpi:["1v1 מוצלח","xG+xA","כניסות לקופסה"],
+       key:["drb","acc","spd","agi","fin"]},
+
+  RW :{n:"כנף ימנית", short:"כנף ימ׳", fam:"WIDE", slot:8,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.28,SHO:.18,PAS:.18,DRI:.30,DEF:.02,PHY:.04},
+       kpi:["1v1 מוצלח","xG+xA","כניסות לקופסה"],
+       key:["drb","acc","spd","agi","fin"]},
+
+  CF :{n:"חלוץ מוסתר", short:"חלוץ מס׳", fam:"ST", slot:9,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.18,SHO:.28,PAS:.18,DRI:.24,DEF:.02,PHY:.10},
+       kpi:["xG","קישור","מסירות מפתח"],
+       key:["fin","ctl","vis","drb","cmp"]},
+
+  ST :{n:"חלוץ מרכזי", short:"חלוץ", fam:"ST", slot:9,
+       face:["PAC","SHO","PAS","DRI","DEF","PHY"],
+       w:{PAC:.18,SHO:.34,PAS:.08,DRI:.22,DEF:.02,PHY:.16},
+       kpi:["xG","המרה","משחק גב לשער"],
+       key:["fin","pow","acc","str","hdr"]}
 };
+var POS_ORDER = ["GK","CB","LB","RB","LWB","RWB","CDM","CM","CAM","LM","RM","LW","RW","CF","ST"];
+function famOf(p){ return POS[p].fam; }
 
 function grpVal(g){
   var subs = GRP[g].subs, t = 0;
@@ -1021,9 +1119,9 @@ function newState(name, pos, startId){
     prep:{video:0, analyst:0, coach:0, unit:0, sp:0},
     tables:{}, scorers:{}, fixtures:[],
     interest:[], inbox:[], news:[], seen:0, offers:[],
-    contractYears:2, wage:4,
+    contractYears:2, wage:4, money:14, shopUsed:{},
     valuePrev:0, ovrPrev:0, badges:[], traits:[], squad:[], rivals:[],
-    history:[], honours:[],
+    history:[], honours:[], matches:[],
     natCaps:0, natGoals:0, natCalled:false, natWatch:0,
     cup:null, cupRound:0,
     coach:null, coachWeeks:0,
@@ -1100,7 +1198,7 @@ var FIRST = ["דניאל","ליאור","עומרי","איתי","רועי","יו�
 var LAST  = ["כהן","לוי","מזרחי","פרץ","ביטון","דהן","אברהם","פרידמן","שלום","אזולאי","חדד","גבאי","סבן","טל","ברקוביץ'","נחמיאס","זוארץ","חמו","עבאס","נסאר"];
 function playerName(){ return FIRST[ri(0,FIRST.length-1)] + " " + LAST[ri(0,LAST.length-1)]; }
 
-var SQUAD_POS = ["GK","GK","CB","CB","CB","CB","RB","LB","CM","CM","CM","CM","W","W","W","ST","ST","ST"];
+var SQUAD_POS = ["GK","GK","CB","CB","CB","CB","RB","LB","LWB","CDM","CM","CM","CAM","RM","LM","RW","LW","ST","ST","CF"];
 
 function buildSquad(){
   var rep = club(S.club).rep;
@@ -1120,8 +1218,8 @@ function buildSquad(){
   var men = sq.filter(function(x){ return x !== cap && x.age >= 29; })
               .sort(function(a,b){ return b.age - a.age; })[0];
   if(men){ men.role = "mentor"; }
-  var fam = {GK:["GK"], CB:["CB"], RB:["RB","LB"], LB:["LB","RB"], CM:["CM"], W:["W"], ST:["ST"]}[S.pos] || [S.pos];
-  var riv = sq.filter(function(x){ return fam.indexOf(x.pos) >= 0 && !x.role; })
+  var myFam = famOf(S.pos);
+  var riv = sq.filter(function(x){ return POS[x.pos] && famOf(x.pos) === myFam && !x.role; })
               .sort(function(a,b){ return b.ovr - a.ovr; })[0];
   if(riv){ riv.role = "rival"; riv.rel.personal -= 10; }
   return sq;
@@ -1243,25 +1341,25 @@ function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 var ACTIONS = [
   {id:"fin", i:"🎯", t:"אימון סיום",       d:"בעיטות מהקופסה, גימור בנגיעה, עוצמה.",
    fx:["SHO ‎++","‎+55 XP"], xp:55,
-   run:function(){ actGrow(["fin","pow","lng"], 0.62); S.sharp+=6; S.load+=9; }},
+   run:function(){ actGrow(["fin","pow","lng"], 0.62); S.sharp+=6; S.load+=6; }},
   {id:"drb", i:"⚡", t:"אימון דריבל וזריזות", d:"מסלולי חרוטים, אחד על אחד, שליטה בכדור.",
    fx:["DRI ‎++","PAC ‎+","‎+55 XP"], xp:55,
-   run:function(){ actGrow(["drb","agi","ctl","bal"], 0.55); S.sharp+=6; S.load+=10; }},
+   run:function(){ actGrow(["drb","agi","ctl","bal"], 0.55); S.sharp+=6; S.load+=7; }},
   {id:"pas", i:"◎", t:"אימון מסירות",      d:"קצרה, ארוכה, הזנות וראיית משחק.",
    fx:["PAS ‎++","‎+55 XP"], xp:55,
-   run:function(){ actGrow(["spa","lpa","vis","crs"], 0.58); S.sharp+=5; S.load+=7; }},
+   run:function(){ actGrow(["spa","lpa","vis","crs"], 0.58); S.sharp+=5; S.load+=5; }},
   {id:"def", i:"🛡", t:"אימון הגנה",        d:"שמירה, תיקול, יירוט ומשחק אווירי.",
    fx:["DEF ‎++","‎+55 XP"], xp:55,
-   run:function(){ actGrow(["mrk","tkl","itc","hdr"], 0.6); S.sharp+=5; S.load+=9; }},
+   run:function(){ actGrow(["mrk","tkl","itc","hdr"], 0.6); S.sharp+=5; S.load+=6; }},
   {id:"phy", i:"🏋", t:"כוח ומהירות",       d:"שיפור גופני אמיתי — במחיר עומס גבוה.",
    fx:["PHY ‎++","PAC ‎++","‎+60 XP"], xp:60,
-   run:function(){ actGrow(["str","sta","acc","spd","jmp"], 0.6); S.load+=17; S.sharp+=3; }},
+   run:function(){ actGrow(["str","sta","acc","spd","jmp"], 0.6); S.load+=11; S.sharp+=3; }},
   {id:"gk", i:"🧤", t:"אימון שוערים",       d:"רפלקסים, זינוקים, תפיסה ומיקום.",
    fx:["GK ‎++","‎+60 XP"], xp:60, only:"GK",
-   run:function(){ actGrow(["gref","gdiv","ghan","gpos","gkic"], 0.6); S.sharp+=6; S.load+=9; }},
+   run:function(){ actGrow(["gref","gdiv","ghan","gpos","gkic"], 0.6); S.sharp+=6; S.load+=6; }},
   {id:"rec", i:"♻", t:"התאוששות ופיזיו",   d:"מוריד עומס ומעלה כשירות. מוותר על התקדמות.",
    fx:["עומס ‎−−","כשירות ‎+","‎+20 XP"], xp:20,
-   run:function(){ S.load-=22; S.fit+=13; }},
+   run:function(){ S.load -= 30; S.fit += 16; S.sharp -= 2; }},
   {id:"video", i:"▶", t:"ניתוח וידאו על היריב", d:"‎+0.4 שנייה לזמן הקריאה מול היריב הקרוב.",
    fx:["זמן קריאה ‎+","‎+30 XP"], xp:30, prep:"video",
    run:function(){ S.prep.video=1; S.load+=2; actGrow(["cmp","vis"],0.2); }},
@@ -1292,10 +1390,9 @@ function actGrow(keys, amt){
 }
 function availableActions(){
   return ACTIONS.filter(function(a){
+    var gk = S.pos === "GK";
     if(a.only && a.only !== S.pos) return false;
-    if(a.id === "def" && S.pos === "GK") return false;
-    if(a.id === "fin" && S.pos === "GK") return false;
-    if(a.id === "drb" && S.pos === "GK") return false;
+    if(gk && (a.id === "def" || a.id === "fin" || a.id === "drb")) return false;
     return true;
   });
 }
@@ -1527,6 +1624,7 @@ function renderShell(){
     vd.className = dv>0 ? "up" : "dn";
   } else { vd.textContent = "שווי שוק"; vd.className = ""; }
 
+  document.getElementById("hMoney").textContent = "₪" + Math.round(S.money) + "k";
   document.getElementById("hLvl").textContent = "רמה " + S.level;
   document.getElementById("hXpTxt").textContent = Math.round(S.xp) + " / " + xpNeed(S.level) + " XP";
   document.getElementById("hXpTxt").dir = "ltr";
@@ -1895,9 +1993,8 @@ function viewSquad(){
 
 /* players competing for your shirt, drawn from the real squad */
 function depthChart(){
-  var fam = {GK:["GK"], CB:["CB"], RB:["RB","LB"], LB:["LB","RB"], CM:["CM"], W:["W"], ST:["ST"]};
-  var want = fam[S.pos] || [S.pos];
-  var list = S.squad.filter(function(pl){ return want.indexOf(pl.pos) >= 0; })
+  var myFam = famOf(S.pos);
+  var list = S.squad.filter(function(pl){ return POS[pl.pos] && famOf(pl.pos) === myFam; })
     .map(function(pl){ return {n:pl.n, age:pl.age, ovr:pl.ovr, inj:pl.inj, me:false, role:""}; });
   list.push({n:S.name+" (אתה)", age:S.age, ovr:ovr(), inj:0, me:true, role:""});
   list.sort(function(a,b){
@@ -2050,6 +2147,32 @@ function viewCareer(){
     + '<p class="hint" style="margin:9px 0 0">חוזה שנגמר מוריד את שווי השוק שלך ב-45%, אבל נותן כוח מיקוח מול מועדונים אחרים.</p>'
     + '</div></div>' : '';
 
+  var shopHtml = '<div class="p"><h3>חנות <span class="r">₪'+Math.round(S.money)+'k בבנק</span></h3><div class="pb">'
+    + '<div class="shop">' + SHOP.map(function(it){
+        var owned = it.once && S.shopUsed[it.id];
+        var can = !owned && S.money >= it.cost;
+        return '<button class="shopitem'+(owned?" owned":"")+'" data-buy="'+it.id+'"'+(can?"":" disabled")+'>'
+          + '<span class="si">'+it.i+'</span>'
+          + '<div><b>'+it.n+'</b><span>'+it.d+'</span></div>'
+          + '<span class="sc">'+(owned?"נרכש":"₪"+it.cost+"k")+'</span>'
+        + '</button>';
+      }).join("") + '</div>'
+    + '<p class="hint" style="margin:10px 0 0">השכר נכנס כל שבוע, ובונוסים על הופעות, שערים ובישולים. פריטים קבועים משנים את מכניקת הרגע לצמיתות.</p>'
+    + '</div></div>';
+
+  var mhHtml = S.matches.length
+    ? '<div class="p"><h3>המשחקים שלך <span class="r">ציון ממוצע '+avgRating().toFixed(2)+'</span></h3><div class="pb tight">'
+      + '<table><thead><tr><th>מח׳</th><th>יריבה</th><th>תוצאה</th><th class="r">דק׳</th><th class="r">ש׳</th><th class="r">ב׳</th><th class="r">ציון</th></tr></thead><tbody>'
+      + S.matches.slice(0,14).map(function(m){
+          var cls = m.r>=7.5?"ok":(m.r>=6.5?"":(m.r>=5.8?"w":"b"));
+          return '<tr><td class="n">'+m.w+'</td><td>'+m.oppN+(m.home?"":" (ח)")+'</td>'
+            + '<td class="n">'+m.res+'</td><td class="r">'+m.mins+'</td>'
+            + '<td class="r">'+(m.g||"")+'</td><td class="r">'+(m.a||"")+'</td>'
+            + '<td class="r"><span class="tag '+cls+'">'+m.r.toFixed(1)+'</span></td></tr>';
+        }).join("")
+      + '</tbody></table></div></div>'
+    : '';
+
   var honHtml = S.honours.length
     ? S.honours.map(function(h){ return '<div class="kv"><span>'+h.t+'</span><span class="tag">עונה '+h.s+'</span></div>'; }).join("")
     : '<div class="empty">עוד לא נכתבה היסטוריה.</div>';
@@ -2083,7 +2206,7 @@ function viewCareer(){
     + '</div></div>';
   }
 
-  return boardHtml + renewHtml + offersHtml + '<div class="grid g2">'
+  return boardHtml + renewHtml + offersHtml + mhHtml + '<div class="grid g2">' + shopHtml
   + '<div class="p"><h3>עניין ממועדונים</h3><div class="pb">'+intHtml
   + '<p class="hint" style="margin:11px 0 0">מסדרונות ההעברות אמיתיים: קפיצה של עד ~14 נקודות מוניטין מעל ה-OVR שלך. הצעה ממשית מגיעה רק אחרי שסקאוט באמת ראה אותך.</p>'
   + '</div></div>'
@@ -2127,6 +2250,9 @@ function bind(){
   if(dec) dec.onclick = declineOffers;
   Array.prototype.forEach.call(stage.querySelectorAll("[data-push]"), function(b){
     b.onclick = function(){ pushClause(b.getAttribute("data-push")); };
+  });
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-buy]"), function(b){
+    b.onclick = function(){ buyItem(b.getAttribute("data-buy")); };
   });
   var bs = document.getElementById("bSign");   if(bs) bs.onclick = signBoard;
   var bc = document.getElementById("bCancel"); if(bc) bc.onclick = cancelBoard;
@@ -2512,9 +2638,11 @@ function startWeek(){
   });
   S.trainXp = xp;
   S.trainGains = WEEK_GAINS.slice();
-  S.fit   = clamp(S.fit - S.load*0.06 + 4, 25, 100);
+  /* natural weekly recovery — stamina and youth shed load faster */
+  var shed = 18 + (S.a.sta||45)*0.14 + (S.age <= 23 ? 3 : 0) + (hasTrait("engine") ? 4 : 0);
+  S.load  = clamp(S.load - shed, 0, 100);
+  S.fit   = clamp(S.fit + 9 - S.load*0.06, 20, 100);
   S.sharp = clamp(S.sharp - 3, 0, 100);
-  S.load  = clamp(S.load, 0, 100);
   S.morale= clamp(S.morale - 1, 0, 100);
 
   if(S.load > 86 && rnd() < (hasTrait("iron") ? 0.11 : 0.17)){
@@ -2568,7 +2696,7 @@ function openMatch(){
 
 function buildMoments(exp){
   if(exp.mins<=0) return [];
-  var n = exp.start ? ri(6,9) : ri(3,5);
+  var n = exp.start ? ri(9,13) : ri(4,7);
   var out = [];
   var from = exp.start ? 4 : M.entryMin+3;
   var to   = 89;
@@ -2633,7 +2761,7 @@ function initPitch(){
     + '</svg>';
 
   var g = document.getElementById("pPlayers");
-  var myIdx = {GK:0, CB:2, W:8, CM:6, ST:9}[S.pos];
+  var myIdx = POS[S.pos].slot;
   var NUMS = [1,2,4,5,3,6,8,10,7,9,11];
   P = {ball:{x:50,y:50}, bt:{x:50,y:50}, poss:"h", men:[], possH:50, t:0, trail:[]};
 
@@ -2803,14 +2931,7 @@ function tickMatch(){
 
 function skipToEnd(){
   if(M.timer) clearTimeout(M.timer);
-  M.moments.forEach(function(m){
-    if(!m.done){
-      m.done = true;
-      // auto-resolve at tactical difficulty: attribute-driven, no penalty
-      var q = 0.42 + (iq()/240) + (S.sharp/400);
-      resolveMoment(null, q>0.62?"good":"ok", true);
-    }
-  });
+  M.moments.forEach(function(m){ m.done = true; });
   while(M.min<90){
     M.min++;
     if(rnd()<0.028){
@@ -2819,21 +2940,34 @@ function skipToEnd(){
     }
   }
 
-  /* A simulated match still has to produce a scoreline for YOU. Without this,
-     skipping meant a striker could play 40 games and score nothing. */
+  /* A simulated match derives your contribution from the position's own
+     weights and your attributes — no position is locked out of anything. */
   if(M.playing){
     var share = M.mins/90;
-    var gRate = {ST:0.52, W:0.30, CM:0.17, CB:0.07, GK:0}[S.pos] || 0.15;
-    var aRate = {ST:0.20, W:0.34, CM:0.30, CB:0.06, GK:0.01}[S.pos] || 0.15;
-    var quality = 0.55 + (grpVal("SHO")-45)/110 + (S.sharp-50)/220;
-    var creat   = 0.55 + (grpVal("PAS")-45)/110 + (S.sharp-50)/220;
+    var W = POS[S.pos].w;
+    var gRate = (W.SHO||0)*1.15 + (W.PAC||0)*0.16 + (W.DRI||0)*0.16;
+    var aRate = (W.PAS||0)*0.85 + (W.DRI||0)*0.30;
+    var quality = 0.6 + (grpVal(S.pos==="GK"?"REF":"SHO")-48)/120 + (S.sharp-50)/240;
+    var creat   = 0.6 + (grpVal(S.pos==="GK"?"KIC":"PAS")-48)/120 + (S.sharp-50)/240;
     var g = 0, a = 0;
-    if(rnd() < gRate*share*clamp(quality,0.3,1.9)) g++;
-    if(g && rnd() < 0.16) g++;
-    if(rnd() < aRate*share*clamp(creat,0.3,1.9)) a++;
+    if(rnd() < gRate*share*clamp(quality,0.25,1.9)) g++;
+    if(g && rnd() < 0.14) g++;
+    if(rnd() < aRate*share*clamp(creat,0.25,1.9)) a++;
     for(var q=0;q<g;q++){ if(M.me===M.home) M.hg++; else M.ag++; }
-    if(g){ S.goals+=g; S.careerGoals+=g; M.gAdded+=g; M.score += g*1.4; }
-    if(a){ S.assists+=a; S.careerAssists+=a; M.aAdded+=a; M.score += a*1.0; }
+    if(g){ S.goals+=g; S.careerGoals+=g; M.gAdded+=g; }
+    if(a){ S.assists+=a; S.careerAssists+=a; M.aAdded+=a; }
+
+    /* and the rest of the performance is sampled, not assumed good */
+    var strength = (ovr() - M.opp.rep)/26 + (S.sharp-52)/120 - Math.max(0,S.load-70)/170;
+    var n = Math.max(1, Math.round(M.mins/11));
+    M.count = n; M.score = 0; M.chances = 0; M.duels = 0; M.errors = 0;
+    for(var s=0;s<n;s++){
+      var roll = rnd() + rnd() - 1 + clamp(strength,-0.7,0.7)*0.5;   // bell-ish
+      if(roll > 0.36){ M.score += 1.15; if(rnd()<0.35) M.chances++; else M.duels++; }
+      else if(roll > 0.02){ M.score += 0.55; }
+      else if(roll > -0.34){ M.score -= 0.35; }
+      else { M.score -= 0.95; M.errors++; }
+    }
   }
 
   document.getElementById("mHG").textContent = M.hg;
@@ -2844,78 +2978,243 @@ function skipToEnd(){
 /* ── the Skill Moment ──────────────────────────────────────────── */
 var MO = null;
 
-var SITS = {
-  ST:[
-    {t:"גב לשער, לחץ מאחור", s:"קיבלת ברגל שמאל בקצה הקופסה. הבלם צמוד.", ch:[
-      {b:"להסתובב ולבעוט", d:"סיכון גבוה · אזור צר", w:-6, at:"fin"},
-      {b:"להוריד לקשר ולרוץ", d:"בטוח · שומר החזקה", w:8, at:"spa"}
-    ], unl:{b:"סיבוב ראשון פנימה", d:"נפתח מהאנליסט — הוא נצמד מוקדם מדי", w:2, at:"cmp", big:true}},
-    {t:"כדור רוחב מהאגף", s:"הכדור בדרך לעמוד הרחוק. שני מגנים בפנים.", ch:[
-      {b:"נגיחה ראשונה", d:"תזמון קשה · תשואה גבוהה", w:-4, at:"hdr"},
-      {b:"לרדת לקו הפנדל", d:"מרחב · פחות זווית", w:6, at:"cmp"}
-    ], unl:{b:"לקצר את הריצה לעמוד הקרוב", d:"נפתח מווידאו — השוער יוצא מאוחר", w:0, at:"acc", big:true}}
-  ],
-  W:[
-    {t:"אחד על אחד באגף", s:"המגן פתוח פנימה. הקו פנוי מאחוריו.", ch:[
-      {b:"לעבור מבחוץ ולהזין", d:"קלאסי · המגן מוכן", w:2, at:"crs"},
-      {b:"לחתוך פנימה ולבעוט", d:"רגל חזקה · צפוי", w:-4, at:"drb"}
-    ], unl:{b:"כדור עומק בין המגן לבלם", d:"נפתח מהאנליסט — הם לא מתקנים", w:4, at:"vis", big:true}},
-    {t:"מעבר מהיר", s:"שלושה מולם שניים. חבר רץ בפנים.", ch:[
-      {b:"למסור לרץ בפנים", d:"תזמון · בישול אפשרי", w:5, at:"vis"},
-      {b:"להאט ולחכות לתמיכה", d:"בטוח · מבטל את המעבר", w:12, at:"cmp"}
-    ], unl:null}
-  ],
-  CM:[
-    {t:"כדור מגיע תחת לחץ", s:"אתה מקבל עם הגב, קשר יריב מגיע מהצד העיוור.", ch:[
-      {b:"נגיעה ראשונה החוצה", d:"פותח מרחב · סיכון איבוד", w:-2, at:"ctl"},
-      {b:"מסירה קצרה אחורה", d:"בטוח · לא מקדם", w:12, at:"spa"}
-    ], unl:{b:"סיבוב וכדור עומק", d:"נפתח מווידאו — הקו שלהם גבוה", w:-1, at:"lpa", big:true}},
-    {t:"שינוי צד", s:"הצד שלך צפוף. האגף הרחוק פנוי לגמרי.", ch:[
-      {b:"כדור ארוך מסובב", d:"מרשים · קשה לביצוע", w:-5, at:"lpa"},
-      {b:"שתי מסירות דרך הבלם", d:"איטי אבל בטוח", w:10, at:"spa"}
-    ], unl:null},
-    {t:"רגע ללא כדור", s:"היריב יוצא מהגנה. יש קו מסירה פתוח לקשר שלהם.", ch:[
-      {b:"לסגור את קו המסירה", d:"משמעת · לא נראה בסטטיסטיקה", w:8, at:"itc"},
-      {b:"לקפוץ על הכדור", d:"חטיפה גדולה או חור ענק", w:-8, at:"tkl"}
-    ], unl:{b:"להזיז את היחידה ולסגור יחד", d:"נפתח ממאמן העמדה", w:6, at:"vis", big:true}}
-  ],
-  CB:[
-    {t:"כדור ארוך מגיע", s:"החלוץ שלהם מקדים אותך בחצי צעד.", ch:[
-      {b:"לתקוף את הכדור", d:"נגיחה · אם תפספס זה חור", w:-3, at:"hdr"},
-      {b:"לרדת ולכסות", d:"בטוח · הוא מקבל ומסתובב", w:9, at:"mrk"}
-    ], unl:{b:"קו נבדל — לעלות יחד", d:"נפתח מתוכנית המשחק", w:3, at:"itc", big:true}},
-    {t:"יציאה מלחץ", s:"שני חלוצים לוחצים. השוער מחכה.", ch:[
-      {b:"למסור פנימה לקשר האחורי", d:"שובר לחץ · סיכון גבוה", w:-4, at:"spa"},
-      {b:"להוציא ארוך לקו", d:"מוותר על החזקה", w:14, at:"lpa"}
-    ], unl:null}
-  ],
-  GK:[
-    {t:"כדור רוחב לרחבה", s:"הזנה גבוהה, שלושה גופים בקופסה.", ch:[
-      {b:"לצאת ולאגרף", d:"נועז · אם תחטיא זה שער", w:-6, at:"ghan"},
-      {b:"לעמוד על הקו", d:"בטוח · מוותר על שליטה", w:9, at:"gpos"}
-    ], unl:{b:"לצעוק קו ולצאת מוקדם", d:"נפתח מווידאו — הם מחפשים עמוד רחוק", w:2, at:"gref", big:true}},
-    {t:"אחד על אחד", s:"החלוץ נכנס לקופסה מזווית צרה.", ch:[
-      {b:"לצמצם זווית ולחכות", d:"נכון ברוב המקרים", w:6, at:"gpos"},
-      {b:"לצאת לרגליים", d:"או הצלה או פנדל", w:-7, at:"gdiv"}
-    ], unl:null}
-  ]
-};
+/* ══════════════════════════════════════════════════════════════════
+   SITUATION LIBRARY
+   Every situation lists which positions can receive it. Each choice
+   declares WHAT IT PRODUCES — goal, assist, chance, clearance, duel,
+   save — and that, not the player's position, decides the outcome.
+   A centre-back can head in a corner; a striker can slide a through ball.
+   ════════════════════════════════════════════════════════════════ */
+var ATT = ["ST","CF","LW","RW","CAM"];
+var MID = ["CM","CDM","CAM","LM","RM"];
+var WIDE= ["LW","RW","LM","RM","LWB","RWB"];
+var DEF_= ["CB","LB","RB","LWB","RWB","CDM"];
+var OUT = ["ST","CF","LW","RW","CAM","CM","CDM","LM","RM","LB","RB","LWB","RWB","CB"];
+
+var SITS = [
+/* ── shooting ─────────────────────────────────────────────────── */
+{id:"box_receive", k:"shoot", w:3, pos:ATT.concat(["CM","LM","RM"]),
+ t:"קבלה בקצה הקופסה", s:"הכדור מגיע אליך על גבול הרחבה. מגן סוגר, שוער בעמדה טובה.",
+ ch:[{b:"בעיטה מסובבת לפינה", d:"סיכון גבוה · אזור צר", at:"fin", risk:-7, out:"goal"},
+     {b:"למסור לחבר בעמדה טובה יותר", d:"פחות זוהר, יותר סביר", at:"vis", risk:5, out:"assist"},
+     {b:"להגן על הכדור ולחכות לתמיכה", d:"בטוח · שומר החזקה", at:"str", risk:13, out:"keep"}],
+ unl:{b:"נגיעה אחת ובעיטה מיד", d:"נפתח מהאנליסט — השוער יוצא מאוחר", at:"cmp", risk:-2, out:"goal"}},
+
+{id:"one_on_one", k:"shoot", w:2, pos:ATT.concat(["CM","LM","RM"]),
+ t:"אחד על אחד מול השוער", s:"עברת את הקו האחרון. השוער יוצא לקראתך.",
+ ch:[{b:"לגלגל מתחת לגוף", d:"קר רוח · הבחירה של החלוצים הטובים", at:"cmp", risk:-1, out:"goal"},
+     {b:"לבעוט חזק לפינה", d:"עוצמה · השוער יכול לחסום", at:"pow", risk:-5, out:"goal"},
+     {b:"להעביר לחבר בריצה", d:"אם הוא שם — זה בישול קל", at:"vis", risk:3, out:"assist"}]},
+
+{id:"header_corner", k:"aerial", w:2, pos:["CB","ST","CF","CDM","LB","RB"],
+ t:"קרן לרחבה", s:"אתה בקרן. הכדור מגיע לעמוד הרחוק, מגן צמוד לגב שלך.",
+ ch:[{b:"לתקוף את הכדור בנגיחה", d:"תזמון וקפיצה · מסוכן אבל משתלם", at:"hdr", risk:-4, out:"goal"},
+     {b:"להוריד לחבר בקו הפנדל", d:"נגיחה שנייה — בישול", at:"hdr", risk:4, out:"assist"},
+     {b:"למשוך מגן ולפנות מרחב", d:"לא ייראה בסטטיסטיקה", at:"cmp", risk:11, out:"none"}]},
+
+{id:"long_shot", k:"shoot", w:2, pos:MID.concat(["LW","RW","LB","RB"]),
+ t:"מרחב מחוץ לרחבה", s:"אף אחד לא יוצא אליך. יש 25 מטר של מרחב.",
+ ch:[{b:"לבעוט מרחוק", d:"סיכוי נמוך · תשואה עצומה", at:"lng", risk:-9, out:"goal"},
+     {b:"לחפש מסירה חודרת", d:"פחות דרמטי, יותר יעיל", at:"vis", risk:4, out:"assist"},
+     {b:"להאט ולסובב את המשחק", d:"שמירה על מבנה", at:"spa", risk:12, out:"keep"}]},
+
+{id:"rebound", k:"shoot", w:1, pos:OUT,
+ t:"כדור מוחזר מהשוער", s:"הכדור נופל בקופסה. שני מגנים מגיעים.",
+ ch:[{b:"לבעוט מיד", d:"מהירות תגובה · אין זמן לחשוב", at:"agi", risk:-4, out:"goal"},
+     {b:"נגיעה ואז בעיטה", d:"שליטה · אבל הם סוגרים", at:"ctl", risk:-6, out:"goal"},
+     {b:"למסור החוצה ולבנות מחדש", d:"בטוח", at:"spa", risk:12, out:"keep"}]},
+
+{id:"volley", k:"shoot", w:1, pos:ATT.concat(["CM","LM","RM"]),
+ t:"כדור נופל אליך באוויר", s:"הזנה גבוהה יורדת לגובה המותן.",
+ ch:[{b:"וולה ראשונה", d:"קשה מאוד · שער השנה אם ייכנס", at:"pow", risk:-12, out:"goal"},
+     {b:"להוריד בחזה ואז לבעוט", d:"נותן להם רגע להתארגן", at:"ctl", risk:-2, out:"goal"},
+     {b:"להוריד לחבר", d:"בטוח ומועיל", at:"spa", risk:9, out:"assist"}]},
+
+/* ── creating ─────────────────────────────────────────────────── */
+{id:"through_ball", k:"create", w:3, pos:MID.concat(["ST","CF","LW","RW"]),
+ t:"הקו האחרון שלהם גבוה", s:"החלוץ שלך מתחיל תנועה מאחורי הבלם.",
+ ch:[{b:"כדור עומק בין הבלמים", d:"תזמון · אם זה עובר זה בישול", at:"vis", risk:-5, out:"assist"},
+     {b:"מסירה קצרה ולהמשיך לרוץ", d:"שילוב · אתה מקבל בחזרה", at:"spa", risk:6, out:"chance"},
+     {b:"להחזיק ולחכות לתנועה טובה יותר", d:"סבלנות", at:"cmp", risk:11, out:"keep"}]},
+
+{id:"cross_wide", k:"create", w:3, pos:WIDE.concat(["CAM"]),
+ t:"מרחב באגף", s:"עברת את המגן. שני חלוצים נכנסים לקופסה.",
+ ch:[{b:"הזנה מוקדמת לעמוד הרחוק", d:"מסוכן אבל מסוכן להם", at:"crs", risk:-4, out:"assist"},
+     {b:"קאטבק לקו הפנדל", d:"האפשרות עם ה-xA הגבוה", at:"crs", risk:0, out:"assist"},
+     {b:"לחתוך פנימה ולבעוט", d:"אתה לוקח את זה על עצמך", at:"fin", risk:-7, out:"goal"}]},
+
+{id:"switch", k:"create", w:2, pos:MID.concat(["CB","LB","RB"]),
+ t:"הצד שלך צפוף", s:"כולם התכנסו לצד אחד. האגף הרחוק פנוי לגמרי.",
+ ch:[{b:"כדור ארוך מסובב לצד השני", d:"קשה · פותח את המשחק", at:"lpa", risk:-6, out:"chance"},
+     {b:"שתי מסירות דרך הבלם", d:"איטי אבל בטוח", at:"spa", risk:11, out:"keep"},
+     {b:"לדרבל החוצה מהלחץ", d:"אישי · אם תאבד זה מתפרץ", at:"drb", risk:-4, out:"chance"}]},
+
+{id:"final_third", k:"create", w:2, pos:MID.concat(["LW","RW","CF"]),
+ t:"שליש אחרון, שלוש אפשרויות", s:"יש לך רגע. חבר בקופסה, חבר מאחור, ומרחב מלפנים.",
+ ch:[{b:"מסירת מפתח לקופסה", d:"xA גבוה", at:"vis", risk:-3, out:"assist"},
+     {b:"לנהוג לתוך הקופסה", d:"אולי פנדל, אולי איבוד", at:"drb", risk:-6, out:"chance"},
+     {b:"אחורה ולבנות שוב", d:"בטוח לחלוטין", at:"spa", risk:13, out:"keep"}]},
+
+/* ── carrying & receiving ─────────────────────────────────────── */
+{id:"take_on", k:"carry", w:3, pos:WIDE.concat(["CAM","CF","ST"]),
+ t:"אחד על אחד עם המגן", s:"הוא פתוח פנימה. הקו מאחוריו פנוי.",
+ ch:[{b:"לעבור מבחוץ", d:"מהירות · הזנה בסוף", at:"spd", risk:-2, out:"assist"},
+     {b:"לחתוך פנימה", d:"דריבל · בעיטה ברגל החזקה", at:"drb", risk:-6, out:"goal"},
+     {b:"להחזיר ולשמור החזקה", d:"בלי סיכון", at:"spa", risk:12, out:"keep"}]},
+
+{id:"under_pressure", k:"receive", w:3, pos:OUT,
+ t:"כדור מגיע תחת לחץ", s:"אתה מקבל עם הגב, קשר יריב מגיע מהצד העיוור.",
+ ch:[{b:"נגיעה ראשונה החוצה מהלחץ", d:"פותח מרחב · סיכון איבוד", at:"ctl", risk:-3, out:"chance"},
+     {b:"מסירה קצרה אחורה", d:"בטוח · לא מקדם", at:"spa", risk:13, out:"keep"},
+     {b:"להסתובב ולנסות לעבור", d:"אם זה עובד זה מפרק אותם", at:"agi", risk:-8, out:"chance"}],
+ unl:{b:"סיבוב וכדור עומק מיד", d:"נפתח מווידאו — הקו שלהם גבוה", at:"vis", risk:-2, out:"assist"}},
+
+{id:"hold_up", k:"receive", w:2, pos:["ST","CF","CAM"],
+ t:"גב לשער, בלם צמוד", s:"הכדור מגיע גבוה. הבלם נצמד אליך מאחור.",
+ ch:[{b:"להחזיק ולחכות לתמיכה", d:"כוח · הבסיס של חלוץ טוב", at:"str", risk:9, out:"keep"},
+     {b:"להסתובב מיד", d:"אם עברת אותו — אתה מול השוער", at:"agi", risk:-9, out:"goal"},
+     {b:"להוריד בנגיעה לקשר שרץ", d:"קישור נקי", at:"spa", risk:3, out:"assist"}]},
+
+{id:"counter_run", k:"carry", w:2, pos:OUT,
+ t:"מעבר מהיר", s:"חטפתם. שלושה מולם שניים, 50 מטר לשער.",
+ ch:[{b:"לרוץ עם הכדור עד הסוף", d:"אתה מסיים את זה", at:"spd", risk:-5, out:"goal"},
+     {b:"למסור לרץ החופשי", d:"הבחירה הנכונה ברוב המקרים", at:"vis", risk:2, out:"assist"},
+     {b:"להאט ולחכות לתמיכה", d:"מבטל את המעבר", at:"cmp", risk:13, out:"keep"}]},
+
+/* ── defending ────────────────────────────────────────────────── */
+{id:"last_man", k:"defend", w:3, pos:DEF_,
+ t:"אתה האיש האחרון", s:"החלוץ שלהם קיבל כדור עומק. אתה בין הכדור לשער.",
+ ch:[{b:"תיקול מחליק", d:"אם תפספס — הוא לבד מול השוער", at:"tkl", risk:-8, out:"win"},
+     {b:"להאט אותו ולחכות לעזרה", d:"משמעת · הבחירה הנכונה כמעט תמיד", at:"mrk", risk:9, out:"win"},
+     {b:"לנסות לחטוף בכתף", d:"כוח · יכול להיות עבירה", at:"str", risk:-3, out:"win"}]},
+
+{id:"aerial_duel", k:"aerial", w:2, pos:["CB","CDM","LB","RB","ST","CF"],
+ t:"כדור ארוך מגיע", s:"החלוץ שלהם מקדים אותך בחצי צעד.",
+ ch:[{b:"לתקוף את הכדור", d:"נגיחה · אם תפספס זה חור", at:"hdr", risk:-4, out:"win"},
+     {b:"לרדת ולכסות", d:"בטוח · הוא מקבל ומסתובב", at:"mrk", risk:9, out:"win"},
+     {b:"לנגח קדימה לחלוץ שלך", d:"הופך הגנה להתקפה", at:"hdr", risk:-2, out:"chance"}],
+ unl:{b:"קו נבדל — לעלות יחד", d:"נפתח מתוכנית המשחק", at:"itc", risk:3, out:"win"}},
+
+{id:"press_trigger", k:"offball", w:3, pos:OUT,
+ t:"רגע ללא כדור", s:"הבלם שלהם מקבל עם הגב. יש רגע ללחוץ — או להישאר במבנה.",
+ ch:[{b:"לקפוץ ולסגור אותו", d:"אם תחטוף זו הזדמנות", at:"agg", risk:-6, out:"chance"},
+     {b:"לסגור את קו המסירה", d:"משמעת · לא נראה בסטטיסטיקה", at:"itc", risk:8, out:"win"},
+     {b:"לחזור למבנה", d:"שמרני לחלוטין", at:"cmp", risk:12, out:"none"}],
+ unl:{b:"להזיז את היחידה וללחוץ יחד", d:"נפתח ממאמן העמדה", at:"vis", risk:5, out:"chance"}},
+
+{id:"build_out", k:"build", w:2, pos:["CB","LB","RB","CDM","GK"],
+ t:"יציאה מלחץ", s:"שני חלוצים לוחצים. אין הרבה זמן.",
+ ch:[{b:"למסור פנימה לקשר האחורי", d:"שובר לחץ · סיכון גבוה", at:"spa", risk:-6, out:"chance"},
+     {b:"להוציא ארוך לקו", d:"מוותר על החזקה", at:"lpa", risk:14, out:"none"},
+     {b:"לדרבל החוצה מהלחץ", d:"אומץ · הקהל אוהב", at:"ctl", risk:-8, out:"chance"}]},
+
+{id:"block_shot", k:"defend", w:2, pos:DEF_.concat(["CM"]),
+ t:"בעיטה בדרך", s:"הוא מתכונן לבעוט מגבול הרחבה. אתה בקו הבעיטה.",
+ ch:[{b:"לזרוק את הגוף", d:"אומץ · יכול לכאוב", at:"agg", risk:-3, out:"win"},
+     {b:"לסגור את הזווית בלי לצלול", d:"מקצועי", at:"mrk", risk:7, out:"win"},
+     {b:"לצאת אליו מהר", d:"אם תאחר זה עובר", at:"acc", risk:-6, out:"win"}]},
+
+{id:"overlap_choice", k:"offball", w:2, pos:["LB","RB","LWB","RWB","LM","RM"],
+ t:"החלטת חפיפה", s:"הכנף שלך מקבל את הכדור. יש מרחב מאחוריו.",
+ ch:[{b:"לרוץ חפיפה", d:"אם הוא ימסור — אתה בקופסה", at:"sta", risk:-3, out:"assist"},
+     {b:"להישאר ולאזן", d:"אם נאבד את הכדור, אתה שם", at:"cmp", risk:11, out:"win"},
+     {b:"לרוץ פנימה", d:"בלתי צפוי", at:"agi", risk:-5, out:"chance"}]},
+
+/* ── goalkeeping ──────────────────────────────────────────────── */
+{id:"gk_shot", k:"save", w:4, pos:["GK"],
+ t:"בעיטה לפינה", s:"הוא בעט מ-16 מטר לפינה התחתונה.",
+ ch:[{b:"לזנק ולהדוף", d:"רפלקסים", at:"gref", risk:-3, out:"save"},
+     {b:"לתפוס נקי", d:"קשה יותר · מונע רחרוח", at:"ghan", risk:-7, out:"save"}]},
+
+{id:"gk_one_on_one", k:"save", w:3, pos:["GK"],
+ t:"אחד על אחד", s:"החלוץ נכנס לקופסה מזווית צרה.",
+ ch:[{b:"לצמצם זווית ולחכות", d:"נכון ברוב המקרים", at:"gpos", risk:6, out:"save"},
+     {b:"לצאת לרגליים", d:"או הצלה או פנדל", at:"gdiv", risk:-8, out:"save"}]},
+
+{id:"gk_cross", k:"save", w:3, pos:["GK"],
+ t:"כדור רוחב לרחבה", s:"הזנה גבוהה, שלושה גופים בקופסה.",
+ ch:[{b:"לצאת ולאגרף", d:"נועז · אם תחטיא זה שער", at:"ghan", risk:-6, out:"save"},
+     {b:"לעמוד על הקו", d:"בטוח · מוותר על שליטה", at:"gpos", risk:9, out:"save"},
+     {b:"לצעוק קו ולתת לבלם", d:"אמון ביחידה", at:"gpos", risk:5, out:"win"}]},
+
+{id:"gk_distribute", k:"build", w:3, pos:["GK"],
+ t:"בנייה מהיסוד", s:"הם לוחצים גבוה. הבלמים פתוחים אבל צמודים.",
+ ch:[{b:"מסירה קצרה לבלם", d:"אומץ · שובר את הלחץ", at:"gkic", risk:-5, out:"chance"},
+     {b:"בעיטה ארוכה לחלוץ", d:"בטוח · 50/50", at:"gkic", risk:9, out:"none"},
+     {b:"זריקה מהירה לכנף", d:"מתחיל מעבר", at:"gkic", risk:1, out:"assist"}]},
+
+{id:"gk_sweeper", k:"save", w:2, pos:["GK"],
+ t:"כדור לגב ההגנה", s:"כדור עומק עובר את הבלמים. אתה יכול לצאת מהרחבה.",
+ ch:[{b:"לצאת ולנקות", d:"שוער מודרני", at:"gpos", risk:-4, out:"win"},
+     {b:"להישאר ולחכות", d:"הוא יגיע לכדור לפניך", at:"gref", risk:5, out:"save"}]},
+
+/* ── set pieces ───────────────────────────────────────────────── */
+{id:"free_kick", k:"setpiece", w:2, pos:OUT,
+ t:"עבירה בטווח בעיטה", s:"22 מטר, מעט מהצד. הקפטן מסתכל עליך.",
+ ch:[{b:"לבעוט מעל החומה", d:"טכניקה טהורה", at:"lng", risk:-9, out:"goal"},
+     {b:"להזין לרחבה", d:"נגיחה של הבלמים", at:"crs", risk:-1, out:"assist"},
+     {b:"לשחק קצר", d:"לפרק את המבנה שלהם", at:"spa", risk:8, out:"chance"}]},
+
+{id:"penalty", k:"setpiece", w:1, pos:OUT,
+ t:"פנדל", s:"הבועט הראשי לא על המגרש. השופט מחכה.",
+ ch:[{b:"לקחת אחריות ולבעוט", d:"לחץ מלא · תשואה מלאה", at:"cmp", risk:-3, out:"goal"},
+     {b:"לתת למישהו אחר", d:"אין סיכון אישי", at:"cmp", risk:14, out:"none"}]},
+
+{id:"corner_defend", k:"aerial", w:2, pos:DEF_.concat(["CM","GK"]),
+ t:"קרן נגדך", s:"התוקף הכי טוב שלהם נכנס לעמוד הקרוב.",
+ ch:[{b:"לנגח ראשון", d:"תזמון", at:"hdr", risk:-3, out:"win"},
+     {b:"לשמור אישית עליו", d:"צמוד · הוא ינסה לזוז", at:"mrk", risk:5, out:"win"},
+     {b:"לעמוד על הקו", d:"ביטוח", at:"cmp", risk:10, out:"win"}]},
+
+/* ── mentality / late game ────────────────────────────────────── */
+{id:"late_game", k:"offball", w:2, pos:OUT,
+ t:"דקה 85, אתם מובילים 1-0", s:"הם דוחפים הכל קדימה. המאמן צועק משהו מהקו.",
+ ch:[{b:"לשמור על הכדור בפינה", d:"מקצועי · הקהל שלהם ישנא אותך", at:"cmp", risk:12, out:"keep"},
+     {b:"לצאת למתפרצת", d:"לסגור את המשחק", at:"spd", risk:-6, out:"goal"},
+     {b:"לרדת ולהגן על התוצאה", d:"עוד גוף בקופסה", at:"mrk", risk:7, out:"win"}]},
+
+{id:"tired_choice", k:"offball", w:2, pos:OUT,
+ t:"הרגליים כבדות", s:"אתה מרגיש את זה. יש ריצה שצריך לעשות, ואתה יודע כמה היא תעלה.",
+ ch:[{b:"לעשות את הריצה", d:"עומס · אבל זה התפקיד", at:"sta", risk:-2, out:"chance"},
+     {b:"לחסוך את הרגליים", d:"המאמן רואה הכל", at:"cmp", risk:9, out:"none"}]},
+
+{id:"provoked", k:"offball", w:1, pos:OUT,
+ t:"הוא מנסה להוציא אותך מהכלים", s:"מרפק, מילה, ועוד מילה. השופט לא ראה.",
+ ch:[{b:"להתעלם ולשחק", d:"בגרות", at:"cmp", risk:11, out:"none"},
+     {b:"להחזיר לו בכדור", d:"התשובה הכי טובה", at:"drb", risk:-4, out:"chance"},
+     {b:"לעמוד מולו", d:"חדר ההלבשה יאהב · השופט לא", at:"agg", risk:-7, out:"none"}]}
+];
+
+function sitsFor(pos){
+  return SITS.filter(function(s){ return s.pos.indexOf(pos) >= 0; });
+}
 
 function openMoment(m){
-  var pool = SITS[S.pos];
-  var sit = pool[ri(0, pool.length-1)];
+  var pool = sitsFor(S.pos);
+  if(!pool.length) pool = sitsFor("CM");
+  var late = M.min >= 78;
+  var cand = pool.filter(function(s){
+    if(s.id === "late_game" && !(late && M.hg !== M.ag)) return false;
+    if(s.id === "tired_choice" && S.load < 55) return false;
+    return S.slSit !== s.id;          // never the same situation twice running
+  });
+  if(!cand.length) cand = pool;
+  var tot = cand.reduce(function(x,s){ return x + s.w; }, 0);
+  var roll = rnd()*tot, acc = 0, sit = cand[0];
+  for(var q=0;q<cand.length;q++){ acc += cand[q].w; if(roll <= acc){ sit = cand[q]; break; } }
+  S.slSit = sit.id;
 
   /* Read time. The old numbers (1.0–2.6s) were unreadable — you could not
      finish three Hebrew options, let alone weigh them. Base is now generous
      and the attributes/preparation extend it further. */
-  var readBase = 4.2 + iq()/16 + (S.prep.video ? 1.6 : 0)
-               + (hasTrait("reader") ? 1.2 : 0)
+  var readBase = 4.2 + iq()/16 + ((S.prep.video || S.perkAnalyst) ? 1.6 : 0)
+               + (hasTrait("reader") ? 1.2 : 0) + (S.perkPsych ? 1.0 : 0)
                - (1 - S.fit/100)*1.6 - (S.load/100)*1.2;
   var mult = S.readMode === "long" ? 1.8 : 1;
   var readTime = S.readMode === "off" ? 999 : clamp(readBase*mult, 2.6, 14);
 
   var choices = sit.ch.slice();
-  if(sit.unl && S.prep.analyst) choices.push(sit.unl);
+  if(sit.unl && (S.prep.analyst || S.perkAnalyst)) choices.push(sit.unl);
   if(sit.unl && !S.prep.analyst && sit.unl.big && S.prep.coach) choices.push(sit.unl);
 
   MO = {m:m, sit:sit, choices:choices, pick:null, readTime:readTime,
@@ -2952,6 +3251,7 @@ function momentHtml(){
       + '<div><span class="lbl">בחירת כוונה</span><div class="choices" id="moCh" style="margin-top:7px"></div></div>'
       + '<div id="moExec" style="display:none">'
         + '<span class="lbl">עוצמה ותזמון</span>'
+        + '<div class="moinfo" id="moInfo"></div>'
         + '<div class="power" style="margin-top:6px"><div class="zone" id="moZone"></div><div class="ndl" id="moNdl"></div>'
         + '<div class="ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>'
         + '<button class="btn pri big" id="moFire" style="width:100%;margin-top:9px">עצור ▸</button>'
@@ -3039,9 +3339,13 @@ function pickChoice(i, btn){
 
   var c = MO.choices[i];
   var at = S.a[c.at] || 45;
-  // sweet zone width: attribute + sharpness + coach intel − load − risk
-  var w = 13 + at*0.22 + S.sharp*0.06 + (S.prep.coach?4:0) - S.load*0.05 + c.w*0.55;
+  /* Sweet-zone width is where your stats become difficulty you can feel.
+     A 40-rated attribute gives a sliver; an 85 gives a comfortable window. */
+  var w = 6 + at*0.34 + S.sharp*0.07 + (S.prep.coach?4:0)
+        - Math.max(0, S.load-45)*0.13 - Math.max(0, 70-S.fit)*0.16
+        + c.risk*0.55;
   if(hasTrait("clutch") && M && M.min >= 75) w *= 1.15;
+  if(S.perkBoots) w += 6;
   w = clamp(w, 7, 42);
   MO.w = w;
   MO.center = clamp(30 + rnd()*40, 15, 80);
@@ -3051,11 +3355,19 @@ function pickChoice(i, btn){
   z.style.width = w + "%";
 
   document.getElementById("moExec").style.display = "block";
+  var info = document.getElementById("moInfo");
+  if(info){
+    info.innerHTML = '<span>' + (ATTR[c.at] ? ATTR[c.at].n : "יכולת") + ' <b>' + Math.round(at) + '</b></span>'
+      + '<span>אזור מתוק <b>' + Math.round(w) + '%</b></span>'
+      + '<span>כשירות <b>' + Math.round(S.fit) + '%</b></span>'
+      + '<span>עומס <b>' + Math.round(S.load) + '%</b></span>';
+  }
   if(document.getElementById("moRes").className === "res")
     document.getElementById("moRes").textContent = "עצור את המד בתוך האזור הירוק.";
 
   MO.pos = 0; MO.dir = 1;
-  var speed = 1.15 + S.load*0.012 + (100-S.fit)*0.009;
+  var speed = 0.95 + Math.max(0,S.load-40)*0.019 + Math.max(0,75-S.fit)*0.016
+            + (M && M.min>=70 ? Math.max(0,S.load-50)*0.010 : 0);
   var ndl = document.getElementById("moNdl");
   (function loop(){
     if(!MO || MO.fired) return;
@@ -3081,33 +3393,57 @@ function fireMoment(){
 
 function resolveMoment(choice, grade, silent){
   var txt, cls, pts;
-  var risky = choice ? choice.w < 2 : false;
+  var out  = choice ? (choice.out || "none") : "none";
+  var risky = choice ? choice.risk < 2 : false;
 
   if(grade==="great"){ pts = risky ? 1.9 : 1.2; cls="great"; txt="ביצוע נקי. יצא בדיוק כפי שהתכוונת."; }
   else if(grade==="good" || grade==="ok"){ pts = risky ? 1.0 : 0.8; cls="good"; txt="יצא, אבל לא מושלם. עכשיו זה תלוי גם בחבר ליד וביריב."; }
   else if(grade==="poor"){ pts = -0.4; cls="poor"; txt="איבדת דיוק. דוח התפקיד עדיין יכיר בבחירה הנכונה."; }
-  else { pts = risky ? -1.3 : -0.8; cls="fail"; txt="הכדור אבד. זה לא Game Over — זו שורה בדוח."; }
+  else { pts = risky ? -1.3 : -0.8; cls="fail"; txt="לא יצא. זה לא Game Over — זו שורה בדוח."; }
 
   M.score += pts; M.count++;
+  if(grade==="fail") M.errors = (M.errors||0)+1;
 
+  /* WHAT the action produces comes from the choice, never from the position.
+     A centre-back who wins a header at a corner can score; a striker who
+     slides a through ball gets the assist. */
+  var landed = (grade === "great") || (grade === "good" && rnd() < 0.38);
   var outcome = "";
-  if(grade==="great" && risky && rnd() < (hasTrait("finisher") ? 0.55 : 0.42)){
-    if(S.pos==="ST" || S.pos==="W"){
-      if(M.me===M.home){M.hg++;} else {M.ag++;}
-      S.goals++; S.careerGoals++; M.gAdded++; outcome = " שער!";
-      if(!silent){ addEv(M.min, "⚽ שער שלך! "+M.home.ab+" "+M.hg+"–"+M.ag+" "+M.away.ab, "goal"); goalFlash(true); }
-    } else {
-      S.assists++; S.careerAssists++; M.aAdded++; outcome = " בישול!";
-      if(M.me===M.home){M.hg++;} else {M.ag++;}
-      if(!silent){ addEv(M.min, "🅰 בישול שלך — הכדור מגיע ומסתיים ברשת.", "goal"); goalFlash(true); }
-    }
-    var hg = document.getElementById("mHG"), ag = document.getElementById("mAG");
-    if(hg) hg.textContent = M.hg; if(ag) ag.textContent = M.ag;
-  } else if(grade==="great" && !silent){
-    addEv(M.min, "פעולה נקייה שלך — האנליסט יסמן את זה.", "you");
-  } else if(grade==="fail" && !silent){
-    addEv(M.min, "איבוד כדור שלך באזור מסוכן.", "bad");
+
+  if(landed && out === "goal" && rnd() < (hasTrait("finisher") ? 0.72 : 0.6)){
+    if(M.me===M.home) M.hg++; else M.ag++;
+    S.goals++; S.careerGoals++; M.gAdded++; M.score += 1.2;
+    outcome = " שער!";
+    if(!silent){ addEv(M.min, "⚽ שער שלך! "+M.home.ab+" "+M.hg+"–"+M.ag+" "+M.away.ab, "goal"); goalFlash(true); }
   }
+  else if(landed && out === "assist" && rnd() < 0.55){
+    if(M.me===M.home) M.hg++; else M.ag++;
+    S.assists++; S.careerAssists++; M.aAdded++; M.score += 0.9;
+    outcome = " בישול!";
+    if(!silent){ addEv(M.min, "🅰 בישול שלך — הכדור מגיע ומסתיים ברשת.", "goal"); goalFlash(true); }
+  }
+  else if(landed && out === "chance"){
+    M.chances = (M.chances||0)+1; M.score += 0.3;
+    outcome = " הזדמנות נוצרה.";
+    if(!silent) addEv(M.min, "✳ יצרת מצב — האנליסט יסמן את זה.", "you");
+  }
+  else if(landed && (out === "win" || out === "save")){
+    M.duels = (M.duels||0)+1; M.score += 0.35;
+    outcome = out === "save" ? " הצלה!" : " ניצחת את הדו־קרב.";
+    if(!silent) addEv(M.min, (out==="save" ? "🧤 הצלה שלך." : "🛡 חילוץ נקי שלך."), "you");
+  }
+  else if(landed && out === "keep"){
+    M.keeps = (M.keeps||0)+1; M.score += 0.12;
+  }
+  else if(grade === "fail" && !silent){
+    addEv(M.min, (out==="save" ? "🥅 הכדור עבר אותך." : "❌ איבוד כדור שלך באזור מסוכן."), "bad");
+  }
+  else if(grade === "great" && !silent){
+    addEv(M.min, "✔ פעולה נקייה שלך.", "you");
+  }
+
+  var hg = document.getElementById("mHG"), ag = document.getElementById("mAG");
+  if(hg) hg.textContent = M.hg; if(ag) ag.textContent = M.ag;
 
   if(silent) return;
 
@@ -3115,7 +3451,7 @@ function resolveMoment(choice, grade, silent){
   r.className = "res " + cls;
   r.innerHTML = "<b>" + (grade==="great"?"מצוין":(grade==="good"?"סביר":(grade==="poor"?"לקוי":"כישלון"))) + outcome + "</b>" + txt;
 
-  var t = document.getElementById("mTouch"); if(t) t.textContent = "מגעים " + M.count;
+  var tEl = document.getElementById("mTouch"); if(tEl) tEl.textContent = "מגעים " + M.count;
   var rt = document.getElementById("mRate"); if(rt) rt.textContent = "ציון " + liveRating().toFixed(1);
 
   var nx = document.getElementById("moNext");
@@ -3123,9 +3459,48 @@ function resolveMoment(choice, grade, silent){
   nx.onclick = closeMoment;
 }
 
+/* A football rating, not a running total. Most games land 6.0-7.2; 7.5 is a
+   strong performance; 8.5+ should be rare and memorable. */
 function liveRating(){
-  if(!M.count) return 6.0;
-  return clamp(6.0 + M.score*0.42, 3.5, 9.8);
+  if(!M.playing) return 0;
+  var r = 6.15;
+
+  r += (M.gAdded||0) * 1.00;
+  r += (M.aAdded||0) * 0.62;
+  r += (M.chances||0) * 0.16;
+  r += (M.duels||0)  * 0.155;
+  r += (M.keeps||0)  * 0.05;
+  r -= (M.errors||0) * 0.42;
+
+  /* execution across the moments you actually played, normalised */
+  if(M.count) r += clamp(M.score / M.count, -1.2, 1.2) * 0.66;
+
+  /* result and opposition */
+  var myG = M.me===M.home ? M.hg : M.ag;
+  var opG = M.me===M.home ? M.ag : M.hg;
+  r += myG>opG ? 0.22 : (myG<opG ? -0.20 : 0.02);
+  r += clamp((M.opp.rep - club(S.club).rep)/55, -0.22, 0.26);
+
+  /* what your position is expected to deliver */
+  var f = famOf(S.pos);
+  if(f === "ST" && (M.gAdded||0) === 0 && M.mins >= 70) r -= 0.26;
+  if(f === "GK" && opG >= 3) r -= 0.30;
+  if(f === "GK" && opG === 0 && M.mins >= 70) r += 0.34;
+  if(f === "CB" && opG === 0 && M.mins >= 70) r += 0.26;
+  if(f === "CB" && opG >= 3) r -= 0.24;
+
+  /* a cameo regresses toward the middle — you cannot get a 9 in 12 minutes */
+  var wgt = clamp(M.mins/72, 0.30, 1);
+  r = 6.3 + (r - 6.3) * wgt;
+
+  /* fatigue and condition show up in the rating too */
+  r -= clamp((S.load - 80)/180, 0, 0.14);
+  r += clamp((S.sharp - 55)/260, -0.14, 0.14);
+
+  if(M.noise === undefined) M.noise = (rnd()-0.5) * 0.42;
+  r += M.noise;
+
+  return clamp(r, 3.2, 9.7);
 }
 
 function closeMoment(){
@@ -3162,12 +3537,22 @@ function finishMatch(){
     dTrust += (coachFit()-55) * 0.05;
     S.trust = clamp(S.trust + dTrust, 0, 100);
     S.sharp = clamp(S.sharp + 9, 0, 100);
-    S.load  = clamp(S.load + M.mins*(hasTrait("engine") ? 0.21 : 0.28), 0, 100);
+    S.load  = clamp(S.load + M.mins*(hasTrait("engine") ? 0.12 : 0.16), 0, 100);
     S.fit   = clamp(S.fit - M.mins*0.09, 20, 100);
     S.morale= clamp(S.morale + (myG>opG?7:(myG<opG?-4:1)) + (rating-6.6)*3, 0, 100);
   } else {
     S.trust = clamp(S.trust - 1.5, 0, 100);
     S.morale = clamp(S.morale - 4, 0, 100);
+  }
+
+  if(M.playing){
+    S.matches.unshift({
+      s:S.season, w:S.week, opp:M.opp.ab, oppN:M.opp.n, home:M.fx.home,
+      res:(M.me===M.home ? M.hg+"–"+M.ag : M.ag+"–"+M.hg),
+      mins:M.mins, r:Number(rating.toFixed(1)), g:M.gAdded||0, a:M.aAdded||0,
+      comp:"ליגה"
+    });
+    if(S.matches.length > 60) S.matches.pop();
   }
 
   var scoutHit = false;
@@ -3490,6 +3875,12 @@ function nextWeek(){
   S.prep = {video:0, analyst:0, coach:0, unit:0, sp:0};
   S.coachWeeks++;
 
+  S.money += S.wage;
+  if(M && M.playing){
+    S.money += Math.round(S.wage*0.10);                       // appearance
+    S.money += (M.gAdded||0)*Math.round(S.wage*0.35) + (M.aAdded||0)*Math.round(S.wage*0.2);
+  }
+
   runCupWeek();
   runEuroWeek();
   runCoachMarket();
@@ -3697,6 +4088,36 @@ function seasonAwards(place){
   return out;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   THE SHOP — wages come in weekly, and money buys real edges
+   ════════════════════════════════════════════════════════════════ */
+var SHOP = [
+  {id:"drink", i:"🥤", n:"משקה אנרגיה", d:"‎−18 עומס, ‎+8 חדות. מיידי.", cost:6, once:false,
+   run:function(){ S.load = clamp(S.load-18,0,100); S.sharp = clamp(S.sharp+8,0,100); }},
+  {id:"physio", i:"💆", n:"פיזיו פרטי", d:"‎−26 עומס, ‎+14 כשירות.", cost:14, once:false,
+   run:function(){ S.load = clamp(S.load-26,0,100); S.fit = clamp(S.fit+14,20,100); }},
+  {id:"chef", i:"🥗", n:"שף אישי", d:"קבוע: ‎+4 להתאוששות השבועית.", cost:55, once:true,
+   run:function(){ S.a.sta = clamp(S.a.sta+3,1,99); }},
+  {id:"boots", i:"👟", n:"נעליים מותאמות", d:"קבוע: אזור מתוק ‎+6%.", cost:48, once:true,
+   run:function(){ S.perkBoots = true; }},
+  {id:"camp", i:"🏕", n:"מחנה אימון פרטי", d:"‎+2 לכל תכונת מפתח בעמדה.", cost:70, once:false,
+   run:function(){ grow(POS[S.pos].key, 2.2); }},
+  {id:"psych", i:"🧠", n:"פסיכולוג ספורט", d:"קבוע: ‎+1.0 שניות לזמן הקריאה.", cost:60, once:true,
+   run:function(){ S.perkPsych = true; }},
+  {id:"analyst", i:"📊", n:"אנליסט פרטי", d:"קבוע: מודיעין וידאו בכל משחק.", cost:80, once:true,
+   run:function(){ S.perkAnalyst = true; }}
+];
+function buyItem(id){
+  var it = SHOP.filter(function(x){return x.id===id})[0];
+  if(!it || S.money < it.cost) return;
+  if(it.once && S.shopUsed[id]) return;
+  S.money -= it.cost;
+  if(it.once) S.shopUsed[id] = true;
+  it.run();
+  saveGame(); render();
+  toast(it.i + " " + it.n + " נרכש · נותרו ₪" + Math.round(S.money) + "k");
+}
+
 /* ── contract renewal ──────────────────────────────────────────── */
 function renewalOffer(){
   if(S.contractYears > 1) return null;
@@ -3837,6 +4258,9 @@ function loadGame(){
     if(!s.slCd) s.slCd = {};
     if(!s.slEchoes) s.slEchoes = [];
     if(!s.promises) s.promises = [];
+    if(s.money === undefined) s.money = 14;
+    if(!s.shopUsed) s.shopUsed = {};
+    if(!s.matches) s.matches = [];
     s.board = null;
     if(s.euro === undefined) s.euro = null;
     if(s.squad && s.squad.length && !s.squad[0].rel){
@@ -3944,9 +4368,9 @@ function showBoot(){
       + '<input id="bName" maxlength="22" placeholder="למשל: יונתן אשל" value="">'
     + '</div>'
     + '<div class="field"><span class="lbl">עמדה</span><div class="opts" id="bPos">'
-      + Object.keys(POS).map(function(k){
-          return '<button class="opt'+(k===boot.pos?" on":"")+'" data-pos="'+k+'"><b>'+POS[k].n+'</b>'
-            + '<span>'+POS[k].kpi.join(" · ")+'</span></button>';
+      + POS_ORDER.map(function(k){
+          return '<button class="opt posopt'+(k===boot.pos?" on":"")+'" data-pos="'+k+'">'
+            + '<b>'+k+'</b><span>'+POS[k].n+'</span></button>';
         }).join("")
     + '</div></div>'
     + '<div class="field"><span class="lbl">נקודת פתיחה</span><div class="opts" id="bStart">'
