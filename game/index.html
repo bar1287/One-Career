@@ -102,7 +102,7 @@ button{font:inherit;color:inherit}
    rather than inferred through the flex chain — Safari has collapsed that
    chain before, and a collapsed chain means a blank board. 520 = 46 header
    + 474 main; 474 = 448 stage + 26 pager. */
-.main{flex:0 0 474px;display:flex;min-height:0;height:474px}
+.main{flex:0 0 434px;display:flex;min-height:0;height:434px}
 
 .rail{
   flex:0 0 84px;background:var(--surface);border-inline-end:1px solid var(--line2);
@@ -159,10 +159,7 @@ button{font:inherit;color:inherit}
 .xptop{font-size:9.5px}
 .iconbtn{width:28px;height:28px;font-size:13px}
 
-.rail{
-  flex:0 0 62px;padding:7px 6px;gap:3px;overflow:hidden;
-  background:linear-gradient(180deg, var(--surface), var(--sunken));
-}
+.rail{display:none}
 .rail button{padding:6px 2px;border-radius:10px;gap:2px}
 .rail button em{font-size:16px}
 .rail button span{font-size:9px;letter-spacing:.02em}
@@ -202,6 +199,56 @@ th{font-size:9.5px !important}
 .lbl{font-size:9.5px}
 .hint{font-size:10.5px}
 .empty{font-size:11.5px;padding:12px}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   THE MENU — FIFA career shape: categories across the top, the sections
+   of the active category down the side.
+   ════════════════════════════════════════════════════════════════ */
+.tabs{
+  flex:0 0 40px;height:40px;display:flex;align-items:stretch;gap:0;padding:0 8px;
+  background:linear-gradient(180deg, var(--sunken), var(--surface));
+  border-bottom:1px solid var(--line2);position:relative;z-index:4;
+}
+.tab{
+  position:relative;border:0;background:transparent;cursor:pointer;
+  display:flex;align-items:center;gap:6px;padding:0 15px;
+  font-size:12.5px;font-weight:850;color:var(--ink3);letter-spacing:.01em;
+}
+.tab em{font-style:normal;font-size:14px;line-height:1;opacity:.8}
+.tab:hover{color:var(--ink2);background:var(--hover)}
+.tab.on{color:var(--ink)}
+.tab.on em{opacity:1;color:var(--accent)}
+.tab.on::after{
+  content:"";position:absolute;inset-inline:8px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;
+  background:var(--accent);box-shadow:0 -1px 8px rgba(31,111,67,.5);
+}
+.tab .tbadge{
+  font-style:normal;min-width:16px;height:16px;padding:0 4px;border-radius:99px;
+  background:var(--bad);color:#fff;font-size:9.5px;font-weight:900;
+  display:grid;place-items:center;
+}
+
+.subnav{
+  flex:0 0 152px;display:flex;flex-direction:column;gap:1px;padding:8px 7px;
+  background:var(--sunken);border-inline-end:1px solid var(--line2);overflow:hidden;
+}
+.snhead{
+  margin:0 0 6px;padding:0 8px;font-size:9px;font-weight:900;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink3);
+}
+.snitem{
+  border:0;background:transparent;cursor:pointer;text-align:start;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  padding:8px 9px;border-radius:8px;font-size:12px;font-weight:800;color:var(--ink2);
+}
+.snitem i{font-style:normal;opacity:0;font-size:13px;transform:scaleX(-1)}
+.snitem:hover{background:var(--hover);color:var(--ink)}
+.snitem.on{
+  background:var(--surface);color:var(--ink);
+  box-shadow:inset 2px 0 0 var(--accent), 0 1px 3px rgba(23,21,15,.08);
+}
+.snitem.on i{opacity:.55}
 
 /* ══════════════════════════════════════════════════════════════════
    THE GAME SHELL
@@ -261,11 +308,11 @@ body{
 }
 
 .board{
-  flex:1 1 auto;min-width:0;min-height:0;height:474px;
+  flex:1 1 auto;min-width:0;min-height:0;height:434px;
   display:flex;flex-direction:column;overflow:hidden;
 }
 .stage{
-  flex:0 0 420px;height:420px;overflow:hidden;padding:9px 12px 3px;
+  flex:0 0 380px;height:380px;overflow:hidden;padding:9px 12px 3px;
   min-width:0;min-height:0;position:relative;
 }
 /* the action bar is never inside a panel and never scrolls away */
@@ -408,23 +455,27 @@ body{
 
 /* matchday hero */
 .hero{overflow:hidden}
+/* the next-match banner: a three-track grid so the two club names can
+   never collide, however narrow the column gets */
 .heroband{
-  display:flex;align-items:center;gap:14px;padding:16px 18px;
+  display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;gap:7px;padding:11px 11px 12px;
   background:linear-gradient(135deg,var(--sunken),var(--surface));
   border-bottom:1px solid var(--line);position:relative;
 }
 .heroband::before{content:"";position:absolute;inset-inline:0;top:0;height:4px;background:var(--club)}
-.hb{display:flex;align-items:center;gap:11px;flex:1 1 0;min-width:0}
+.hb{display:flex;align-items:center;gap:8px;min-width:0}
 .hb.away{flex-direction:row-reverse;text-align:end}
-.hb b{display:block;font-size:15px;font-weight:850;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hb span{display:block;font-size:11px;color:var(--ink3);font-weight:700}
+.hb>div{min-width:0}
+.hb b{display:block;font-size:12.5px;font-weight:850;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb span{display:block;font-size:10px;color:var(--ink3);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hbc{
-  width:46px;height:46px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;
-  font-size:13px;font-weight:900;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2);
+  width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
+  font-size:11.5px;font-weight:900;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2);
 }
-.hvs{display:flex;flex-direction:column;align-items:center;gap:2px;flex:0 0 auto;padding-inline:8px}
-.hvs b{font-size:19px;font-weight:900;letter-spacing:.04em;color:var(--ink3)}
-@media (max-width:560px){.hb b{font-size:13px}.hbc{width:38px;height:38px}}
+.hvs{display:flex;flex-direction:column;align-items:center;gap:1px;flex:0 0 auto;padding:0 2px}
+.hvs b{font-size:15px;font-weight:900;letter-spacing:.04em;color:var(--ink3)}
+.hvs span{font-size:8.5px;color:var(--ink3);font-weight:800;white-space:nowrap}
 
 .stat{display:flex;flex-direction:column;gap:3px}
 .stat b{font-size:26px;font-weight:850;line-height:1;letter-spacing:-.02em}
@@ -1201,8 +1252,10 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
     <button class="iconbtn" id="hTheme" title="ערכת נושא" aria-label="החלף ערכת נושא">◐</button>
   </header>
 
+  <nav class="tabs" id="tabs"></nav>
+
   <div class="main">
-    <nav class="rail" id="rail"></nav>
+    <nav class="subnav" id="subnav"></nav>
     <div class="board" id="boardWrap">
       <div class="stage" id="stage"></div>
       <div class="actbar" id="actbar"></div>
@@ -1556,6 +1609,7 @@ function newState(name, pos, startId){
     coach:null, coachWeeks:0,
     slCd:{}, slPending:null, slEchoes:[], promises:[], board:null, euroRep:0,
     watch:[], watchClubs:[], seasonSt:blankStats(), roleScores:[],
+    nav:{sec:"home", sub:"today"},
     moves:[], sigCount:0,
     injury:null, injHistory:[], knock:0, comeback:null,
     objectives:[], brand:6, sponsor:null, assets:[], nemesis:null,
@@ -1925,7 +1979,7 @@ function openBoard(i){
     base:null, pushes:{}
   };
   S.board.base = JSON.parse(JSON.stringify(S.board.terms));
-  S.screen = "career"; render();
+  goNav("market","offers"); return;
 }
 
 function pushClause(k){
@@ -1982,7 +2036,7 @@ function acceptOffer(i){
   S.honours.push({s:S.season, t:"עבר מ"+from+" ל"+o.n+" תמורת "+money(o.fee)});
   push("חתמת ב" + o.n + " (" + o.lgName + ") תמורת " + money(o.fee) + ".", "ok");
   S.news.unshift({w:S.week, k:"ok", t:"💰 " + o.n + " חתמו על " + S.name + " תמורת " + money(o.fee) + "."});
-  S.screen = "hub";
+  S.nav = {sec:"home", sub:"today"};
   saveGame();
   render();
   celebrate('<span class="ctag">העברה הושלמה</span>'
@@ -2036,6 +2090,81 @@ function addXp(n){
 var stage = document.getElementById("stage");
 var rail  = document.getElementById("rail");
 
+/* ══════════════════════════════════════════════════════════════════
+   NAVIGATION — the FIFA career shape: six categories across the top,
+   the sections of the active category down the side, one focused board
+   in the middle. Every panel in the game declares where it lives with
+   data-panel="category/section", so the menu is the source of truth and
+   a panel can be moved by editing one attribute.
+   ════════════════════════════════════════════════════════════════ */
+var SECTIONS = [
+  {id:"home", n:"בית", i:"⌂", subs:[
+    {id:"today",      n:"היום"},
+    {id:"objectives", n:"יעדי העונה"},
+    {id:"inbox",      n:"הודעות"},
+    {id:"news",       n:"חדשות"},
+    {id:"status",     n:"מעמד ומאמן"}
+  ]},
+  {id:"player", n:"השחקן", i:"◉", subs:[
+    {id:"card",    n:"כרטיס שחקן"},
+    {id:"attrs",   n:"פיתוח תכונות"},
+    {id:"moves",   n:"מהלכי חתימה"},
+    {id:"kpi",     n:"דוח תפקיד"},
+    {id:"traits",  n:"תכונות והישגים"},
+    {id:"matches", n:"המשחקים שלך"}
+  ]},
+  {id:"club", n:"המועדון", i:"▤", subs:[
+    {id:"depth", n:"מעמד בסגל"},
+    {id:"room",  n:"חדר הלבשה"},
+    {id:"squad", n:"הסגל המלא"}
+  ]},
+  {id:"comp", n:"תחרויות", i:"≡", subs:[
+    {id:"table",    n:"טבלה"},
+    {id:"fixtures", n:"לוח משחקים"},
+    {id:"scorers",  n:"מלך השערים"},
+    {id:"talents",  n:"כישרונות"},
+    {id:"leaders",  n:"מובילות הליגות"}
+  ]},
+  {id:"market", n:"העברות", i:"⇄", subs:[
+    {id:"offers",   n:"הצעות ומו״מ"},
+    {id:"interest", n:"מי מתעניין"},
+    {id:"contract", n:"החוזה שלך"},
+    {id:"search",   n:"מסד השחקנים"},
+    {id:"watch",    n:"רשימת מעקב"}
+  ]},
+  {id:"life", n:"קריירה", i:"✦", subs:[
+    {id:"history", n:"היסטוריה"},
+    {id:"brand",   n:"מיתוג וספונסרים"},
+    {id:"assets",  n:"נכסים"},
+    {id:"shop",    n:"חנות"},
+    {id:"nemesis", n:"היריב שלך"},
+    {id:"nat",     n:"נבחרת"}
+  ]}
+];
+
+function secDef(id){ for(var i=0;i<SECTIONS.length;i++) if(SECTIONS[i].id===id) return SECTIONS[i]; return SECTIONS[0]; }
+function navNow(){
+  if(!S.nav || !S.nav.sec) S.nav = {sec:"home", sub:"today"};
+  var sec = secDef(S.nav.sec);
+  var ok = sec.subs.some(function(x){ return x.id === S.nav.sub; });
+  if(!ok) S.nav.sub = sec.subs[0].id;
+  return S.nav;
+}
+function goNav(sec, sub){
+  S.nav = {sec:sec, sub: sub || secDef(sec).subs[0].id};
+  if(sec === "home" && S.nav.sub === "inbox") S.seen = S.inbox.length;
+  S.screen = sec;
+  render();
+}
+
+/* badge counts that appear on the tabs, the way FIFA flags an inbox */
+function navBadge(secId){
+  if(secId === "home")   return Math.max(0, S.inbox.length - S.seen);
+  if(secId === "player") return S.tp || 0;
+  if(secId === "market") return (S.offers ? S.offers.length : 0) + (S.pendingRenewal ? 1 : 0);
+  return 0;
+}
+
 var NAV = [
   {id:"hub",    i:"◧", t:"היום"},
   {id:"player", i:"◉", t:"השחקן"},
@@ -2073,30 +2202,94 @@ function renderShell(){
   document.getElementById("hXpTxt").dir = "ltr";
   document.getElementById("hXpFill").style.width = clamp(S.xp/xpNeed(S.level)*100, 0, 100) + "%";
 
-  rail.innerHTML = "";
-  NAV.forEach(function(n){
+  renderNav();
+}
+
+function renderNav(){
+  var nav = navNow();
+  var tabs = document.getElementById("tabs");
+  var subnav = document.getElementById("subnav");
+  if(!tabs || !subnav) return;
+
+  tabs.innerHTML = "";
+  SECTIONS.forEach(function(sec){
     var b = document.createElement("button");
-    b.className = S.screen===n.id ? "on" : "";
-    b.innerHTML = "<em>"+n.i+"</em><span>"+n.t+"</span>";
-    if(n.id==="hub" && S.inbox.length>S.seen)
-      b.innerHTML += '<span class="badge">'+(S.inbox.length-S.seen)+'</span>';
-    if(n.id==="player" && S.tp>0)
-      b.innerHTML += '<span class="tp">'+S.tp+'</span>';
-    b.onclick = function(){ S.screen=n.id; if(n.id==="hub") S.seen=S.inbox.length; render(); };
-    rail.appendChild(b);
+    b.className = "tab" + (sec.id === nav.sec ? " on" : "");
+    var badge = navBadge(sec.id);
+    b.innerHTML = '<em>' + sec.i + '</em><span>' + sec.n + '</span>'
+      + (badge ? '<i class="tbadge">' + badge + '</i>' : '');
+    b.onclick = function(){ goNav(sec.id); };
+    tabs.appendChild(b);
   });
+
+  var sec = secDef(nav.sec);
+  subnav.innerHTML = '<p class="snhead">' + sec.n + '</p>';
+  sec.subs.forEach(function(sub){
+    var b = document.createElement("button");
+    b.className = "snitem" + (sub.id === nav.sub ? " on" : "");
+    b.innerHTML = '<span>' + sub.n + '</span><i>›</i>';
+    b.onclick = function(){ goNav(sec.id, sub.id); };
+    subnav.appendChild(b);
+  });
+}
+
+/* Which of the old screen builders a category needs. Panels are tagged, so
+   a category simply renders its sources and keeps what belongs to it. */
+var SEC_SOURCES = {
+  home:   ["hub", "world"],
+  player: ["player", "career"],
+  club:   ["squad"],
+  comp:   ["league", "world"],
+  market: ["career", "world"],
+  life:   ["career", "world"]
+};
+function sourceHtmlFor(sec){
+  var VIEWS = {hub:viewHub, player:viewPlayer, squad:viewSquad,
+               league:viewLeague, world:viewWorld, career:viewCareer};
+  var out = "";
+  (SEC_SOURCES[sec] || ["hub"]).forEach(function(v){
+    try { out += VIEWS[v](); } catch(e){ reportIssue("מקור " + v, e); }
+  });
+  return out;
+}
+function subName(nav){
+  var sec = secDef(nav.sec);
+  for(var i=0;i<sec.subs.length;i++) if(sec.subs[i].id === nav.sub) return sec.subs[i].n;
+  return sec.n;
+}
+function emptyLine(nav){
+  var k = nav.sec + "/" + nav.sub;
+  var L = {
+    "home/inbox":      "אין הודעות חדשות. הן מגיעות מהמאמן, מהסוכן ומהמועדון.",
+    "home/news":       "העולם עוד לא התחיל לזוז. שחק מחזור.",
+    "market/offers":   "אין הצעות על השולחן. דקות, ציונים ודוחות תפקיד הם מה שפותח את השוק.",
+    "market/interest": "אף מועדון לא מסתכל עדיין.",
+    "market/watch":    "לא עקבת אחרי אף אחד. פתח מועדון מהטבלה ולחץ על שחקן.",
+    "life/nemesis":    "עוד לא הוגדר לך יריב.",
+    "player/matches":  "עוד לא שיחקת. הדוחות יופיעו כאן.",
+    "comp/talents":    "רשימת הכישרונות תיפתח אחרי המחזור הראשון."
+  };
+  return L[k] || "אין כאן מידע עדיין.";
 }
 
 function render(){
   try { renderShell(); } catch(e){ reportIssue("HUD", e); }
-  /* a screen that throws shows an error card, not an empty game */
-  var VIEWS = {hub:viewHub, player:viewPlayer, squad:viewSquad,
-               league:viewLeague, world:viewWorld, career:viewCareer};
-  var view = VIEWS[S.screen] || viewHub;
+  var nav = navNow();
   try {
-    stage.innerHTML = view();
+    stage.innerHTML = "";
+    var buf = document.createElement("div");
+    buf.innerHTML = sourceHtmlFor(nav.sec);
+    var want = nav.sec + "/" + nav.sub;
+    var picked = buf.querySelectorAll('[data-panel="' + want + '"]');
+
+    if(!picked.length){
+      stage.innerHTML = '<div class="p"><h3>' + subName(nav) + '</h3><div class="pb">'
+        + '<div class="empty">' + emptyLine(nav) + '</div></div></div>';
+    } else {
+      Array.prototype.forEach.call(picked, function(pl){ stage.appendChild(pl); });
+    }
   } catch(e){
-    reportIssue("מסך " + S.screen, e);
+    reportIssue("מסך " + nav.sec + "/" + nav.sub, e);
     stage.innerHTML = '<div class="p"><h3>שגיאה במסך הזה</h3><div class="pb">'
       + '<p style="margin:0 0 8px;font-size:13px;line-height:1.5">משהו נשבר בציור המסך. '
       + 'שאר המשחק ממשיך לעבוד — נסה מסך אחר מהתפריט.</p>'
@@ -2127,19 +2320,19 @@ function viewHub(){
   var injBanner = "";
   if(isInjured()){
     var pc = Math.round(clamp(S.injury.rehab/S.injury.weeks, 0, 1)*100);
-    injBanner = '<div class="p injp"><h3>🚑 '+S.injury.n+' ב'+S.injury.part+'</h3><div class="pb">'
+    injBanner = '<div class="p injp" data-panel="home/today"><h3>🚑 '+S.injury.n+' ב'+S.injury.part+'</h3><div class="pb">'
       + '<div class="kv"><span>שבועות שנותרו</span><b class="n" style="color:var(--bad)">'+Math.ceil(S.injury.left)+'</b></div>'
       + '<div class="bar" style="margin:8px 0 4px"><i class="w" style="width:'+pc+'%"></i></div>'
       + '<p class="hint" style="margin:8px 0 0">בחר תוכנית שיקום לשבוע. "לדחוף את הקצב" מקצר את ההיעדרות אבל מגדיל את הסיכון להישנות מיד עם החזרה.</p>'
       + (S.injHistory.length > 1 ? '<div class="kv" style="margin-top:8px"><span>פציעות בקריירה</span><b class="n">'+S.injHistory.length+'</b></div>' : '')
     + '</div></div>';
   } else if(S.comeback){
-    injBanner = '<div class="p" style="border-color:var(--warn)"><h3>⚠ חלון חזרה</h3><div class="pb">'
+    injBanner = '<div class="p" style="border-color:var(--warn)" data-panel="home/today"><h3>⚠ חלון חזרה</h3><div class="pb">'
       + '<p style="margin:0;font-size:13.5px;line-height:1.55">חזרת לא מזמן. '+S.comeback.weeks+' שבועות של סיכון מוגבר להישנות ('
       + Math.round(S.comeback.risk)+'%). המאמן ייתן לך פחות דקות, וכל עומס נוסף נספר פעמיים.</p>'
     + '</div></div>';
   } else if(S.knock > 0){
-    injBanner = '<div class="p" style="border-color:var(--warn)"><h3>🩹 אתה משחק עם חבטה</h3><div class="pb">'
+    injBanner = '<div class="p" style="border-color:var(--warn)" data-panel="home/today"><h3>🩹 אתה משחק עם חבטה</h3><div class="pb">'
       + '<p style="margin:0;font-size:13.5px;line-height:1.55">האזור המתוק מצטמצם ב-3.5 נקודות ועוד '+S.knock+' שבועות זה יעבור. "התאוששות ופיזיו" מקצר את זה.</p>'
     + '</div></div>';
   }
@@ -2172,7 +2365,7 @@ function viewHub(){
 
     + (function(){
         if(!S.objectives || !S.objectives.length) return "";
-        return '<div class="p"><h3>יעדי העונה <span class="r">'
+        return '<div class="p" data-panel="home/objectives"><h3>יעדי העונה <span class="r">'
           + S.objectives.filter(function(o){return o.done}).length+'/'+S.objectives.length+'</span></h3><div class="pb">'
         + S.objectives.map(function(ob){
             var st = objState(ob), who = OBJ_WHO[ob.who];
@@ -2188,14 +2381,14 @@ function viewHub(){
       })()
 
     + (S.nemesis && fx && fx.opp === S.nemesis.club && !isInjured()
-      ? '<div class="p" style="border-color:var(--accent)"><h3>🔥 השבוע מול היריב שלך</h3><div class="pb">'
+      ? '<div class="p" style="border-color:var(--accent)" data-panel="home/today"><h3>🔥 השבוע מול היריב שלך</h3><div class="pb">'
         + '<p style="margin:0;font-size:13.5px;line-height:1.55"><b><bdi>'+S.nemesis.n+'</bdi></b> · '
         + POS[S.nemesis.pos].n+' · OVR '+S.nemesis.ovr+'. ראש בראש '
         + S.nemesis.h2h.w+'-'+S.nemesis.h2h.d+'-'+S.nemesis.h2h.l+'. '
         + 'העיתונות תשווה, בין שתרצה ובין שלא.</p></div></div>'
       : '')
 
-    + '<div class="p hero">'
+    + '<div class="p hero" data-panel="home/today">'
       + '<div class="heroband">'
         + '<div class="hb"><div class="hbc" style="background:'+me.c+';color:'+me.t+'">'+me.ab+'</div>'
           + '<div><b>'+me.n+'</b><span>'+(fx.home?"בית":"חוץ")+'</span></div></div>'
@@ -2205,7 +2398,7 @@ function viewHub(){
       + '</div>'
       + '<div class="pb"><div class="days">'+dayHtml+'</div></div></div>'
 
-    + '<div class="p"><h3>תוכנית שבועית'
+    + '<div class="p" data-panel="home/today"><h3>תוכנית שבועית'
       + '<span class="r" style="display:flex;align-items:center;gap:9px">'
       + '<span class="lbl">'+S.picked.length+'/'+S.slots+'</span><span class="slots">'+slotsHtml+'</span></span></h3>'
     + '<div class="pb"><div class="acts">'+actsHtml+'</div>'
@@ -2218,7 +2411,7 @@ function viewHub(){
 
   + '<div style="display:flex;flex-direction:column;gap:14px">'
 
-    + '<div class="p"><h3>מצב גוף</h3><div class="pb" style="display:flex;flex-direction:column;gap:12px">'
+    + '<div class="p" data-panel="home/today"><h3>מצב גוף</h3><div class="pb" style="display:flex;flex-direction:column;gap:12px">'
       + meter("כשירות", S.fit, S.fit<60?"b":(S.fit<75?"w":""))
       + meter("חדות", S.sharp, S.sharp<45?"w":"")
       + meter("עומס מצטבר", S.load, loadCls)
@@ -2226,7 +2419,7 @@ function viewHub(){
       + (S.load>72 ? '<div class="tag b">▲ סיכון פציעה מוגבר — שקול התאוששות</div>' : '')
     + '</div></div>'
 
-    + '<div class="p"><h3>מעמד בסגל</h3><div class="pb">'
+    + '<div class="p" data-panel="home/status"><h3>מעמד בסגל</h3><div class="pb">'
       + '<div class="kv"><span>מעמד</span><b>'+S.status+'</b></div>'
       + '<div class="kv"><span>אמון המאמן</span><b class="n">'+Math.round(S.trust)+'</b></div>'
       + '<div style="margin:8px 0 2px"><div class="bar"><i style="width:'+clamp(S.trust,0,100)+'%" class="'+(S.trust<35?"b":(S.trust<55?"w":""))+'"></i></div></div>'
@@ -2234,7 +2427,7 @@ function viewHub(){
       + '<div class="kv"><span>ציון ממוצע</span><b class="n">'+avgRating().toFixed(2)+'</b></div>'
     + '</div></div>'
 
-    + '<div class="p"><h3>המאמן</h3><div class="pb">'
+    + '<div class="p" data-panel="home/status"><h3>המאמן</h3><div class="pb">'
       + '<div class="coachrow">'
         + '<div class="cavatar">'+S.coach.n.charAt(0)+'</div>'
         + '<div><b>'+S.coach.n+'</b><span>'+S.coach.styleName+' · '+S.coach.styleDesc+'</span></div>'
@@ -2245,7 +2438,7 @@ function viewHub(){
       + '<p class="hint" style="margin:9px 0 0">התאמה טקטית היא ציון נפרד מאמון. היא מזיזה את הדקות שלך בכל שבוע.</p>'
     + '</div></div>'
 
-    + '<div class="p"><h3>עונה</h3><div class="pb">'
+    + '<div class="p" data-panel="home/status"><h3>עונה</h3><div class="pb">'
       + '<div class="kv"><span>🏆 '+S.cup.name+'</span><b>'
         + (S.cup.won ? '<span class="tag g">זכייה!</span>'
            : (S.cup.out ? '<span class="tag b">הודחתם</span>'
@@ -2260,7 +2453,7 @@ function viewHub(){
       + (S.traits.length ? '<div class="kv"><span>✦ תכונות</span><b><span class="tag g">'+S.traits.length+'</span></b></div>' : '')
     + '</div></div>'
 
-    + '<div class="p"><h3>הודעות</h3><div class="pb">'+inboxHtml+'</div></div>'
+    + '<div class="p" data-panel="home/inbox"><h3>הודעות</h3><div class="pb">'+inboxHtml+'</div></div>'
 
   + '</div></div>';
 }
@@ -2383,7 +2576,7 @@ function viewPlayer(){
   + '<div class="grid g2">'
   + '<div style="display:flex;flex-direction:column;gap:14px">'
 
-    + '<div class="p"><h3>פיתוח תכונות'
+    + '<div class="p" data-panel="player/attrs"><h3>פיתוח תכונות'
       + '<span class="r">נקודות אימון: <b class="n" style="color:var(--gold)">'+S.tp+'</b></span></h3>'
       + '<div class="pb"><div class="grps">'+groups+'</div>'
       + '<p class="hint" style="margin:12px 0 0">★ = תכונת מפתח לעמדה שלך; היא מזיזה את ה-OVR הכי הרבה. הקו האנכי בפס הוא הפוטנציאל המשוער שלך — אפשר לעבור אותו, אבל זה נהיה יקר.</p>'
@@ -2392,7 +2585,7 @@ function viewPlayer(){
   + '</div>'
 
   + '<div style="display:flex;flex-direction:column;gap:14px">'
-    + '<div class="p"><h3>הכרטיס שלך</h3><div class="pb">'+card
+    + '<div class="p" data-panel="player/card"><h3>הכרטיס שלך</h3><div class="pb">'+card
       + '<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">'
         + '<span class="tag">'+S.status+'</span>'
         + '<span class="tag '+(avgRating()>=7?"ok":"")+'">ציון '+avgRating().toFixed(2)+'</span>'
@@ -2401,10 +2594,10 @@ function viewPlayer(){
       + '</div>'
     + '</div></div>'
 
-    + '<div class="p"><h3>מגמת ציונים <span class="r">10 אחרונים</span></h3>'
+    + '<div class="p" data-panel="player/card"><h3>מגמת ציונים <span class="r">10 אחרונים</span></h3>'
     + '<div class="pb"><div class="sparks">'+spark+'</div></div></div>'
 
-    + '<div class="p"><h3>תכונות מיוחדות <span class="r">'+S.traits.length+'/'+TRAITS.length+'</span></h3><div class="pb">'
+    + '<div class="p" data-panel="player/traits"><h3>תכונות מיוחדות <span class="r">'+S.traits.length+'/'+TRAITS.length+'</span></h3><div class="pb">'
       + TRAITS.map(function(tr){
           var got = hasTrait(tr.id);
           return '<div class="traitrow'+(got?" on":"")+'">'
@@ -2418,7 +2611,7 @@ function viewPlayer(){
         var open = MOVES.filter(function(mv){ return hasMove(mv.id); });
         var shut = MOVES.filter(function(mv){ return !hasMove(mv.id); })
           .sort(function(a,b){ return moveProgress(b) - moveProgress(a); }).slice(0,4);
-        return '<div class="p" style="border-color:var(--gold)"><h3>מהלכי חתימה <span class="r">'
+        return '<div class="p" style="border-color:var(--gold)" data-panel="player/moves"><h3>מהלכי חתימה <span class="r">'
           + open.length+'/'+MOVES.length+(S.sigCount?' · '+S.sigCount+' הצליחו במשחק':'')+'</span></h3><div class="pb">'
         + (open.length
           ? open.map(function(mv){
@@ -2439,7 +2632,7 @@ function viewPlayer(){
         + '</div></div>';
       })()
 
-    + '<div class="p"><h3>הישגים <span class="r">'+earned.length+'/'+BADGES.length+'</span></h3><div class="pb">'
+    + '<div class="p" data-panel="player/traits"><h3>הישגים <span class="r">'+earned.length+'/'+BADGES.length+'</span></h3><div class="pb">'
       + (earned.length ? '<div class="badges">'+earned.map(function(b){
           return '<span class="bdg" title="'+b.d+'">🏅 '+b.n+'</span>';
         }).join("")+'</div>' : '<div class="empty">עוד לא נפתחו הישגים.</div>')
@@ -2452,12 +2645,12 @@ function viewPlayer(){
     + (function(){
         /* the real thing, aggregated from every stat line this season */
         var mn = S.minutes || 0;
-        if(!mn || !S.seasonSt) return '<div class="p"><h3>KPI לפי תפקיד</h3><div class="pb">'
+        if(!mn || !S.seasonSt) return '<div class="p" data-panel="player/kpi"><h3>KPI לפי תפקיד</h3><div class="pb">'
           + '<div class="empty">שחק משחק ראשון ודוח התפקיד ייפתח.</div></div></div>';
         var rep = roleReport(S.seasonSt, mn, S.pos);
         var avgRole = S.roleScores.length
           ? Math.round(S.roleScores.reduce(function(t,x){return t+x},0)/S.roleScores.length) : rep.score;
-        return '<div class="p"><h3>KPI לפי תפקיד <span class="r">'+POS[S.pos].n+'</span></h3><div class="pb">'
+        return '<div class="p" data-panel="player/kpi"><h3>KPI לפי תפקיד <span class="r">'+POS[S.pos].n+'</span></h3><div class="pb">'
         + '<div class="rolehead"><div class="rolenum '+(avgRole>=72?"":(avgRole>=50?"w":"b"))+'">'+avgRole+'</div>'
         + '<div><span class="lbl">ציון תפקיד ממוצע</span>'
         + '<p style="margin:4px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink2)">'
@@ -2483,7 +2676,7 @@ function viewSquad(){
   var avg = Math.round(S.squad.reduce(function(s,p){return s+p.ovr},0)/S.squad.length);
 
   return '<div class="grid g2"><div style="display:flex;flex-direction:column;gap:14px">'
-    + '<div class="p"><h3>מפת עומק · '+POS[S.pos].n+'</h3><div class="pb tight">'
+    + '<div class="p" data-panel="club/depth"><h3>מפת עומק · '+POS[S.pos].n+'</h3><div class="pb tight">'
     + '<table><thead><tr><th>#</th><th>שחקן</th><th class="r">גיל</th><th class="r">OVR</th><th>מעמד</th></tr></thead><tbody>'
     + rivals.map(function(r,i){
         return '<tr'+(r.me?' class="me"':'')+'><td class="n">'+(i+1)+'</td>'
@@ -2493,7 +2686,7 @@ function viewSquad(){
       }).join("")
     + '</tbody></table></div></div>'
 
-    + '<div class="p"><h3>חדר הלבשה <span class="r">אווירה '+dressingRoom()+'</span></h3><div class="pb">'
+    + '<div class="p" data-panel="club/room"><h3>חדר הלבשה <span class="r">אווירה '+dressingRoom()+'</span></h3><div class="pb">'
       + S.squad.filter(function(pl){ return pl.role || (pl.rel.trust+pl.rel.personal)/2 > 58
             || (pl.rel.trust+pl.rel.personal)/2 < 34; }).slice(0,7).map(function(pl){
           var lab = relLabel((pl.rel.trust+pl.rel.respect+pl.rel.personal)/3);
@@ -2513,7 +2706,7 @@ function viewSquad(){
       + '<p class="hint" style="margin:10px 0 0">שלושת הפסים הם אמון · כבוד מקצועי · חיבור אישי. הם נעים בנפרד — אפשר לזכות בכבוד ולאבד חיבור באותו אירוע.</p>'
     + '</div></div>'
 
-    + '<div class="p"><h3>הסגל המלא <span class="r">ממוצע OVR '+avg+'</span></h3><div class="pb tight">'
+    + '<div class="p" data-panel="club/squad"><h3>הסגל המלא <span class="r">ממוצע OVR '+avg+'</span></h3><div class="pb tight">'
     + '<table><thead><tr><th>עמדה</th><th>שחקן</th><th class="r">גיל</th><th class="r">OVR</th></tr></thead><tbody>'
     + full.map(function(pl){
         return '<tr><td><span class="tag">'+pl.pos+'</span></td>'
@@ -2522,7 +2715,7 @@ function viewSquad(){
       }).join("")
     + '</tbody></table></div></div>'
     + '</div>'
-    + '<div class="p"><h3>למה אתה שם</h3><div class="pb">'
+    + '<div class="p" data-panel="club/depth"><h3>למה אתה שם</h3><div class="pb">'
       + '<p style="margin:0 0 10px;font-size:13.5px;line-height:1.5">'+depthReason()+'</p>'
       + '<div class="kv"><span>אמון המאמן</span><b class="n">'+Math.round(S.trust)+'/100</b></div>'
       + '<div class="kv"><span>התאמה טקטית</span><b class="n">'+Math.round(clamp(S.a.tac+8,0,100))+'/100</b></div>'
@@ -2570,7 +2763,8 @@ function viewLeague(){
   var myGoals = (lid === S.league) ? S.goals : 0;
 
   var relLine = L.clubs.length - 2;
-  return tabs + '<div class="grid g2"><div class="p"><h3>'+L.flag+' '+L.n+' <span class="r">מחזור '+(S.week-1)+'</span></h3><div class="pb tight">'
+  return '<div class="grid g2"><div class="p" data-panel="comp/table"><h3>'+L.flag+' '+L.n+' <span class="r">מחזור '+(S.week-1)+'</span></h3><div class="pb tight">'
+  + tabs
   + '<table><thead><tr><th>#</th><th>מועדון</th><th class="r">מש׳</th><th class="r">נצ׳</th><th class="r">תק׳</th><th class="r">הפ׳</th><th class="r">הפרש</th><th class="r">נק׳</th></tr></thead><tbody>'
   + rows.map(function(r,i){
       var cls = r.c.id===S.club ? "me" : (i<2 ? "cl" : (i>=relLine ? "rel" : ""));
@@ -2583,7 +2777,7 @@ function viewLeague(){
 
   + '<div style="display:flex;flex-direction:column;gap:14px">'
   + (lid===S.league
-    ? '<div class="p"><h3>לוח המשחקים שלך</h3><div class="pb tight"><table><tbody>'
+    ? '<div class="p" data-panel="comp/fixtures"><h3>לוח המשחקים שלך</h3><div class="pb tight"><table><tbody>'
       + S.fixtures.map(function(f,i){
           var o = club(f.opp);
           var done = i < S.week-1;
@@ -2594,7 +2788,7 @@ function viewLeague(){
         }).join("")
       + '</tbody></table></div></div>'
     : '')
-  + '<div class="p"><h3>מלך השערים <span class="r">'+L.n+'</span></h3><div class="pb tight"><table><tbody>'
+  + '<div class="p" data-panel="comp/scorers"><h3>מלך השערים <span class="r">'+L.n+'</span></h3><div class="pb tight"><table><tbody>'
     + scorers.map(function(s,i){
         return '<tr><td class="n">'+(i+1)+'</td><td>'+s.n+'</td>'
           + '<td><span class="sw" style="background:'+club(s.club).c+'"></span>'+club(s.club).ab+'</td>'
@@ -2625,7 +2819,7 @@ function viewWorld(){
   /* the market: the part of a management game you can lose an hour in */
   var mkt = marketRows(24);
   var FAMS = [["all","הכל"],["GK","שוער"],["CB","בלם"],["FB","מגן"],["CM","קשר"],["WIDE","כנף"],["ST","חלוץ"]];
-  var mktHtml = '<div class="p"><h3>שוק השחקנים <span class="r">היקרים בעולם</span></h3><div class="pb tight">'
+  var mktHtml = '<div class="p" data-panel="market/search"><h3>שוק השחקנים <span class="r">היקרים בעולם</span></h3><div class="pb tight">'
     + '<div class="mktbar">'
       + '<button class="sortb'+(MKT_LG==="all"?" on":"")+'" data-mkt="lg:all">כל הליגות</button>'
       + LG_IDS.map(function(id){
@@ -2654,7 +2848,7 @@ function viewWorld(){
     return pl ? {p:pl, k:k} : null;
   }).filter(Boolean);
   var wc = (S.watchClubs||[]).filter(function(c){ return club(c); });
-  var watchHtml = '<div class="p"><h3>רשימת המעקב שלך</h3><div class="pb tight">'
+  var watchHtml = '<div class="p" data-panel="market/watch"><h3>רשימת המעקב שלך</h3><div class="pb tight">'
     + (wl.length || wc.length
       ? (wc.length ? '<div class="mktbar">' + wc.map(function(c){
             return '<button class="sortb" data-club="'+c+'"><span class="sw" style="background:'+club(c).c+'"></span>'+club(c).n+'</button>';
@@ -2673,11 +2867,11 @@ function viewWorld(){
 
   return '<div class="grid g2">'
   + '<div style="display:flex;flex-direction:column;gap:14px">'
-  + '<div class="p"><h3>חדשות העולם</h3><div class="pb" style="display:flex;flex-direction:column;gap:6px">'
+  + '<div class="p" data-panel="home/news"><h3>חדשות העולם</h3><div class="pb" style="display:flex;flex-direction:column;gap:6px">'
     + newsHtml + '</div></div>'
   + watchHtml + '</div>'
   + '<div style="display:flex;flex-direction:column;gap:14px">'
-    + '<div class="p"><h3>כישרונות צעירים <span class="r">'+LEAGUES[S.league].n+' · מקום '+myRank+'</span></h3>'
+    + '<div class="p" data-panel="comp/talents"><h3>כישרונות צעירים <span class="r">'+LEAGUES[S.league].n+' · מקום '+myRank+'</span></h3>'
     + '<div class="pb tight"><table><thead><tr><th>#</th><th>שחקן</th><th>קבוצה</th><th class="r">גיל</th><th class="r">OVR</th><th class="r">פוט׳</th></tr></thead><tbody>'
     + board.slice(0,12).map(function(r,i){
         return '<tr'+(r.me?' class="me"':'')+'><td class="n">'+(i+1)+'</td><td>'+r.n+'</td>'
@@ -2686,7 +2880,7 @@ function viewWorld(){
           + '<td class="r muted">'+r.pot+'</td></tr>';
       }).join("")
     + '</tbody></table></div></div>'
-    + '<div class="p"><h3>מובילות הליגות</h3><div class="pb tight"><table><tbody>'
+    + '<div class="p" data-panel="comp/leaders"><h3>מובילות הליגות</h3><div class="pb tight"><table><tbody>'
     + LG_IDS.map(function(id){
         var c = topOf(id), pts = S.tables[id][c.id].pts, played = S.tables[id][c.id].p;
         return '<tr><td>'+LEAGUES[id].flag+' '+LEAGUES[id].n+'</td>'
@@ -2707,7 +2901,7 @@ function brandPanel(){
   var open = SPONSORS.filter(function(sp){ return (S.brand||0) >= sp.need && (!cur || sp.id !== cur.id); });
   var shut = SPONSORS.filter(function(sp){ return (S.brand||0) < sp.need; });
 
-  return '<div class="p"><h3>מיתוג וספונסרים</h3><div class="pb">'
+  return '<div class="p" data-panel="life/brand"><h3>מיתוג וספונסרים</h3><div class="pb">'
     + '<div class="rolehead"><div class="rolenum '+(b>=65?"":(b>=30?"w":"b"))+'">'+b+'</div>'
       + '<div><span class="lbl">'+t.i+' '+t.n+'</span>'
       + '<p style="margin:4px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink2)">'
@@ -2733,7 +2927,7 @@ function brandPanel(){
 }
 
 function assetPanel(){
-  return '<div class="p"><h3>נכסים <span class="r">₪'+Math.round(S.money)+'k בבנק</span></h3><div class="pb">'
+  return '<div class="p" data-panel="life/assets"><h3>נכסים <span class="r">₪'+Math.round(S.money)+'k בבנק</span></h3><div class="pb">'
     + '<p class="hint" style="margin:0 0 11px">בניגוד לחנות, נכסים הם קבועים. הם נשארים איתך לכל הקריירה.</p>'
     + ASSETS.map(function(a){
         var got = hasAsset(a.id), can = S.money >= a.cost;
@@ -2754,7 +2948,7 @@ function viewCareer(){
       + '<span class="tag '+cls+'">'+lv+'</span></div>';
   }).join("") : '<div class="empty">אף אחד לא מסתכל עדיין.<br>דקות ודוחות תפקיד הם מה שפותח את השוק.</div>';
 
-  var offersHtml = S.offers.length ? '<div class="p" style="border-color:var(--gold)"><h3>🔥 הצעות על השולחן</h3><div class="pb">'
+  var offersHtml = S.offers.length ? '<div class="p" style="border-color:var(--gold)" data-panel="market/offers"><h3>🔥 הצעות על השולחן</h3><div class="pb">'
     + S.offers.map(function(o,i){
         return '<div class="offer">'
           + '<div class="ohead"><span class="ocrest" style="background:'+o.c+';color:'+textOn(o.c)+'">'+o.ab+'</span>'
@@ -2771,7 +2965,7 @@ function viewCareer(){
     + '<button class="btn" id="declineAll" style="margin-top:10px">להישאר ב'+club(S.club).n+'</button>'
     + '</div></div>' : '';
 
-  var renewHtml = S.pendingRenewal ? '<div class="p" style="border-color:var(--accent);margin-bottom:14px">'
+  var renewHtml = S.pendingRenewal ? '<div class="p" style="border-color:var(--accent);margin-bottom:14px" data-panel="market/offers">'
     + '<h3>📝 המועדון מציע חידוש חוזה</h3><div class="pb">'
     + '<div class="oterms">'
       + '<div><span class="lbl">שכר שבועי</span><b>₪'+S.pendingRenewal.wage+'k</b></div>'
@@ -2784,7 +2978,7 @@ function viewCareer(){
     + '<p class="hint" style="margin:9px 0 0">חוזה שנגמר מוריד את שווי השוק שלך ב-45%, אבל נותן כוח מיקוח מול מועדונים אחרים.</p>'
     + '</div></div>' : '';
 
-  var shopHtml = '<div class="p"><h3>חנות <span class="r">₪'+Math.round(S.money)+'k בבנק</span></h3><div class="pb">'
+  var shopHtml = '<div class="p" data-panel="life/shop"><h3>חנות <span class="r">₪'+Math.round(S.money)+'k בבנק</span></h3><div class="pb">'
     + '<div class="shop">' + SHOP.map(function(it){
         var owned = it.once && S.shopUsed[it.id];
         var can = !owned && S.money >= it.cost;
@@ -2798,7 +2992,7 @@ function viewCareer(){
     + '</div></div>';
 
   var mhHtml = S.matches.length
-    ? '<div class="p"><h3>המשחקים שלך <span class="r">ציון ממוצע '+avgRating().toFixed(2)+'</span></h3><div class="pb tight">'
+    ? '<div class="p" data-panel="player/matches"><h3>המשחקים שלך <span class="r">ציון ממוצע '+avgRating().toFixed(2)+'</span></h3><div class="pb tight">'
       + '<table><thead><tr><th>מח׳</th><th>יריבה</th><th>תוצאה</th><th class="r">דק׳</th><th class="r">ש׳</th><th class="r">ב׳</th><th class="r">ציון</th></tr></thead><tbody>'
       + S.matches.slice(0,14).map(function(m){
           var cls = m.r>=7.5?"ok":(m.r>=6.5?"":(m.r>=5.8?"w":"b"));
@@ -2818,7 +3012,7 @@ function viewCareer(){
   if(S.board){
     var B = S.board;
     var pct = clamp(B.tension / B.max * 100, 0, 100);
-    boardHtml = '<div class="p" style="border-color:var(--gold);margin-bottom:14px"><h3>לוח מו״מ · '+B.club.n+'</h3><div class="pb">'
+    boardHtml = '<div class="p" style="border-color:var(--gold);margin-bottom:14px" data-panel="market/offers"><h3>לוח מו״מ · '+B.club.n+'</h3><div class="pb">'
       + '<div class="spread" style="margin-bottom:6px"><span class="lbl">תקציב מתח</span>'
         + '<b class="n" style="color:'+(pct>78?"var(--bad)":(pct>50?"var(--warn)":"var(--accent)"))+'">'+Math.round(pct)+'%</b></div>'
       + '<div class="tension"><i style="width:'+pct+'%"></i></div>'
@@ -2848,17 +3042,17 @@ function viewCareer(){
   + nemesisCard()
   + assetPanel()
   + shopHtml
-  + '<div class="p"><h3>עניין ממועדונים</h3><div class="pb">'+intHtml
+  + '<div class="p" data-panel="market/interest"><h3>עניין ממועדונים</h3><div class="pb">'+intHtml
   + '<p class="hint" style="margin:11px 0 0">מסדרונות ההעברות אמיתיים: קפיצה של עד ~14 נקודות מוניטין מעל ה-OVR שלך. הצעה ממשית מגיעה רק אחרי שסקאוט באמת ראה אותך.</p>'
   + '</div></div>'
-  + '<div class="p"><h3>נבחרת ישראל</h3><div class="pb">'
+  + '<div class="p" data-panel="life/nat"><h3>נבחרת ישראל</h3><div class="pb">'
     + '<div class="kv"><span>סטטוס</span><b>'+(S.natCalled?'<span class="tag ok">בסגל</span>':'<span class="tag">מחוץ לסגל</span>')+'</b></div>'
     + '<div class="kv"><span>הופעות</span><b class="n">'+S.natCaps+'</b></div>'
     + '<div class="kv"><span>שערים</span><b class="n">'+S.natGoals+'</b></div>'
     + '<p class="hint" style="margin:10px 0 0">הזימון נגזר מ-OVR, מהציון הממוצע ומדקות המשחק — והרף עולה מעונה לעונה.</p>'
   + '</div></div>'
-  + '<div class="p"><h3>היסטוריית קריירה</h3><div class="pb">'+honHtml+'</div></div>'
-  + '<div class="p"><h3>חוזה</h3><div class="pb">'
+  + '<div class="p" data-panel="life/history"><h3>היסטוריית קריירה</h3><div class="pb">'+honHtml+'</div></div>'
+  + '<div class="p" data-panel="market/contract"><h3>חוזה</h3><div class="pb">'
     + '<div class="kv"><span>מועדון</span><b>'+club(S.club).n+'</b></div>'
     + '<div class="kv"><span>שנים שנותרו</span><b class="n">'+S.contractYears+'</b></div>'
     + '<div class="kv"><span>שכר שבועי</span><b class="n">₪'+S.wage+'k</b></div>'
@@ -4030,7 +4224,7 @@ function renderActionBar(){
 
   var b = document.getElementById("abPlay");
   if(b) b.onclick = function(){
-    if(!S.picked.length){ S.screen = "hub"; render(); return; }
+    if(!S.picked.length){ goNav("home","today"); return; }
     startWeek();
   };
 }
@@ -4355,7 +4549,7 @@ function nemesisCard(){
   var N = S.nemesis;
   if(!N) return "";
   var mine = S.goals*2 + S.assists, his = N.g*2 + N.a;
-  return '<div class="p" style="border-color:var(--accent)"><h3>היריב שלך <span class="r">'+POS[N.pos].short+'</span></h3><div class="pb">'
+  return '<div class="p" style="border-color:var(--accent)" data-panel="life/nemesis"><h3>היריב שלך <span class="r">'+POS[N.pos].short+'</span></h3><div class="pb">'
     + '<div class="nemhead">'
       + '<div class="nemside"><span class="lbl">אתה</span><b class="n">'+ovr()+'</b>'
         + '<span class="xs">'+S.goals+' שערים · '+S.assists+' בישולים</span></div>'
@@ -4484,7 +4678,7 @@ function rehabWeek(){
   S.money += S.wage;
   runCoachMarket(); runStorylets(); saveGame();
   if(S.week > S.maxWeek) return endSeason();
-  S.screen = "hub"; render();
+  goNav("home","today");
   var got = addXp(xp);
   if(back) toast("🩹 חזרת לכושר. שבועות ראשונים — סיכון להישנות.");
   else toast("שבוע שיקום. עוד " + Math.ceil(S.injury.left) + " שבועות.");
@@ -7120,8 +7314,7 @@ function nextWeek(){
   saveGame();
 
   if(S.week > S.maxWeek) return endSeason();
-  S.screen = "hub"; S.seen = S.inbox.length;
-  render();
+  goNav("home","today");
   if(S.slPending) setTimeout(showStorylet, 260);
 }
 
@@ -7470,9 +7663,9 @@ function endSeason(){
     }
     push("עונה חדשה. הכל מתאפס חוץ ממה שאנשים זוכרים.", "");
     if(openTransferWindow()){
-      S.screen="career"; render();
+      goNav("market","offers");
       toast("חלון ההעברות נפתח — " + S.offers.length + " הצעות");
-    } else { S.screen="hub"; render(); }
+    } else { goNav("home","today"); }
     saveGame();
   };
 }
@@ -7502,6 +7695,7 @@ function loadGame(){
     if(!s || !s.a || !s.pos) return false;
     /* forward-compat: fill anything a newer build expects */
     if(!s.traits) s.traits = [];
+    if(!s.nav || !s.nav.sec) s.nav = {sec:"home", sub:"today"};
     if(!s.slCd) s.slCd = {};
     if(!s.slEchoes) s.slEchoes = [];
     if(!s.promises) s.promises = [];
@@ -7652,7 +7846,7 @@ function showBoot(){
   if(cont) cont.onclick = function(){
     if(loadGame()){
       el.remove();
-      S.screen = "hub";
+      S.nav = {sec:"home", sub:"today"};
       render();
       toast("נטענה קריירה — עונה " + S.season + ", מחזור " + S.week);
     } else {
