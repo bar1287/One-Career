@@ -666,6 +666,25 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 }
 .ratebig .num.w{background:var(--warn)} .ratebig .num.b{background:var(--bad)} .ratebig .num.g{background:var(--gold)}
 
+.moverow{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.moverow:first-of-type{border-top:0}
+.moverow .mvi{
+  width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--sunken);font-size:15px
+}
+.moverow.on .mvi{background:var(--gold-soft);box-shadow:inset 0 0 0 1px var(--gold)}
+.moverow b{display:block;font-size:13px;font-weight:850}
+.moverow span:not(.mvi){display:block;font-size:11.5px;color:var(--ink3);line-height:1.45;margin-top:2px}
+
+.mombar{display:flex;align-items:center;gap:9px;padding:6px 14px;background:var(--card);border-bottom:1px solid var(--line)}
+.mombar .mlab{font-size:10.5px;font-weight:850;color:var(--ink3);white-space:nowrap;min-width:88px}
+.mombar .mtrack{position:relative;flex:1;height:7px;border-radius:99px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)}
+.mombar .mtrack>i{position:absolute;top:0;bottom:0;border-radius:99px;transition:width .3s,inset-inline-start .3s}
+.mombar .mtrack>i.up{background:var(--accent)} .mombar .mtrack>i.dn{background:var(--bad)}
+.mombar .mmid{position:absolute;top:-2px;bottom:-2px;inset-inline-start:50%;width:1px;background:var(--line)}
+.ch.sig{border-color:var(--gold);background:linear-gradient(180deg,var(--gold-soft),var(--card))}
+.ch.sig .u{background:var(--gold);color:#241F20}
+
 .rolehead{display:flex;align-items:center;gap:12px;margin-bottom:4px}
 .rolenum{
   width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto;
@@ -1240,6 +1259,7 @@ function newState(name, pos, startId){
     coach:null, coachWeeks:0,
     slCd:{}, slPending:null, slEchoes:[], promises:[], board:null, euroRep:0,
     watch:[], watchClubs:[], seasonSt:blankStats(), roleScores:[],
+    moves:[], sigCount:0,
     euro:null,
     readMode:"normal",
     seed: (Date.now()%100000)
@@ -2027,6 +2047,32 @@ function viewPlayer(){
         }).join("")
     + '</div></div>'
 
+    + (function(){
+        /* signature moves: what you have, and how close the next one is */
+        var open = MOVES.filter(function(mv){ return hasMove(mv.id); });
+        var shut = MOVES.filter(function(mv){ return !hasMove(mv.id); })
+          .sort(function(a,b){ return moveProgress(b) - moveProgress(a); }).slice(0,4);
+        return '<div class="p" style="border-color:var(--gold)"><h3>מהלכי חתימה <span class="r">'
+          + open.length+'/'+MOVES.length+(S.sigCount?' · '+S.sigCount+' הצליחו במשחק':'')+'</span></h3><div class="pb">'
+        + (open.length
+          ? open.map(function(mv){
+              return '<div class="moverow on"><span class="mvi">'+mv.i+'</span>'
+                + '<div><b>'+mv.n+'</b><span>'+mv.d+'</span></div></div>';
+            }).join("")
+          : '<div class="empty">עוד לא נפתח מהלך. תכונות גבוהות פותחות אותם — והם מופיעים כאפשרות רביעית במצבים המתאימים.</div>')
+        + (shut.length ? '<p class="lbl" style="margin:13px 0 7px">הקרובים לפתיחה</p>'
+            + shut.map(function(mv){
+                var pr = Math.round(moveProgress(mv)*100);
+                var need = Object.keys(mv.req).map(function(k){
+                  return ATTR[k].n+' '+Math.round(S.a[k]||0)+'/'+mv.req[k];
+                }).join(" · ");
+                return '<div class="moverow"><span class="mvi">'+mv.i+'</span>'
+                  + '<div style="flex:1"><b>'+mv.n+'</b><span>'+need+'</span>'
+                  + '<div class="bar" style="margin-top:5px"><i class="'+(pr<70?"w":"")+'" style="width:'+pr+'%"></i></div></div></div>';
+              }).join("") : "")
+        + '</div></div>';
+      })()
+
     + '<div class="p"><h3>הישגים <span class="r">'+earned.length+'/'+BADGES.length+'</span></h3><div class="pb">'
       + (earned.length ? '<div class="badges">'+earned.map(function(b){
           return '<span class="bdg" title="'+b.d+'">🏅 '+b.n+'</span>';
@@ -2483,6 +2529,8 @@ function bind(){
       }
       var got = checkBadges();
       if(got.length) setTimeout(function(){ showBadge(got[0]); }, 320);
+      var mvs = checkMoves();
+      if(mvs.length) setTimeout(function(){ showMove(mvs[0]); }, got.length ? 1400 : 400);
     };
   });
 }
@@ -2876,6 +2924,7 @@ function openMatch(){
     mins: exp.mins, playing: exp.mins>0,
     score:0, count:0, gAdded:0, aAdded:0,
     st: blankStats(), rates:null, noise:undefined,
+    mom:0, htDone:false, htPlan:null, load2:0, extraMoments:0, sigLanded:0,
     running:false, timer:null
   };
 
@@ -2913,6 +2962,9 @@ function matchHtml(){
       + '<span class="g" id="mAG">0</span></div>'
     + '<div class="sbteam away"><div class="sbmini" style="background:'+a.c+';color:'+a.t+'">'+a.ab+'</div><b>'+a.n+'</b></div>'
   + '</div>'
+  + '<div class="mombar"><span class="mlab" id="momTxt">שקול</span>'
+    + '<span class="mtrack"><i id="momFill" class="up" style="inset-inline-start:50%;width:0%"></i>'
+    + '<span class="mmid"></span></span></div>'
   + '<div class="field2">'
     + '<div class="pitchwrap">'
       + '<div class="pitch" id="mPitch"></div>'
@@ -3172,13 +3224,22 @@ function tickMatch(){
   var c = document.getElementById("mClk");
   if(c) c.textContent = M.min + "׳";
 
+  /* halftime: the one moment in the match that is not about the ball */
+  if(M.min === 45 && !M.htDone && M.playing && M.onPitch) return openHalftime();
+
+  /* momentum bleeds back to level — nothing holds for ninety minutes */
+  if(M.mom) { M.mom *= 0.985; if(Math.abs(M.mom) < 1) M.mom = 0; paintMom(); }
+
   if(!M.onPitch && M.playing && M.min===M.entryMin){
     M.onPitch = true;
     var r = document.getElementById("mRole"); if(r) r.textContent = "על המגרש";
     addEv(M.min, "חילוף: אתה נכנס. המאמן: \"לחץ את הבלם השמאלי, אל תרדוף אחרי שער.\"", "you");
   }
 
-  if(M.onPitch && M.playing) ambientTick();
+  if(M.onPitch && M.playing){
+    ambientTick();
+    if(M.load2 && M.min > 45 && M.min % 9 === 0) S.load = clamp(S.load + 0.7, 0, 100);
+  }
 
   var nm = M.moments.filter(function(m){return !m.done && m.min===M.min})[0];
   if(nm && M.onPitch){
@@ -3188,9 +3249,11 @@ function tickMatch(){
     return;
   }
 
-  if(rnd() < 0.028){
-    var homeStr = (M.home.rep + (M.home===M.me?6:0));
-    var awayStr = (M.away.rep + (M.away===M.me?6:0));
+  /* momentum tilts both the volume of chances and who gets them */
+  var momGoal = 0.028 * (1 + Math.abs(momEdge())*0.30);
+  if(rnd() < momGoal){
+    var homeStr = (M.home.rep + (M.home===M.me?6:0)) * (M.home===M.me ? 1 + momEdge()*0.45 : 1 - momEdge()*0.45);
+    var awayStr = (M.away.rep + (M.away===M.me?6:0)) * (M.away===M.me ? 1 + momEdge()*0.45 : 1 - momEdge()*0.45);
     var hs = rnd() < homeStr/(homeStr+awayStr);
     if(hs){ M.hg++; document.getElementById("mHG").textContent = M.hg; }
     else  { M.ag++; document.getElementById("mAG").textContent = M.ag; }
@@ -3198,6 +3261,7 @@ function tickMatch(){
     var good = (scorer === M.me);
     addEv(M.min, (good?"⚽ ":"😞 ") + "שער! " + scorer.n + " " + M.hg + "–" + M.ag, good?"goal":"bad");
     goalFlash(good);
+    M.mom = clamp((M.mom||0) + (good ? 26 : -26), -100, 100); paintMom();
   } else if(rnd() < 0.075){
     var ev = [
       "🎯 הזדמנות גדולה שהוחמצה.", "🟨 כרטיס צהוב.", "🚩 קרן.",
@@ -3277,6 +3341,199 @@ function skipToEnd(){
 }
 
 
+
+
+/* ══════════════════════════════════════════════════════════════════
+   SIGNATURE MOVES
+   The thing you train towards. A move unlocks when the attributes that
+   make it physically possible arrive, and from then on it appears as a
+   FOURTH option inside situations of the right kind — visually apart,
+   with an outcome the ordinary options cannot reach. This is the reward
+   loop training is supposed to have: you do not just get a bigger
+   number, you get a new verb.
+   ════════════════════════════════════════════════════════════════ */
+var MOVES = [
+  {id:"elastico", n:"אלסטיקו", i:"🌀", d:"פנימה־חוצה בנגיעה אחת. המגן הולך לכיוון הלא נכון.",
+   req:{drb:60, agi:56}, on:["carry","receive","offball"],
+   ch:{b:"אלסטיקו", d:"חתימה אישית · אם יוצא, הוא מחוץ למשחק", at:"drb", risk:-2, out:"chance"}},
+
+  {id:"knuckle", n:"בעיטת נאקל", i:"💥", d:"בעיטה בלי סיבוב שמשנה מסלול באוויר. שוערים שונאים אותה.",
+   req:{pow:62, lng:58}, on:["shoot","setpiece"],
+   ch:{b:"בעיטת נאקל", d:"חתימה אישית · השוער לא יקרא את זה", at:"lng", risk:-1, out:"goal"}},
+
+  {id:"nolook", n:"מסירה בלי להסתכל", i:"👁", d:"אתה מסתכל לצד אחד ומוסר לשני.",
+   req:{vis:62, cmp:58}, on:["create","build","receive"],
+   ch:{b:"מסירה בלי להסתכל", d:"חתימה אישית · ההגנה זזה למקום הלא נכון", at:"vis", risk:0, out:"assist"}},
+
+  {id:"panenka", n:"פנלקה", i:"🎩", d:"בעיטה מגולגלת למרכז אחרי שהשוער כבר זינק.",
+   req:{cmp:66}, on:["setpiece"],
+   ch:{b:"פנלקה", d:"חתימה אישית · גיבור או מם", at:"cmp", risk:-3, out:"goal"}},
+
+  {id:"doublemove", n:"תנועה כפולה", i:"↔", d:"צעד לכיוון אחד, פריצה לשני. הבלם נשאר עומד.",
+   req:{acc:62, bal:56}, on:["offball","receive"],
+   ch:{b:"תנועה כפולה", d:"חתימה אישית · אתה נעלם מהבלם", at:"acc", risk:-1, out:"goal"}},
+
+  {id:"slidemaster", n:"החלקה נקייה", i:"🧹", d:"מגלשה שלוקחת כדור בלי לגעת בשחקן.",
+   req:{tkl:62, cmp:56}, on:["defend","aerial"],
+   ch:{b:"החלקה נקייה", d:"חתימה אישית · כדור בלבד, בלי עבירה", at:"tkl", risk:1, out:"win"}},
+
+  {id:"ironhead", n:"נגיחת ברזל", i:"🪨", d:"נגיחה מנקודת אפס עם כל הגוף.",
+   req:{hdr:62, jmp:58}, on:["aerial","setpiece"],
+   ch:{b:"נגיחת ברזל", d:"חתימה אישית · אף שוער לא נהנה מזה", at:"hdr", risk:-1, out:"goal"}},
+
+  {id:"wall", n:"גוף כמו קיר", i:"🧱", d:"אתה מחזיק כדור מול שני שחקנים ולא זז.",
+   req:{str:62, bal:58}, on:["receive","carry","build"],
+   ch:{b:"גוף כמו קיר", d:"חתימה אישית · הם לא יזיזו אותך", at:"str", risk:4, out:"keep"}},
+
+  {id:"claim", n:"יציאה על הכדור", i:"🧤", d:"אתה קוצר הזנות מעל כל הרחבה.",
+   req:{ghan:62, gpos:58}, on:["save"],
+   ch:{b:"יציאה על הכדור", d:"חתימה אישית · הרחבה שלך", at:"ghan", risk:1, out:"save"}},
+
+  {id:"quarterback", n:"פתיחה מדויקת", i:"🎯", d:"ארבעים מטר לרגל, בדיוק לקצב הריצה.",
+   req:{lpa:62}, on:["build","save","create"],
+   ch:{b:"פתיחה ארוכה מדויקת", d:"חתימה אישית · מדלגת על כל הלחץ", at:"lpa", risk:-1, out:"assist"}},
+
+  {id:"firsttime", n:"גימור בנגיעה", i:"⚡", d:"אתה לא מוריד. אתה גומר.",
+   req:{fin:64, ctl:58}, on:["shoot"],
+   ch:{b:"גימור בנגיעה ראשונה", d:"חתימה אישית · אין זמן לחסום", at:"fin", risk:-2, out:"goal"}},
+
+  {id:"presskiller", n:"סיבוב מהלחץ", i:"🔄", d:"קיבלת בגב, יצאת בסיבוב, והמלכודת נשארה מאחור.",
+   req:{agi:62, cmp:60}, on:["build","receive","carry"],
+   ch:{b:"סיבוב מהלחץ", d:"חתימה אישית · שני לוחצים נשארים מאחור", at:"agi", risk:0, out:"chance"}}
+];
+
+function moveReady(mv){
+  for(var k in mv.req) if((S.a[k]||0) < mv.req[k]) return false;
+  return true;
+}
+function hasMove(id){ return S.moves && S.moves.indexOf(id) >= 0; }
+function checkMoves(){
+  if(!S.moves) S.moves = [];
+  var got = [];
+  MOVES.forEach(function(mv){
+    if(S.moves.indexOf(mv.id) < 0 && moveReady(mv)){ S.moves.push(mv.id); got.push(mv); }
+  });
+  return got;
+}
+function showMove(mv){
+  celebrate('<span class="ctag">מהלך חתימה נפתח</span>'
+    + '<div class="cbig" style="font-size:32px">'+mv.i+' '+mv.n+'</div>'
+    + '<div class="csub">'+mv.d+'</div>', "gold");
+}
+/* the moves that could appear in this situation */
+function movesFor(kind){
+  if(!S.moves) return [];
+  return MOVES.filter(function(mv){
+    return S.moves.indexOf(mv.id) >= 0 && mv.on.indexOf(kind) >= 0;
+  });
+}
+/* how close the next one is — shown on the player screen */
+function moveProgress(mv){
+  var t = 0, n = 0;
+  for(var k in mv.req){ t += clamp((S.a[k]||0)/mv.req[k], 0, 1); n++; }
+  return n ? t/n : 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MOMENTUM
+   Football is not 90 independent events. A team that has just scored,
+   or that has just been told the right thing at halftime, plays
+   differently for the next ten minutes — and so does yours. Momentum
+   runs -100..100, decays towards zero, and feeds the execution meter,
+   both teams' scoring chances, and how much space you get.
+   ════════════════════════════════════════════════════════════════ */
+function momShift(v, why){
+  if(!M) return;
+  M.mom = clamp((M.mom||0) + v, -100, 100);
+  if(why) addEv(M.min, (v > 0 ? "📈 " : "📉 ") + why, v > 0 ? "you" : "");
+  paintMom();
+}
+function momEdge(){ return M ? (M.mom||0)/100 : 0; }
+function paintMom(){
+  var el = document.getElementById("momFill");
+  if(!el) return;
+  var m = M.mom || 0;
+  el.style.width = Math.abs(m)/2 + "%";
+  el.style.insetInlineStart = m >= 0 ? "50%" : "auto";
+  el.style.insetInlineEnd = m < 0 ? "50%" : "auto";
+  el.className = m >= 0 ? "up" : "dn";
+  var t = document.getElementById("momTxt");
+  if(t) t.textContent = m >= 45 ? "המשחק שלכם" : (m >= 15 ? "יתרון קטן" :
+    (m > -15 ? "שקול" : (m > -45 ? "הם מובילים בקצב" : "אתם תחת מצור")));
+}
+
+/* ── the halftime talk ────────────────────────────────────────── */
+var HT_TALKS = [
+  {id:"calm",  n:"להרגיע ולהחזיק כדור", d:"פחות סיכון, יותר שליטה", at:"cmp", mom:14, kind:"control"},
+  {id:"press", n:"לדרוש לחץ גבוה", d:"מתיש · מחזיר כדורים גבוה", at:"agg", mom:22, kind:"press"},
+  {id:"me",    n:"לבקש את הכדור עליי", d:"אתה לוקח אחריות · יותר מצבים, יותר סיכון", at:"ctl", mom:10, kind:"me"},
+  {id:"quiet", n:"לשתוק ולתת לקפטן לדבר", d:"לא כל רגע הוא שלך", at:"cmp", mom:6, kind:"quiet"}
+];
+
+function openHalftime(){
+  M.htDone = true;
+  if(M.timer) clearTimeout(M.timer);
+  var myG = M.me===M.home ? M.hg : M.ag, opG = M.me===M.home ? M.ag : M.hg;
+  var head = myG > opG ? "אתם מובילים במחצית" : (myG < opG ? "אתם מפגרים במחצית" : "תיקו במחצית");
+  var talks = HT_TALKS.slice();
+  if(S.trust < 40) talks = talks.filter(function(t){ return t.id !== "me"; });
+
+  var el = document.createElement("div");
+  el.className = "moment"; el.id = "htLayer";
+  el.innerHTML = '<div class="mcard" style="max-width:520px">'
+    + '<div class="mhd"><div><div class="t">מחצית · '+head+'</div>'
+      + '<div class="s">'+M.home.ab+' '+M.hg+'–'+M.ag+' '+M.away.ab+' · מה אתה אומר בחדר?</div></div>'
+      + '<div style="flex:1"></div><span class="tag">'+Math.round(S.load)+'% עומס</span></div>'
+    + '<div class="mbd" style="grid-template-columns:1fr">'
+      + '<div class="choices" id="htCh"></div>'
+      + '<div class="res" id="htRes">חדר ההלבשה מסתכל עליך.</div>'
+    + '</div></div>';
+  document.body.appendChild(el);
+
+  var box = document.getElementById("htCh");
+  talks.forEach(function(t){
+    var b = document.createElement("button");
+    b.className = "ch";
+    b.innerHTML = '<b>'+t.n+'</b><span>'+t.d+'</span>';
+    b.onclick = function(){ resolveHalftime(t, el); };
+    box.appendChild(b);
+  });
+}
+
+function resolveHalftime(t, el){
+  var at = S.a[t.at] || 45;
+  /* your standing in the room decides whether the room listens */
+  var weight = 0.45 + (at-45)/150 + (S.trust-50)/220 + (hasTrait("leader") ? 0.18 : 0);
+  var landed = rnd() < clamp(weight, 0.15, 0.95);
+  var gain = landed ? t.mom : -Math.round(t.mom*0.45);
+
+  M.mom = clamp((M.mom||0) + gain, -100, 100);
+  M.htPlan = t.kind;
+  if(t.kind === "press") M.load2 = 1;            // the second half will cost you
+  if(t.kind === "me")    M.extraMoments = 2;     // you asked for the ball
+
+  var res = document.getElementById("htRes");
+  res.className = "res " + (landed ? "great" : "poor");
+  res.innerHTML = landed
+    ? '<b>הם הקשיבו.</b>' + (t.kind==="press" ? "הלחץ עולה — והרגליים ישלמו." :
+      (t.kind==="me" ? "הכדור יגיע אליך יותר. עכשיו תעשה עם זה משהו." : "הקבוצה יוצאת מסודרת יותר."))
+    : '<b>זה לא נתפס.</b>לא כל מה שאומרים בחדר עובד. חצי שנייה של שקט מגושם.';
+
+  S.trust = clamp(S.trust + (landed ? 1.6 : -0.8), 0, 100);
+
+  setTimeout(function(){
+    el.remove();
+    if(M.extraMoments){
+      /* the moments you asked for, inserted into the second half */
+      for(var i=0;i<M.extraMoments;i++)
+        M.moments.push({min:clamp(52 + i*13 + ri(-4,4), 47, 88), done:false});
+      M.moments.sort(function(a,b){ return a.min-b.min; });
+      M.extraMoments = 0;
+    }
+    paintMom();
+    M.timer = setTimeout(tickMatch, 200);
+  }, landed ? 1100 : 1300);
+}
 
 /* ══════════════════════════════════════════════════════════════════
    THE ROLE REPORT
@@ -4630,6 +4887,18 @@ function openMoment(m){
   if(sit.unl && (S.prep.analyst || S.perkAnalyst)) choices.push(sit.unl);
   if(sit.unl && !S.prep.analyst && sit.unl.big && S.prep.coach) choices.push(sit.unl);
 
+  /* a signature move shows up when the situation fits it — not every time,
+     or it stops being special */
+  var mvs = movesFor(sit.k);
+  if(mvs.length && rnd() < 0.55){
+    var mv = mvs[ri(0, mvs.length-1)];
+    var mc = {};
+    for(var mk in mv.ch) mc[mk] = mv.ch[mk];
+    mc.b = mv.i + " " + mc.b;
+    mc.sig = mv.id;
+    choices.push(mc);
+  }
+
   MO = {m:m, sit:sit, choices:choices, pick:null, readTime:readTime,
         pos:0, dir:1, raf:null, fired:false, tLeft:readTime};
 
@@ -4700,8 +4969,10 @@ function bindMoment(){
   var box = document.getElementById("moCh");
   MO.choices.forEach(function(c, i){
     var b = document.createElement("button");
-    b.className = "ch" + (c.big ? " unl" : "");
-    b.innerHTML = (c.big ? '<span class="u">נפתח מהכנה</span>' : '') + '<b>'+c.b+'</b><span>'+c.d+'</span>';
+    b.className = "ch" + (c.big ? " unl" : "") + (c.sig ? " sig" : "");
+    b.innerHTML = (c.big ? '<span class="u">נפתח מהכנה</span>' : '')
+      + (c.sig ? '<span class="u">מהלך חתימה</span>' : '')
+      + '<b>'+c.b+'</b><span>'+c.d+'</span>';
     b.onclick = function(){ pickChoice(i, b); };
     box.appendChild(b);
   });
@@ -4755,6 +5026,7 @@ function pickChoice(i, btn){
   /* Sweet-zone width is where your stats become difficulty you can feel.
      A 40-rated attribute gives a sliver; an 85 gives a comfortable window. */
   var w = 6 + at*0.34 + S.sharp*0.07 + (S.prep.coach?4:0)
+        + momEdge()*5.5
         - ((M && M.opp ? M.opp.rep : 50) - 48)*0.085
         - Math.max(0, S.load-45)*0.13 - Math.max(0, 70-S.fit)*0.16
         + c.risk*0.55;
@@ -4922,6 +5194,25 @@ function resolveMoment(choice, grade, silent, kind){
   }
 
   momentStats(kind, out, grade, made);
+
+  /* momentum answers to what just happened */
+  if(M){
+    if(made) M.mom = clamp((M.mom||0) + 18, -100, 100);
+    else if(grade === "great") M.mom = clamp((M.mom||0) + 6, -100, 100);
+    else if(grade === "fail")  M.mom = clamp((M.mom||0) - 7, -100, 100);
+    paintMom();
+  }
+
+  /* a signature move that lands is worth remembering */
+  if(choice && choice.sig && (grade === "great" || (grade === "good" && made))){
+    M.sigLanded = (M.sigLanded||0) + 1;
+    S.sigCount = (S.sigCount||0) + 1;
+    if(!silent){
+      var mvo = MOVES.filter(function(x){ return x.id === choice.sig; })[0];
+      if(mvo) addEv(M.min, mvo.i + " " + mvo.n + " — בדיוק כמו באימונים.", "you");
+      confetti(40, ["#E8C766","#1baf7a","#FFFFFF"]);
+    }
+  }
 
   if(silent) return;
 
@@ -5277,6 +5568,8 @@ function finishMatch(){
     if(M.aAdded){ xp += M.aAdded*80;  xpRows.push({l:M.aAdded+" בישולים", v:M.aAdded*80}); }
     if(myG>opG){ xp += 60; xpRows.push({l:"ניצחון", v:60}); }
     if(S.streak>=3){ xp += 50*S.streak; xpRows.push({l:"רצף "+S.streak+" משחקים", v:50*S.streak}); }
+    if(M.sigLanded){ xp += M.sigLanded*90; xpRows.push({l:M.sigLanded+" מהלכי חתימה", v:M.sigLanded*90}); }
+    if(M.role && M.role.score >= 78){ xp += 70; xpRows.push({l:"תפקיד מבוצע במלואו", v:70}); }
 
     /* learning by doing: the attributes you actually leaned on this match */
     var used = POS[S.pos].key.slice(0, 3);
@@ -5291,11 +5584,13 @@ function finishMatch(){
 
   var badges = checkBadges();
   var newTraits = checkTraits();
+  var newMoves = checkMoves();
 
   showPostMatch(rating, myG, opG, scoutHit, {
     xp:xp, rows:xpRows, levels:levels, gains:matchGains,
-    ovrBefore:ovrBefore, ovrAfter:ovrAfter, badges:badges, traits:newTraits
+    ovrBefore:ovrBefore, ovrAfter:ovrAfter, badges:badges, traits:newTraits, moves:newMoves
   });
+  if(newMoves.length) setTimeout(function(){ showMove(newMoves[0]); }, 1500);
   S.trainXp = 0; S.trainGains = [];
 }
 
