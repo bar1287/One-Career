@@ -244,6 +244,7 @@ body{
 .rotcard .roticon{font-size:56px;animation:rot 2.2s ease-in-out infinite}
 .rotcard b{display:block;font-size:20px;font-weight:900;margin:14px 0 8px}
 .rotcard span{display:block;font-size:13.5px;line-height:1.6;opacity:.75}
+.rotcard .btn{margin-top:18px;background:rgba(255,255,255,.1);color:#F7F5F1;border-color:rgba(255,255,255,.2)}
 @keyframes rot{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(-90deg) scale(1.06)}}
 
 /* ── boards and the pager: no scrolling anywhere ──────────────── */
@@ -676,17 +677,36 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 /* ── boot / character creation ─────────────────────────────────── */
 .boot{
   position:fixed;inset:0;z-index:60;background:var(--paper);
-  display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;
+  display:flex;align-items:stretch;justify-content:center;padding:12px;overflow:hidden;
 }
 .bootcard{
-  width:min(760px,100%);background:var(--surface);border:1px solid var(--line2);
-  border-radius:18px;box-shadow:var(--sh2);overflow:hidden;
+  width:100%;max-height:100%;background:var(--surface);border:1px solid var(--line2);
+  border-radius:14px;box-shadow:var(--sh2);overflow:hidden;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);
 }
-.boothd{padding:26px 28px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--sunken),var(--surface))}
-.boothd h1{margin:0;font-size:clamp(30px,5vw,44px);font-weight:900;letter-spacing:-.035em;line-height:1}
+.boothd{
+  padding:16px 18px;border-inline-end:1px solid var(--line);
+  background:linear-gradient(180deg,var(--sunken),var(--surface));
+  display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden;
+}
+.boothd h1{margin:0;font-size:34px;font-weight:900;letter-spacing:-.035em;line-height:1}
 .boothd h1 span{color:var(--accent)}
-.boothd p{margin:9px 0 0;color:var(--ink2);font-size:14px;max-width:56ch}
-.bootbd{padding:22px 28px 26px;display:flex;flex-direction:column;gap:20px}
+.boothd p{margin:0;color:var(--ink2);font-size:12px;line-height:1.5}
+.bootbd{
+  padding:14px 16px;display:flex;flex-direction:column;gap:11px;min-height:0;overflow:hidden;
+}
+.bootbd .field{min-height:0;display:flex;flex-direction:column}
+.bootbd .opts{overflow:hidden}
+.bootbd .field input{padding:8px 11px;font-size:13.5px}
+.bootbd .lbl{margin-bottom:5px}
+.boot .opt{padding:6px 8px;border-radius:9px}
+.boot .opt b{font-size:12px}
+.boot .opt span{font-size:9.5px;line-height:1.3}
+.boot .opts{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.boot #bStart{grid-template-columns:repeat(3,minmax(0,1fr))}
+.boot .btn.big{padding:9px 16px;font-size:13.5px}
+.bootsep{margin:2px 0}
+.bootfoot{margin-top:auto;display:flex;flex-direction:column;gap:8px}
 .field label{display:block;margin-bottom:7px}
 .field input{
   width:100%;padding:11px 13px;border:1px solid var(--ctrl);border-radius:9px;
@@ -971,9 +991,17 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 .clubchip:hover{text-decoration-color:var(--accent);color:var(--accent-ink)}
 
 .pcard .pcbox{
-  width:min(460px,94vw);max-height:92vh;overflow-y:auto;border-radius:18px;background:var(--card);
-  box-shadow:0 24px 60px rgba(0,0,0,.3)
+  width:min(760px,96%);max-height:100%;overflow:hidden;border-radius:16px;background:var(--card);
+  box-shadow:0 24px 60px rgba(0,0,0,.3);display:flex;flex-direction:column
 }
+.pcard .pcbody{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 16px;
+  min-height:0;overflow:hidden;align-content:start
+}
+.pcard .pcbars{grid-column:1}
+.pcard .pcbody>.grid{grid-column:1;margin-top:10px !important}
+.pcard .pccmp{grid-column:2;grid-row:1 / span 2;margin-top:0}
+.pcard .pcacts{grid-column:1 / -1}
 .pcard .pcbar .l{text-align:start}
 .pchead{display:flex;align-items:center;gap:13px;padding:15px 16px;position:relative;border-radius:18px 18px 0 0}
 .pcovr{
@@ -998,7 +1026,7 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 .mktbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}
 
 /* ── the box score and the rating breakdown ────────────────────── */
-.statwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 18px}
+.statwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 14px}
 .statgrp>p{margin:0 0 4px}
 .statgrp .kv{font-size:12.5px;padding:4px 0}
 .statgrp .kv b{font-variant-numeric:tabular-nums}
@@ -1103,7 +1131,8 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 
 <div id="rotate"><div class="rotcard"><div class="roticon">📱</div>
   <b>סובב את המכשיר</b>
-  <span>ONE CAREER נבנה למסך רחב. סובב לרוחב כדי לשחק.</span></div></div>
+  <span>ONE CAREER נבנה למסך רחב. סובב לרוחב כדי לשחק.</span>
+  <button class="btn" id="rotSkip">להמשיך ככה בכל זאת</button></div></div>
 
 <div id="fit">
 <div id="app" dir="rtl" lang="he">
@@ -3703,7 +3732,7 @@ function skipToEnd(){
    own pagers, and the player moves between pages with the arrows, the
    dots, a swipe, or the arrow keys.
    ════════════════════════════════════════════════════════════════ */
-var STAGE_W = 1100, STAGE_H = 520;
+var STAGE_W = 1100, STAGE_H = 520, ROT_SKIP = false;
 
 function layerHost(){ return document.getElementById("layers") || document.body; }
 
@@ -3726,7 +3755,9 @@ function fitStage(){
   app.style.setProperty("--k", k);
   var portrait = vh > vw * 1.02;
   var small = Math.min(vw, vh) < 520;          /* phones and small tablets */
-  document.getElementById("rotate").classList.toggle("on", portrait && small);
+  /* the gate is a suggestion, not a wall: a phone with rotation locked must
+     still be able to get into the game */
+  document.getElementById("rotate").classList.toggle("on", portrait && small && !ROT_SKIP);
 }
 
 /* browsers only grant these from a gesture, and only in fullscreen */
@@ -3955,6 +3986,9 @@ function bindShell(){
     if(e.key === "ArrowRight") showPage(BOARD.page + 1);
     if(e.key === "ArrowLeft")  showPage(BOARD.page - 1);
   });
+
+  var rs = document.getElementById("rotSkip");
+  if(rs) rs.onclick = function(){ ROT_SKIP = true; fitStage(); };
 
   window.addEventListener("resize", fitStage);
   if(window.visualViewport){
@@ -6518,7 +6552,8 @@ function statLineHtml(st, pos){
   return '<div class="p"><h3>גיליון הביצועים</h3><div class="pb">'
     + head
     + (groups ? '<div class="statwrap">'+groups+'</div>' : '<div class="empty">אין נתונים.</div>')
-    + '<p class="lbl" style="margin:16px 0 2px">מה הזיז את הציון</p>'
+    + '</div></div>'
+    + '<div class="p"><h3>מה הזיז את הציון</h3><div class="pb">'
     + '<p class="muted xs" style="margin:0 0 8px">בסיס 6.0 · כל פעולה נשקלת לפי סוגה ולפי כמה היא חריגה לעמדה שלך</p>'
     + '<div class="bd">'+bdHtml+'</div>'
     + '</div></div>';
@@ -7499,13 +7534,16 @@ function showBoot(){
   el.innerHTML = ''
   + '<div class="bootcard">'
   + '<div class="boothd"><h1>ONE <span>CAREER</span></h1>'
-  + '<p>שחקן אחד. מהאקדמיה עד הפרישה. אתה לא מנהל את הקבוצה — אתה נאבק על דקות, קורא מאמן, ומחליט מה לעשות ברגע שהכדור מגיע אליך.</p></div>'
-  + '<div class="bootbd">'
+  + '<p>שחקן אחד. מהאקדמיה עד הפרישה. אתה לא מנהל את הקבוצה — אתה נאבק על דקות, קורא מאמן, ומחליט מה לעשות ברגע שהכדור מגיע אליך.</p>'
+  + '<div class="bootfoot">'
     + (hasSave() ? '<button class="btn pri big" id="bCont">המשך קריירה שמורה ▸</button>'
         + '<div class="bootsep"><span>או התחל חדשה</span></div>' : '')
     + '<div class="field"><span class="lbl">שם השחקן</span>'
       + '<input id="bName" maxlength="22" placeholder="למשל: יונתן אשל" value="">'
     + '</div>'
+    + '<button class="btn pri big" id="bGo">התחל קריירה ▸</button>'
+  + '</div></div>'
+  + '<div class="bootbd">'
     + '<div class="field"><span class="lbl">עמדה</span><div class="opts" id="bPos">'
       + POS_ORDER.map(function(k){
           return '<button class="opt posopt'+(k===boot.pos?" on":"")+'" data-pos="'+k+'">'
@@ -7520,7 +7558,6 @@ function showBoot(){
             + '<span>'+s.d+'<br><b style="color:var(--ink2)">קושי: '+s.diff+'</b></span></button>';
         }).join("")
     + '</div></div>'
-    + '<button class="btn pri big" id="bGo">התחל קריירה ▸</button>'
   + '</div></div>';
   layerHost().appendChild(el);
 
