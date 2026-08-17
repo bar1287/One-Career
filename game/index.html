@@ -377,6 +377,39 @@ button{font:inherit;color:inherit}
 .traitrow b{display:block;font-size:13px;font-weight:850}
 .traitrow span{display:block;font-size:11.5px;color:var(--ink3);line-height:1.35}
 
+.clauses{display:flex;flex-direction:column;gap:6px}
+.clause{
+  display:grid;grid-template-columns:1.1fr auto auto auto;gap:10px;align-items:center;
+  padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);
+}
+.clause.moved{border-color:var(--accent);background:var(--accent-soft)}
+.clause .cln{font-size:13px;font-weight:700}
+.clause .clv{font-size:14px;font-weight:900}
+.clause .clb{font-size:10.5px;color:var(--ink3);font-weight:700;min-width:64px;text-align:end;direction:ltr;unicode-bidi:isolate}
+.clpush{
+  border:1px solid var(--ctrl);background:var(--surface);border-radius:7px;padding:5px 10px;
+  font-size:11.5px;font-weight:800;cursor:pointer;display:flex;gap:5px;align-items:center;
+}
+.clpush:hover{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.clpush em{font-style:normal;font-size:10px;color:var(--ink3)}
+@media (max-width:640px){.clause{grid-template-columns:1fr auto auto}.clause .clb{display:none}}
+
+/* storylet sheet */
+.slcard{max-width:640px}
+.slbd{padding:16px}
+.sltext{margin:0 0 14px;font-size:14.5px;line-height:1.6}
+
+/* dressing room */
+.mate{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 0}
+.mate+.mate{border-top:1px solid var(--line)}
+.mateav{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:var(--sunken);border:1px solid var(--line2);font-size:14px;font-weight:900;color:var(--ink2)}
+.mate b{display:block;font-size:13px;font-weight:800}
+.mate .mr{display:block;font-size:11px;color:var(--ink3)}
+.rel3{display:flex;gap:4px}
+.rel3 i{width:26px;height:5px;border-radius:99px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line);position:relative;overflow:hidden}
+.rel3 i>u{position:absolute;inset-block:0;inset-inline-start:0;background:var(--accent);text-decoration:none}
+
 .awardrow{display:flex;gap:11px;align-items:center;padding:9px 0}
 .awardrow+.awardrow{border-top:1px solid var(--line)}
 .awardrow>span{font-size:20px}
@@ -994,6 +1027,8 @@ function newState(name, pos, startId){
     natCaps:0, natGoals:0, natCalled:false, natWatch:0,
     cup:null, cupRound:0,
     coach:null, coachWeeks:0,
+    slCd:{}, slPending:null, slEchoes:[], promises:[], board:null, euroRep:0,
+    euro:null,
     readMode:"normal",
     seed: (Date.now()%100000)
   };
@@ -1069,10 +1104,51 @@ var SQUAD_POS = ["GK","GK","CB","CB","CB","CB","RB","LB","CM","CM","CM","CM","W"
 
 function buildSquad(){
   var rep = club(S.club).rep;
-  return SQUAD_POS.map(function(pp){
+  var sq = SQUAD_POS.map(function(pp, i){
     var base = clamp(rep + ri(-11, 9), 32, 92);
-    return {n:playerName(), pos:pp, ovr:base, age:ri(18,34), inj:0, form:ri(-1,1), me:false};
+    return {
+      id:"p"+i, n:playerName(), pos:pp, ovr:base, age:ri(18,34), inj:0, me:false,
+      /* three separate relationship axes, exactly as the GDD specifies */
+      rel:{trust:ri(38,55), respect:ri(30,50), personal:ri(30,52)},
+      role:"", mem:[]
+    };
   });
+  /* the captain is the oldest high-rated player; the mentor is an old head;
+     the rival is whoever is closest to you in your own position */
+  var cap = sq.slice().sort(function(a,b){ return (b.ovr + b.age*0.8) - (a.ovr + a.age*0.8); })[0];
+  cap.role = "captain"; cap.rel.respect += 8;
+  var men = sq.filter(function(x){ return x !== cap && x.age >= 29; })
+              .sort(function(a,b){ return b.age - a.age; })[0];
+  if(men){ men.role = "mentor"; }
+  var fam = {GK:["GK"], CB:["CB"], RB:["RB","LB"], LB:["LB","RB"], CM:["CM"], W:["W"], ST:["ST"]}[S.pos] || [S.pos];
+  var riv = sq.filter(function(x){ return fam.indexOf(x.pos) >= 0 && !x.role; })
+              .sort(function(a,b){ return b.ovr - a.ovr; })[0];
+  if(riv){ riv.role = "rival"; riv.rel.personal -= 10; }
+  return sq;
+}
+
+function squadBy(role){ return S.squad.filter(function(p){ return p.role === role; })[0]; }
+function anyMate(){ return S.squad[ri(0, S.squad.length-1)]; }
+function relLabel(v){
+  if(v >= 78) return {t:"מצוין", k:"ok"};
+  if(v >= 62) return {t:"טוב", k:"ok"};
+  if(v >= 45) return {t:"תקין", k:""};
+  if(v >= 30) return {t:"מתוח", k:"w"};
+  return {t:"עוין", k:"b"};
+}
+function dressingRoom(){
+  var t = 0;
+  S.squad.forEach(function(p){ t += (p.rel.trust + p.rel.respect + p.rel.personal)/3; });
+  return Math.round(t / S.squad.length);
+}
+function nudgeRel(p, d){
+  p.rel.trust    = clamp(p.rel.trust    + (d.trust||0),    0, 100);
+  p.rel.respect  = clamp(p.rel.respect  + (d.respect||0),  0, 100);
+  p.rel.personal = clamp(p.rel.personal + (d.personal||0), 0, 100);
+}
+function remember(p, txt){
+  p.mem.unshift({s:S.season, w:S.week, t:txt});
+  if(p.mem.length > 6) p.mem.pop();
 }
 
 /* the league's other young talents — you are ranked against them all game */
@@ -1197,6 +1273,13 @@ var ACTIONS = [
    run:function(){ S.prep.coach=1; S.trust+=2; }},
   {id:"agent", i:"✎", t:"פגישה עם הסוכן",   d:"בודק מי מתעניין ומה שווה כרגע כוח המיקוח.",
    fx:["מודיעין שוק","‎+20 XP"], xp:20, run:function(){ agentMeeting(); }},
+  {id:"room", i:"🤝", t:"זמן עם הקבוצה",  d:"ארוחה, משחק קלפים, להישאר אחרי האימון.",
+   fx:["חדר הלבשה ‎++","‎+25 XP"], xp:25,
+   run:function(){
+     var picks = S.squad.slice().sort(function(){ return Math.random()-0.5; }).slice(0,4);
+     picks.forEach(function(pl){ nudgeRel(pl, {personal:7, trust:4}); });
+     S.morale += 6;
+   }},
   {id:"life", i:"◉", t:"חיים אישיים",       d:"משפחה, חברים, ראש נקי. מוריד לחץ.",
    fx:["מורל ‎++","עומס ‎−","‎+15 XP"], xp:15,
    run:function(){ S.morale+=13; S.load-=6; }}
@@ -1220,7 +1303,7 @@ function availableActions(){
 /* clubs that could plausibly want you right now — reputation-gated */
 function suitorPool(){
   var o = ovr(), out = [];
-  var ceiling = o + 14 + (S.interest.length ? 4 : 0);
+  var ceiling = o + 14 + (S.interest.length ? 4 : 0) + Math.min(14, S.euroRep||0) + (S.natCaps ? 5 : 0);
   LG_IDS.forEach(function(lid){
     if(lid === S.league) return;
     LEAGUES[lid].clubs.forEach(function(c){
@@ -1269,6 +1352,79 @@ function openTransferWindow(){
   });
   return S.offers.length > 0;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   NEGOTIATION BOARD — GDD §10א.2
+   Every clause on one screen. Pushing one clause costs tension; the club
+   has a finite budget, and spending it all makes them walk away.
+   ════════════════════════════════════════════════════════════════ */
+var CLAUSES = [
+  {k:"wage",    n:"שכר שבועי",       unit:"₪", step:0.14, cost:11, fmt:function(v){return "₪"+Math.round(v)+"k"}},
+  {k:"years",   n:"אורך חוזה",        unit:"",  step:1,    cost:6,  fmt:function(v){return Math.round(v)+" שנים"}},
+  {k:"release", n:"סעיף שחרור",       unit:"",  step:-0.18,cost:14, fmt:function(v){return money(Math.round(v))}},
+  {k:"signon",  n:"מענק חתימה",       unit:"",  step:0.22, cost:9,  fmt:function(v){return money(Math.round(v))}},
+  {k:"appear",  n:"בונוס הופעה",      unit:"",  step:0.25, cost:7,  fmt:function(v){return "₪"+Math.round(v)+"k"}},
+  {k:"goal",    n:"בונוס שער/בישול",  unit:"",  step:0.25, cost:7,  fmt:function(v){return "₪"+Math.round(v)+"k"}},
+  {k:"roleIdx", n:"מעמד מובטח",       unit:"",  step:1,    cost:17, fmt:function(v){return ROLES[clamp(Math.round(v),0,3)]}},
+  {k:"image",   n:"זכויות תדמית",     unit:"%", step:8,    cost:8,  fmt:function(v){return Math.round(v)+"%"}}
+];
+var ROLES = ["מחוץ לרוטציה","רוטציה","מסובב ראשון","שחקן מפתח"];
+
+function openBoard(i){
+  var o = S.offers[i];
+  var c = club(o.id);
+  S.board = {
+    offerIndex:i, club:o,
+    tension:0,
+    max: 100 - clamp((c.rep - ovr()) * 2.2, -18, 34),   // stronger clubs concede less
+    walked:false,
+    terms:{
+      wage:o.wage, years:o.years, release: value()*3.2, signon: value()*0.18,
+      appear: Math.max(1, Math.round(o.wage*0.10)), goal: Math.max(1, Math.round(o.wage*0.14)),
+      roleIdx: ROLES.indexOf(o.role) < 0 ? 1 : ROLES.indexOf(o.role), image: 12
+    },
+    base:null, pushes:{}
+  };
+  S.board.base = JSON.parse(JSON.stringify(S.board.terms));
+  S.screen = "career"; render();
+}
+
+function pushClause(k){
+  var B = S.board; if(!B || B.walked) return;
+  var C = CLAUSES.filter(function(x){return x.k===k})[0];
+  B.pushes[k] = (B.pushes[k]||0) + 1;
+  var cost = C.cost * (1 + (B.pushes[k]-1)*0.55);
+  B.tension += cost;
+
+  if(C.k === "years" || C.k === "roleIdx") B.terms[k] = B.terms[k] + C.step;
+  else B.terms[k] = B.terms[k] * (1 + C.step);
+  if(C.k === "roleIdx") B.terms.roleIdx = clamp(B.terms.roleIdx, 0, 3);
+  if(C.k === "years")   B.terms.years   = clamp(B.terms.years, 1, 6);
+
+  if(B.tension > B.max){
+    B.walked = true;
+    push(B.club.n + " נסוגו מהמו״מ. דחפת חזק מדי.", "b");
+    S.offers.splice(B.offerIndex, 1);
+    S.board = null;
+    render();
+    celebrate('<span class="ctag">המו״מ נשבר</span><div class="cbig" style="font-size:28px">'+B.club.n+' פרשו</div>'
+      + '<div class="csub">לכל צד יש תקציב מתח. זה נגמר.</div>', "gold");
+    return;
+  }
+  render();
+}
+
+function signBoard(){
+  var B = S.board; if(!B) return;
+  var o = S.offers[B.offerIndex];
+  o.wage = Math.round(B.terms.wage);
+  o.years = Math.round(B.terms.years);
+  o.role = ROLES[clamp(Math.round(B.terms.roleIdx),0,3)];
+  o.signon = Math.round(B.terms.signon);
+  S.board = null;
+  acceptOffer(B.offerIndex);
+}
+function cancelBoard(){ S.board = null; render(); }
 
 function acceptOffer(i){
   var o = S.offers[i];
@@ -1501,6 +1657,10 @@ function viewHub(){
       + '<div class="kv"><span>🇮🇱 נבחרת</span><b>'
         + (S.natCaps ? '<span class="tag ok">'+S.natCaps+' הופעות · '+S.natGoals+' שערים</span>'
            : (S.natCalled ? '<span class="tag ok">זומנת</span>' : '<span class="tag">טרם זומנת</span>')) + '</b></div>'
+      + (S.euro ? '<div class="kv"><span>🌍 '+EURO_COMPS[S.euro.comp].n+'</span><b>'
+          + (S.euro.won ? '<span class="tag g">זכייה!</span>'
+             : (S.euro.out ? '<span class="tag b">הודחתם</span>'
+                : '<span class="tag ok">'+EURO_COMPS[S.euro.comp].stages[Math.min(S.euro.stage,4)]+'</span>')) + '</b></div>' : '')
       + (S.traits.length ? '<div class="kv"><span>✦ תכונות</span><b><span class="tag g">'+S.traits.length+'</span></b></div>' : '')
     + '</div></div>'
 
@@ -1695,6 +1855,26 @@ function viewSquad(){
       }).join("")
     + '</tbody></table></div></div>'
 
+    + '<div class="p"><h3>חדר הלבשה <span class="r">אווירה '+dressingRoom()+'</span></h3><div class="pb">'
+      + S.squad.filter(function(pl){ return pl.role || (pl.rel.trust+pl.rel.personal)/2 > 58
+            || (pl.rel.trust+pl.rel.personal)/2 < 34; }).slice(0,7).map(function(pl){
+          var lab = relLabel((pl.rel.trust+pl.rel.respect+pl.rel.personal)/3);
+          var roleN = {captain:"קפטן", mentor:"מנטור", rival:"מתחרה לעמדה"}[pl.role] || pl.pos;
+          return '<div class="mate">'
+            + '<span class="mateav">'+pl.n.charAt(0)+'</span>'
+            + '<div><b>'+pl.n+'</b><span class="mr">'+roleN+' · OVR '+pl.ovr
+              + (pl.mem.length ? ' · "'+pl.mem[0].t+'"' : '') + '</span></div>'
+            + '<div style="text-align:end"><span class="tag '+lab.k+'">'+lab.t+'</span>'
+              + '<div class="rel3" style="margin-top:5px">'
+                + '<i title="אמון"><u style="width:'+pl.rel.trust+'%"></u></i>'
+                + '<i title="כבוד מקצועי"><u style="width:'+pl.rel.respect+'%"></u></i>'
+                + '<i title="חיבור אישי"><u style="width:'+pl.rel.personal+'%"></u></i>'
+              + '</div></div>'
+          + '</div>';
+        }).join("")
+      + '<p class="hint" style="margin:10px 0 0">שלושת הפסים הם אמון · כבוד מקצועי · חיבור אישי. הם נעים בנפרד — אפשר לזכות בכבוד ולאבד חיבור באותו אירוע.</p>'
+    + '</div></div>'
+
     + '<div class="p"><h3>הסגל המלא <span class="r">ממוצע OVR '+avg+'</span></h3><div class="pb tight">'
     + '<table><thead><tr><th>עמדה</th><th>שחקן</th><th class="r">גיל</th><th class="r">OVR</th></tr></thead><tbody>'
     + full.map(function(pl){
@@ -1851,7 +2031,7 @@ function viewCareer(){
             + '<div><span class="lbl">מעמד מובטח</span><b>'+o.role+'</b></div>'
             + '<div><span class="lbl">אורך חוזה</span><b>'+o.years+' שנים</b></div>'
           + '</div>'
-          + '<button class="btn pri" data-accept="'+i+'">לחתום ב'+o.n+' ▸</button>'
+          + '<button class="btn pri" data-accept="'+i+'">לפתוח מו״מ עם '+o.n+' ▸</button>'
         + '</div>';
       }).join("")
     + '<button class="btn" id="declineAll" style="margin-top:10px">להישאר ב'+club(S.club).n+'</button>'
@@ -1874,7 +2054,36 @@ function viewCareer(){
     ? S.honours.map(function(h){ return '<div class="kv"><span>'+h.t+'</span><span class="tag">עונה '+h.s+'</span></div>'; }).join("")
     : '<div class="empty">עוד לא נכתבה היסטוריה.</div>';
 
-  return renewHtml + offersHtml + '<div class="grid g2">'
+  var boardHtml = "";
+  if(S.board){
+    var B = S.board;
+    var pct = clamp(B.tension / B.max * 100, 0, 100);
+    boardHtml = '<div class="p" style="border-color:var(--gold);margin-bottom:14px"><h3>לוח מו״מ · '+B.club.n+'</h3><div class="pb">'
+      + '<div class="spread" style="margin-bottom:6px"><span class="lbl">תקציב מתח</span>'
+        + '<b class="n" style="color:'+(pct>78?"var(--bad)":(pct>50?"var(--warn)":"var(--accent)"))+'">'+Math.round(pct)+'%</b></div>'
+      + '<div class="tension"><i style="width:'+pct+'%"></i></div>'
+      + '<p class="hint" style="margin:7px 0 12px">כל דחיפה עולה יותר מהקודמת. אם התקציב נגמר — הם קמים מהשולחן.</p>'
+      + '<div class="clauses">'
+      + CLAUSES.map(function(C){
+          var cur = B.terms[C.k], base = B.base[C.k];
+          var moved = Math.abs(cur - base) > 0.001;
+          var nextCost = Math.round(C.cost * (1 + ((B.pushes[C.k]||0))*0.55));
+          return '<div class="clause'+(moved?" moved":"")+'">'
+            + '<span class="cln">'+C.n+'</span>'
+            + '<span class="clv n">'+C.fmt(cur)+'</span>'
+            + (moved ? '<span class="clb n">היה '+C.fmt(base)+'</span>' : '<span class="clb"></span>')
+            + '<button class="clpush" data-push="'+C.k+'">לדחוף <em class="n">'+nextCost+'</em></button>'
+          + '</div>';
+        }).join("")
+      + '</div>'
+      + '<div class="row" style="margin-top:12px">'
+        + '<button class="btn pri big" id="bSign">לחתום ▸</button>'
+        + '<button class="btn" id="bCancel">לחזור להצעות</button>'
+      + '</div>'
+    + '</div></div>';
+  }
+
+  return boardHtml + renewHtml + offersHtml + '<div class="grid g2">'
   + '<div class="p"><h3>עניין ממועדונים</h3><div class="pb">'+intHtml
   + '<p class="hint" style="margin:11px 0 0">מסדרונות ההעברות אמיתיים: קפיצה של עד ~14 נקודות מוניטין מעל ה-OVR שלך. הצעה ממשית מגיעה רק אחרי שסקאוט באמת ראה אותך.</p>'
   + '</div></div>'
@@ -1912,10 +2121,15 @@ function bind(){
   var cl = document.getElementById("clear"); if(cl) cl.onclick = function(){ S.picked=[]; render(); };
 
   Array.prototype.forEach.call(stage.querySelectorAll("[data-accept]"), function(b){
-    b.onclick = function(){ acceptOffer(+b.getAttribute("data-accept")); };
+    b.onclick = function(){ openBoard(+b.getAttribute("data-accept")); };
   });
   var dec = document.getElementById("declineAll");
   if(dec) dec.onclick = declineOffers;
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-push]"), function(b){
+    b.onclick = function(){ pushClause(b.getAttribute("data-push")); };
+  });
+  var bs = document.getElementById("bSign");   if(bs) bs.onclick = signBoard;
+  var bc = document.getElementById("bCancel"); if(bc) bc.onclick = cancelBoard;
   var ry = document.getElementById("renewYes"); if(ry) ry.onclick = acceptRenewal;
   var rn = document.getElementById("renewNo");  if(rn) rn.onclick = rejectRenewal;
 
@@ -1969,6 +2183,322 @@ document.getElementById("hTheme").onclick = function(){
   var next = cur==="dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", next);
 };
+
+/* ══════════════════════════════════════════════════════════════════
+   STORYLET ENGINE — GDD §19
+   Each storylet declares when it may appear, who is in it, what you can
+   do about it, and what it leaves behind. The weekly director filters
+   candidates, weights them, and fires at most one.
+   ════════════════════════════════════════════════════════════════ */
+function echo(weeks, txt, kind){
+  S.slEchoes.push({w: S.week + weeks, s: S.season, t: txt, k: kind || ""});
+}
+function promise(what, weeks){
+  S.promises.push({what: what, due: S.week + weeks, season: S.season, done: false});
+}
+
+var STORYLETS = [
+  { id:"bench_talk", fam:"selection", cd:9, w:3,
+    req:function(){ return S.careerApps >= 3 && S.trust < 44; },
+    build:function(){ return {
+      who:S.coach.n, tag:"מאמן ראשי",
+      title:"למה אני לא משחק?",
+      text:"ביקשת פגישה. הוא לא מתחמק: \"אתה לא בהרכב כי " + (coachFit()<50 ? "אתה לא מתאים לשיטה שאני משחק בה" : "אני לא בטוח בך ברגעים הקשים") + ". תגיד לי מה אתה רוצה לעשות עם זה.\"",
+      choices:[
+        {t:"לבקש תוכנית אישית", d:"הוא ייתן לך יעדים — ויזכור אם לא תעמוד בהם",
+         fx:function(){ S.trust = clamp(S.trust+5,0,100); promise("לעמוד בתוכנית האישית", 6);
+           echo(6, "המאמן בודק אם עמדת בתוכנית שקיבלת.", "w");
+           return "קיבלת תוכנית. עכשיו זה עליך."; }},
+        {t:"לבקש השאלה", d:"דקות מובטחות במקום אחר — אבל אתה יוצא מהראש שלו",
+         fx:function(){ S.trust = clamp(S.trust-6,0,100); S.morale += 6;
+           S.interest.push.apply(S.interest, []);
+           echo(4, "הסוכן בודק אפשרויות השאלה בליגה נמוכה יותר.", "");
+           return "הוא ירשום את זה. השוק ידע."; }},
+        {t:"לשתוק ולעבוד", d:"בלי הבטחות, בלי סיכון",
+         fx:function(){ S.a.sta = clamp(S.a.sta+1,1,99); S.morale -= 3;
+           return "הוא לא אמר כלום. זה גם מסר."; }}
+      ]}; } },
+
+  { id:"captain_backing", fam:"dressing", cd:14, w:3,
+    req:function(){ return squadBy("captain") && S.ratings.length >= 2 && avgRating() < 6.5; },
+    build:function(){ var c = squadBy("captain"); return {
+      who:c.n, tag:"קפטן",
+      title:"הקפטן תופס אותך במסדרון",
+      text:"\"שמע, אני רואה שאתה בראש. אני יכול לדבר עם המאמן בשבילך — אבל אז אתה חייב לי אחת.\"",
+      choices:[
+        {t:"לקבל את העזרה", d:"אמון עולה, אבל אתה בחוב",
+         fx:function(){ S.trust = clamp(S.trust+7,0,100); nudgeRel(c,{personal:9, respect:-4});
+           remember(c,"עזרתי לו מול המאמן");
+           echo(9, c.n + " מזכיר לך שהוא עזר לך פעם.", "");
+           return "הוא ידבר איתו הערב."; }},
+        {t:"לסרב בנימוס", d:"לפתור את זה לבד",
+         fx:function(){ nudgeRel(c,{respect:11, personal:-2});
+           return "\"בסדר. אני מכבד את זה.\""; }}
+      ]}; } },
+
+  { id:"rival_press", fam:"dressing", cd:16, w:3,
+    req:function(){ return squadBy("rival") && S.careerApps >= 5; },
+    build:function(){ var r = squadBy("rival"); return {
+      who:r.n, tag:"מתחרה לעמדה",
+      title:"המתחרה שלך טעה — והתקשורת מחכה",
+      text:r.n + " עשה טעות שעלתה בשער. שאלו אותך עליו בראיון.",
+      choices:[
+        {t:"להגן עליו", d:"חדר ההלבשה רואה הכל",
+         fx:function(){ nudgeRel(r,{personal:16, trust:9}); remember(r,"הגן עליי בתקשורת");
+           S.squad.forEach(function(p){ nudgeRel(p,{respect:3}); });
+           echo(12, r.n + " החזיר לך טובה כשהיית צריך.", "ok");
+           return "הוא לא שכח את זה."; }},
+        {t:"לא להגיב", d:"ניטרלי — ולכן גם נקרא",
+         fx:function(){ nudgeRel(r,{personal:-4});
+           return "השתיקה שלך נשמעה."; }},
+        {t:"לרמוז שאתה מוכן", d:"המאמן ישמע. גם חדר ההלבשה",
+         fx:function(){ S.trust = clamp(S.trust+4,0,100); nudgeRel(r,{personal:-18, trust:-12});
+           S.squad.forEach(function(p){ nudgeRel(p,{respect:-3}); });
+           remember(r,"ניצל את הטעות שלי");
+           echo(8, "חדר ההלבשה עדיין זוכר את הראיון ההוא.", "w");
+           return "המאמן שמע. וגם כולם."; }}
+      ]}; } },
+
+  { id:"mentor_offer", fam:"dressing", cd:20, w:2,
+    req:function(){ return squadBy("mentor") && S.age <= 23; },
+    build:function(){ var m = squadBy("mentor"); return {
+      who:m.n, tag:"ותיק",
+      title:"הוותיק מציע לקחת אותך תחת חסותו",
+      text:"\"תישאר אחרי האימון פעמיים בשבוע. אני אלמד אותך דברים שלא מלמדים.\"",
+      choices:[
+        {t:"להסכים", d:"עומס נוסף, אבל התקדמות אמיתית",
+         fx:function(){ nudgeRel(m,{personal:14, trust:10}); S.load += 8;
+           grow(POS[S.pos].key.slice(0,2), 1.4);
+           echo(10, m.n + " אומר שאתה מתקדם מהר יותר ממה שציפה.", "ok");
+           return "הוא יחכה לך מחר ב-7."; }},
+        {t:"לוותר", d:"לשמור על הגוף",
+         fx:function(){ nudgeRel(m,{personal:-6}); S.load = clamp(S.load-4,0,100);
+           return "\"תחשוב על זה שוב בעוד שנה.\""; }}
+      ]}; } },
+
+  { id:"agent_leak", fam:"transfer", cd:12, w:3,
+    req:function(){ return S.interest.length > 0; },
+    build:function(){ var x = S.interest[0]; return {
+      who:"הסוכן שלך", tag:"סוכן",
+      title:"הסוכן רוצה להדליף את העניין",
+      text:"\"" + x.n + " שאלו עליך. אם אני מדליף את זה לעיתונות, המחיר שלך עולה — והמועדון שלך יידע שאתה בשוק.\"",
+      choices:[
+        {t:"להדליף", d:"מינוף בחוזה, נזק לאמון",
+         fx:function(){ x.lvl = Math.min(3, x.lvl+1); S.trust = clamp(S.trust-9,0,100);
+           S.news.unshift({w:S.week,k:"w",t:"📰 דיווח: " + x.n + " עוקבים אחרי " + S.name + "."});
+           echo(5, "המאמן שאל אותך אם אתה רוצה להישאר.", "w");
+           return "זה בעיתונים מחר."; }},
+        {t:"לשמור בסוד", d:"אמון נשמר, הזדמנות מתקררת",
+         fx:function(){ S.trust = clamp(S.trust+5,0,100);
+           return "\"בסדר. אבל דלתות לא נשארות פתוחות לנצח.\""; }}
+      ]}; } },
+
+  { id:"media_crisis", fam:"media", cd:13, w:2,
+    req:function(){ return S.careerApps >= 6; },
+    build:function(){ return {
+      who:"עיתונאי ספורט", tag:"תקשורת",
+      title:"שאלה לא נעימה אחרי המשחק",
+      text:"\"הקבוצה לא מתפקדת. אתה חושב שהמאמן איבד את חדר ההלבשה?\"",
+      choices:[
+        {t:"לגבות את המאמן", d:"בטוח, וגם נכון",
+         fx:function(){ S.trust = clamp(S.trust+6,0,100); S.morale += 3;
+           return "הוא קרא את זה בבוקר."; }},
+        {t:"לקחת אחריות אישית", d:"הקהל אוהב, המאמן מעריך",
+         fx:function(){ S.trust = clamp(S.trust+4,0,100);
+           S.squad.forEach(function(p){ nudgeRel(p,{respect:4}); });
+           return "\"לפחות אחד מהם אומר משהו אמיתי.\""; }},
+        {t:"לומר את האמת", d:"כן — וזה יעלה לך",
+         fx:function(){ S.trust = clamp(S.trust-14,0,100);
+           S.news.unshift({w:S.week,k:"b",t:"📰 " + S.name + " ברמיזה על המאמן."});
+           echo(6, "הראיון ההוא עדיין רודף אותך.", "b");
+           return "זה יהיה בכותרות."; }}
+      ]}; } },
+
+  { id:"pain_choice", fam:"medical", cd:11, w:3,
+    req:function(){ return S.load >= 68; },
+    build:function(){ return {
+      who:"מדען הספורט", tag:"רפואה",
+      title:"הגוף מדליק נורה",
+      text:"הנתונים מראים עומס גבוה. \"אתה יכול לשחק. אני לא אומר שכדאי.\" המאמן רוצה אותך בהרכב.",
+      choices:[
+        {t:"לשחק דרך זה", d:"דקות עכשיו, סיכון אחר כך",
+         fx:function(){ S.trust = clamp(S.trust+6,0,100); S.load += 9;
+           echo(3, "הכאב בירך לא נעלם.", "w");
+           return "אתה בהרכב."; }},
+        {t:"לבקש מנוחה", d:"הגוף מודה, המאמן פחות",
+         fx:function(){ S.load = clamp(S.load-24,0,100); S.fit += 9; S.trust = clamp(S.trust-5,0,100);
+           return "אתה מחוץ לסגל השבוע."; }},
+        {t:"חוות דעת שנייה", d:"עולה זמן — אבל מידע אמיתי",
+         fx:function(){ S.load = clamp(S.load-12,0,100);
+           if(rnd()<0.5){ return "הרופא החיצוני מרגיע: אין נזק מבני."; }
+           S.load = clamp(S.load-14,0,100);
+           return "הרופא החיצוני מוצא עומס אמיתי. טוב שבדקת."; }}
+      ]}; } },
+
+  { id:"family_move", fam:"life", cd:24, w:2,
+    req:function(){ return S.season >= 2; },
+    build:function(){ return {
+      who:"המשפחה", tag:"חיים",
+      title:"שיחה בבית",
+      text:"הם רוצים לדעת אם אתה מתכנן להישאר, כי צריך להחליט על דברים אמיתיים — דירה, בית ספר, עבודה.",
+      choices:[
+        {t:"להבטיח יציבות", d:"ראש שקט, פחות גמישות",
+         fx:function(){ S.morale += 14; S.trust = clamp(S.trust+3,0,100);
+           return "הלחץ בבית ירד."; }},
+        {t:"לומר שאתה לא יודע", d:"כן, אבל זה עולה",
+         fx:function(){ S.morale -= 8;
+           echo(7, "בבית עדיין מחכים לתשובה.", "w");
+           return "הם מבינים. זה לא אומר שזה קל."; }}
+      ]}; } },
+
+  { id:"fan_moment", fam:"media", cd:18, w:2,
+    req:function(){ return S.careerApps >= 10; },
+    build:function(){ return {
+      who:"אוהד צעיר", tag:"אוהדים",
+      title:"ילד מחכה לך אחרי האימון",
+      text:"הוא לובש חולצה עם השם שלך. אמא שלו מתנצלת שהוא מחכה שעה.",
+      choices:[
+        {t:"לתת לו את החולצה שלך", d:"זה מגיע לרשתות",
+         fx:function(){ S.morale += 9;
+           S.news.unshift({w:S.week,k:"ok",t:"❤ " + S.name + " נתן את חולצתו לילד אחרי האימון."});
+           return "התמונה הזאת תרוץ."; }},
+        {t:"חתימה ותמונה", d:"פשוט ונכון",
+         fx:function(){ S.morale += 4; return "הוא לא יפסיק לספר על זה."; }}
+      ]}; } },
+
+  { id:"contract_pressure", fam:"transfer", cd:15, w:3,
+    req:function(){ return S.contractYears <= 1; },
+    build:function(){ return {
+      who:"מנהל המועדון", tag:"מועדון",
+      title:"החוזה מתקרב לסופו",
+      text:"\"אנחנו רוצים לדעת לאן זה הולך לפני שהשוק ידע.\"",
+      choices:[
+        {t:"להצהיר על נאמנות", d:"הצעה טובה יותר, פחות מינוף",
+         fx:function(){ S.trust = clamp(S.trust+9,0,100);
+           S.squad.forEach(function(p){ nudgeRel(p,{trust:4}); });
+           return "הם יעלו את ההצעה."; }},
+        {t:"לומר שאתה שוקל", d:"מינוף גבוה, אווירה קרה",
+         fx:function(){ S.trust = clamp(S.trust-7,0,100);
+           echo(4, "המועדון מכין הצעה משופרת — או קונה מחליף.", "w");
+           return "הם הבינו."; }}
+      ]}; } },
+
+  { id:"young_talent", fam:"selection", cd:22, w:2,
+    req:function(){ return S.season >= 2 && S.trust >= 45; },
+    build:function(){ return {
+      who:"בוגר אקדמיה", tag:"סגל",
+      title:"כישרון בן 17 עלה לסגל הבוגר — לעמדה שלך",
+      text:"הוא מהיר, חסר פחד, וכולם מדברים עליו. הוא ביקש לשבת לידך באוטובוס.",
+      choices:[
+        {t:"לחנוך אותו", d:"אתה מאבד דקות, מרוויח מעמד",
+         fx:function(){ S.squad.forEach(function(p){ nudgeRel(p,{respect:6, personal:4}); });
+           S.trust = clamp(S.trust+5,0,100);
+           echo(14, "הצעיר שחנכת פרץ — וסיפר בראיון עליך.", "ok");
+           return "אתה עכשיו הוותיק בסיפור הזה."; }},
+        {t:"לשמור מרחק", d:"להתמקד בעצמך",
+         fx:function(){ S.sharp = clamp(S.sharp+6,0,100);
+           return "אתה כאן כדי לשחק, לא לחנך."; }}
+      ]}; } },
+
+  { id:"derby_week", fam:"match", cd:17, w:3,
+    req:function(){ return S.careerApps >= 4; },
+    build:function(){ return {
+      who:"מאמן העמדה", tag:"הכנה",
+      title:"שבוע דרבי",
+      text:"האווירה במתקן אחרת. \"במשחקים כאלה לא מנצחים בטכניקה. מנצחים בראש.\"",
+      choices:[
+        {t:"להוביל את החימום", d:"חדר ההלבשה מסתכל עליך",
+         fx:function(){ S.squad.forEach(function(p){ nudgeRel(p,{respect:5}); });
+           S.morale += 7; S.load += 3;
+           return "הם הלכו אחריך."; }},
+        {t:"להישאר בשקט ולהתכונן", d:"פחות רעש, יותר חדות",
+         fx:function(){ S.sharp = clamp(S.sharp+9,0,100);
+           return "אתה מוכן."; }}
+      ]}; } }
+];
+
+/* ── the weekly director ────────────────────────────────────────── */
+function runStorylets(){
+  /* deliver anything that was scheduled to come back */
+  var due = S.slEchoes.filter(function(e){ return e.w <= S.week; });
+  due.forEach(function(e){ push(e.t, e.k); });
+  S.slEchoes = S.slEchoes.filter(function(e){ return e.w > S.week; });
+
+  /* broken promises are remembered */
+  S.promises.forEach(function(pr){
+    if(!pr.done && pr.due <= S.week){
+      pr.done = true;
+      if(S.trust < 50){
+        S.trust = clamp(S.trust - 6, 0, 100);
+        push("הבטחה שלא קוימה: " + pr.what + ". המאמן רשם.", "b");
+      } else {
+        S.trust = clamp(S.trust + 4, 0, 100);
+        push("עמדת במה שהבטחת: " + pr.what + ".", "ok");
+      }
+    }
+  });
+
+  if(S.slPending) return;
+  if(S.week < 2) return;
+  if(rnd() > 0.62) return;              // quiet weeks are content too
+
+  var pool = STORYLETS.filter(function(sl){
+    if(S.slCd[sl.id] && S.week - S.slCd[sl.id] < sl.cd) return false;
+    try { return sl.req(); } catch(e){ return false; }
+  });
+  if(!pool.length) return;
+
+  var total = pool.reduce(function(a,s){ return a + s.w; }, 0);
+  var roll = rnd() * total, acc = 0, pick = pool[0];
+  for(var i=0;i<pool.length;i++){ acc += pool[i].w; if(roll <= acc){ pick = pool[i]; break; } }
+
+  S.slCd[pick.id] = S.week;
+  try { S.slPending = { id: pick.id, data: pick.build() }; }
+  catch(e){ S.slPending = null; }
+}
+
+function showStorylet(){
+  if(!S.slPending) return;
+  var d = S.slPending.data;
+  var el = document.createElement("div");
+  el.className = "moment"; el.id = "slLayer";
+  el.innerHTML = '<div class="mcard slcard">'
+    + '<div class="mhd">'
+      + '<div class="cavatar">'+d.who.charAt(0)+'</div>'
+      + '<div><div class="t">'+d.title+'</div><div class="s">'+d.who+' · '+d.tag+'</div></div>'
+    + '</div>'
+    + '<div class="slbd">'
+      + '<p class="sltext">'+d.text+'</p>'
+      + '<div class="choices" id="slCh"></div>'
+      + '<div class="res" id="slRes" style="display:none"></div>'
+      + '<button class="btn pri" id="slNext" style="display:none;margin-top:10px">להמשיך ▸</button>'
+    + '</div></div>';
+  document.body.appendChild(el);
+
+  var box = document.getElementById("slCh");
+  d.choices.forEach(function(c, i){
+    var b = document.createElement("button");
+    b.className = "ch";
+    b.innerHTML = '<b>'+c.t+'</b><span>'+c.d+'</span>';
+    b.onclick = function(){
+      Array.prototype.forEach.call(box.children, function(x){ x.disabled = true; });
+      b.classList.add("on");
+      var out = "";
+      try { out = c.fx() || ""; } catch(e){}
+      var r = document.getElementById("slRes");
+      r.style.display = "block"; r.className = "res good"; r.innerHTML = "<b>מה שקרה</b>" + out;
+      document.getElementById("slNext").style.display = "block";
+      S.slPending = null;
+      saveGame();
+    };
+    box.appendChild(b);
+  });
+
+  document.getElementById("slNext").onclick = function(){
+    el.remove();
+    render();
+  };
+}
 
 /* ══════════════════════════════════════════════════════════════════
    WEEK → MATCH
@@ -2961,13 +3491,16 @@ function nextWeek(){
   S.coachWeeks++;
 
   runCupWeek();
+  runEuroWeek();
   runCoachMarket();
   runNationalTeam();
+  runStorylets();
   saveGame();
 
   if(S.week > S.maxWeek) return endSeason();
   S.screen = "hub"; S.seen = S.inbox.length;
   render();
+  if(S.slPending) setTimeout(showStorylet, 260);
 }
 
 /* ── cup: a tie every third week ────────────────────────────────── */
@@ -2997,6 +3530,98 @@ function runCupWeek(){
     push("🏆 " + S.cup.name + " · " + label + ": הפסד ל" + opp.n + ". יצאתם מהגביע.", "b");
   }
 }
+/* ── Europe: qualification is earned, not given ─────────────────── */
+var EURO_COMPS = {
+  ucl:  {n:"ליגת האלופות",  short:"UCL",  prestige:100, xp:260, stages:["בתים","שמינית","רבע","חצי","גמר"]},
+  uel:  {n:"הליגה האירופית", short:"UEL", prestige:72,  xp:170, stages:["בתים","שמינית","רבע","חצי","גמר"]},
+  uecl: {n:"ליגת הקונפרנס",  short:"UECL",prestige:54,  xp:120, stages:["בתים","שמינית","רבע","חצי","גמר"]}
+};
+
+/* which European competition the club qualified for, from final position */
+function euroSpotFor(place){
+  var L = LEAGUES[S.league];
+  var ucl = L.ucl || 0, uel = L.uel || 0, uecl = L.uecl || 0;
+  if(place <= ucl) return "ucl";
+  if(place <= ucl + uel) return "uel";
+  if(place <= ucl + uel + uecl) return "uecl";
+  return null;
+}
+
+function runEuroWeek(){
+  if(!S.euro || S.euro.out || S.euro.won) return;
+  if(S.week % 4 !== 0) return;
+  var C = EURO_COMPS[S.euro.comp];
+  var opp = anyEuroClub();
+  var stage = C.stages[clamp(S.euro.stage, 0, C.stages.length-1)];
+
+  /* European nights are harder than your league — that is the point */
+  var edge = (club(S.club).rep - opp.rep)/30 + (avgRating()-6.6)*0.14 - 0.06;
+  var pWin = clamp(0.5 + edge, 0.12, 0.85);
+  var win = rnd() < pWin;
+
+  S.load = clamp(S.load + 9, 0, 100);
+  S.euro.apps = (S.euro.apps||0) + 1;
+
+  /* the group phase is six matches, not sudden death — one bad night in
+     Turin should not end a European campaign */
+  if(S.euro.stage === 0){
+    var draw = !win && rnd() < 0.3;
+    S.euro.gp = (S.euro.gp||0) + (win ? 3 : (draw ? 1 : 0));
+    S.euro.gm = (S.euro.gm||0) + 1;
+    var gScored = S.apps > 0 && win && rnd() < 0.24;
+    if(gScored){ S.goals++; S.careerGoals++; S.euro.goals = (S.euro.goals||0)+1; }
+    S.euroRep = (S.euroRep||0) + (S.euro.comp === "ucl" ? 2 : 1);
+    addXp(Math.round(C.xp * 0.6));
+    push("🌍 " + C.n + " · מחזור בתים " + S.euro.gm + ": "
+      + (win ? "ניצחון" : (draw ? "תיקו" : "הפסד")) + " מול " + opp.n
+      + (gScored ? " — ואתה כבשת." : "") + " (" + S.euro.gp + " נק׳)",
+      win ? "ok" : (draw ? "" : "b"));
+    if(S.euro.gm >= 3){
+      if(S.euro.gp >= 4){
+        S.euro.stage = 1;
+        push("🌍 עלית משלב הבתים ב" + C.n + " עם " + S.euro.gp + " נקודות.", "ok");
+        addXp(C.xp);
+        confetti(70, ["#4a3aa7","#E8C766","#FFFFFF"]);
+      } else {
+        S.euro.out = true;
+        push("🌍 סיימתם שלישיים בבית עם " + S.euro.gp + " נקודות. נגמר באירופה.", "b");
+      }
+    }
+    return;
+  }
+
+  if(win){
+    S.euro.stage++;
+    var scored = S.apps > 0 && rnd() < 0.26;
+    if(scored){ S.goals++; S.careerGoals++; S.euro.goals = (S.euro.goals||0)+1; }
+    push("🌍 " + C.n + " · " + stage + ": ניצחון על " + opp.n + (scored ? " — ואתה כבשת." : "."), "ok");
+    addXp(C.xp);
+    /* European minutes are the thing that unlocks the biggest moves */
+    S.euroRep = (S.euroRep||0) + (S.euro.comp === "ucl" ? 4 : 2);
+    if(S.euro.stage >= C.stages.length){
+      S.euro.won = true;
+      S.honours.push({s:S.season, t:"זכייה ב" + C.n});
+      confetti(160, ["#E8C766","#4a3aa7","#FFFFFF"]);
+      celebrate('<span class="ctag">תואר אירופי</span><div class="cbig" style="font-size:30px">🏆 '+C.n+'</div>'
+        + '<div class="csub">'+club(S.club).n+'</div>', "gold");
+      addXp(900);
+    }
+  } else {
+    S.euro.out = true;
+    push("🌍 " + C.n + " · " + stage + ": הפסד ל" + opp.n + ". נגמר באירופה השנה.", "b");
+    addXp(Math.round(C.xp/2));
+  }
+}
+function anyEuroClub(){
+  var pool = [];
+  LG_IDS.forEach(function(lid){
+    if(LEAGUES[lid].tier !== 1) return;
+    LEAGUES[lid].clubs.forEach(function(c){ if(c.id !== S.club && c.rep >= 60) pool.push(c); });
+  });
+  if(!pool.length) return anyClubIn(S.league);
+  return pool[ri(0, pool.length-1)];
+}
+
 function anyClubIn(lid){
   var pool = LEAGUES[lid].clubs.filter(function(c){ return c.id !== S.club; });
   return pool[ri(0, pool.length-1)];
@@ -3104,6 +3729,7 @@ function endSeason(){
   var place = rows.findIndex(function(r){return r.c.id===S.club}) + 1;
   var awards = seasonAwards(place);
   S.pendingRenewal = renewalOffer();
+  var euroSpot = euroSpotFor(place);
 
   var el = document.createElement("div");
   el.className = "match"; el.id = "matchLayer";
@@ -3120,6 +3746,7 @@ function endSeason(){
     + '<span class="tag '+(S.trust>=55?"ok":"w")+'">אמון '+Math.round(S.trust)+'</span>'
     + '<span class="tag">OVR '+ovr()+'</span><span class="tag g">'+money(value())+'</span></div>'
     + '</div></div>'
+    + (euroSpot ? '<div class="tpline" style="margin-top:12px">🌍 העפלתם ל'+EURO_COMPS[euroSpot].n+' לעונה הבאה</div>' : '')
     + '<p class="hint" style="margin:13px 0 0">'+seasonVerdict(place)+'</p>'
   + '</div></div>'
   + (awards.length ? '<div class="p" style="border-color:var(--gold)"><h3>🏅 פרסי העונה</h3><div class="pb">'
@@ -3169,6 +3796,10 @@ function endSeason(){
     resetWorld();
     S.fixtures = buildFixtures(S.club);
     S.cup = newCup();
+    S.euro = euroSpot ? {comp:euroSpot, stage:0, out:false, won:false, apps:0, goals:0} : null;
+    if(S.euro){
+      push("🌍 העונה תשחקו ב" + EURO_COMPS[euroSpot].n + ".", "ok");
+    }
     push("עונה חדשה. הכל מתאפס חוץ ממה שאנשים זוכרים.", "");
     if(openTransferWindow()){
       S.screen="career"; render();
@@ -3203,6 +3834,16 @@ function loadGame(){
     if(!s || !s.a || !s.pos) return false;
     /* forward-compat: fill anything a newer build expects */
     if(!s.traits) s.traits = [];
+    if(!s.slCd) s.slCd = {};
+    if(!s.slEchoes) s.slEchoes = [];
+    if(!s.promises) s.promises = [];
+    s.board = null;
+    if(s.euro === undefined) s.euro = null;
+    if(s.squad && s.squad.length && !s.squad[0].rel){
+      s.squad.forEach(function(pl,i){
+        pl.id = pl.id || ("p"+i); pl.rel = {trust:45,respect:42,personal:42}; pl.role = pl.role||""; pl.mem = pl.mem||[];
+      });
+    }
     if(!s.honours) s.honours = [];
     if(!s.news) s.news = [];
     if(!s.offers) s.offers = [];
