@@ -690,7 +690,7 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
   font-size:13px;font-weight:850;color:var(--ink3)
 }
 .dbtab.on{background:var(--sunken);color:var(--ink)}
-.dbbody{flex:1;overflow-y:auto;padding:16px;display:flex;justify-content:center}
+.dbbody{flex:1;overflow-y:auto;padding:16px;display:flex;justify-content:center;align-items:flex-start}
 .dbbody>*{width:min(900px,100%)}
 .xiwrap{display:flex;flex-direction:column;gap:14px}
 .xipitch{
@@ -3091,7 +3091,7 @@ function ambientOdds(){
   return {
     pass: S.pos === "GK"
           ? clamp(0.700 + ((S.a.gkic||45)-45)/260 + f, 0.52, 0.94)
-          : clamp(0.745 + (grpVal("PAS")-50)/300 + f + q, 0.55, 0.945),
+          : clamp(0.775 + (grpVal("PAS")-50)/300 + f + q, 0.58, 0.955),
     def:  clamp(0.600 + (grpVal("DEF")-50)/280 + f + q, 0.36, 0.87),
     aer:  clamp(0.480 + ((S.a.hdr||45)+(S.a.str||45)-100)/300 + f + q, 0.22, 0.88),
     drib: clamp(0.545 + (grpVal("DRI")-50)/260 + f + q, 0.28, 0.90),
@@ -3136,7 +3136,7 @@ function ambientTick(){
       stat("duelWon");
     } else {
       stat("duelLost");
-      if(rnd() < 0.34){ stat("foul"); if(rnd() < 0.055) stat("yellow"); }
+      if(rnd() < 0.20){ stat("foul"); if(rnd() < 0.06) stat("yellow"); }
       if(rnd() < 0.012) stat("error");
     }
   }
@@ -3235,7 +3235,9 @@ function skipToEnd(){
                  - Math.max(0,S.load-70)/170 - Math.max(0,70-S.fit)/140;
     strength = clamp(strength, -0.85, 0.85);
 
-    var pool = sitsFor(S.pos);
+    var C = matchCtx();
+    var pool = sitsFor(S.pos).filter(function(x){ return !x.cond || x.cond(C); });
+    if(!pool.length) pool = sitsFor("CM").filter(function(x){ return !x.cond || x.cond(C); });
     if(!pool.length) pool = sitsFor("CM");
     var n = Math.max(1, Math.round(M.mins/8.5));
     for(var i=0;i<n;i++){
@@ -3822,13 +3824,13 @@ var SITS = [
      {b:"לעמוד על הקו", d:"ביטוח", at:"cmp", risk:10, out:"win"}]},
 
 /* ── mentality / late game ────────────────────────────────────── */
-{id:"late_game", k:"offball", w:2, pos:OUT,
+{id:"late_game", k:"offball", w:2, pos:OUT, cond:function(C){ return C.veryLate && C.lead !== 0; },
  t:"דקה 85, אתם מובילים 1-0", s:"הם דוחפים הכל קדימה. המאמן צועק משהו מהקו.",
  ch:[{b:"לשמור על הכדור בפינה", d:"מקצועי · הקהל שלהם ישנא אותך", at:"cmp", risk:12, out:"keep"},
      {b:"לצאת למתפרצת", d:"לסגור את המשחק", at:"spd", risk:-6, out:"goal"},
      {b:"לרדת ולהגן על התוצאה", d:"עוד גוף בקופסה", at:"mrk", risk:7, out:"win"}]},
 
-{id:"tired_choice", k:"offball", w:2, pos:OUT,
+{id:"tired_choice", k:"offball", w:2, pos:OUT, cond:function(C){ return C.tired; },
  t:"הרגליים כבדות", s:"אתה מרגיש את זה. יש ריצה שצריך לעשות, ואתה יודע כמה היא תעלה.",
  ch:[{b:"לעשות את הריצה", d:"עומס · אבל זה התפקיד", at:"sta", risk:-2, out:"chance"},
      {b:"לחסוך את הרגליים", d:"המאמן רואה הכל", at:"cmp", risk:9, out:"none"}]},
@@ -3837,20 +3839,670 @@ var SITS = [
  t:"הוא מנסה להוציא אותך מהכלים", s:"מרפק, מילה, ועוד מילה. השופט לא ראה.",
  ch:[{b:"להתעלם ולשחק", d:"בגרות", at:"cmp", risk:11, out:"none"},
      {b:"להחזיר לו בכדור", d:"התשובה הכי טובה", at:"drb", risk:-4, out:"chance"},
-     {b:"לעמוד מולו", d:"חדר ההלבשה יאהב · השופט לא", at:"agg", risk:-7, out:"none"}]}
+     {b:"לעמוד מולו", d:"חדר ההלבשה יאהב · השופט לא", at:"agg", risk:-7, out:"none"}]},
+
+/* ══════════════════════════════════════════════════════════════════
+   SITUATION LIBRARY — EXPANSION
+   The moments below are the game. Every one of them offers a real
+   trade-off: the greedy option, the team option, and the safe option,
+   and each declares what it produces so no position is locked out of
+   anything. Many are gated on the state of the match, so the same
+   career never sees the same ninety minutes twice.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── shooting ─────────────────────────────────────────────────── */
+{id:"near_post", k:"shoot", w:3, pos:ATT.concat(["CM","LM","RM","LW","RW"]),
+ t:"זווית קטנה בעמוד הקרוב", s:"נכנסת לרחבה מהאגף. השוער סוגר את הקרוב, אבל לא לגמרי.",
+ ch:[{b:"לפוצץ בעמוד הקרוב", d:"הוא לא מצפה · זווית אכזרית", at:"pow", risk:-8, out:"goal"},
+     {b:"למשוך אחורה לקו הפנדל", d:"שם יש מישהו לגמרי חופשי", at:"vis", risk:4, out:"assist"},
+     {b:"להאט ולחכות לתמיכה", d:"שומר את ההתקפה בחיים", at:"ctl", risk:11, out:"keep"}]},
+
+{id:"deflect_chaos", k:"shoot", w:2, pos:ATT.concat(["CM","CDM","CB"]),
+ t:"בלגן ברחבה", s:"הכדור מקפץ בין שלושה גופים. אין זמן לחשוב.",
+ ch:[{b:"לבעוט ראשון בכל מחיר", d:"אינסטינקט · יכול לצאת לכל כיוון", at:"fin", risk:-5, out:"goal"},
+     {b:"לדחוף את הכדור הצידה לחבר", d:"מי שיגיע יבעט חופשי", at:"cmp", risk:3, out:"assist"},
+     {b:"להוציא לקרן", d:"לא מסיים בכלום, אבל לא מסיים בשבר", at:"cmp", risk:10, out:"keep"}]},
+
+{id:"cutback_arrive", k:"shoot", w:3, pos:ATT.concat(["CM","CAM","LM","RM"]),
+ t:"קאטבק מגיע אליך", s:"הכנף חתך פנימה והחזיר לקו הפנדל. אתה מגיע בריצה.",
+ ch:[{b:"לגמור בנגיעה ראשונה", d:"תזמון · הכי קשה, הכי יפה", at:"fin", risk:-6, out:"goal"},
+     {b:"להוריד ואז לבעוט", d:"רגע נוסף · מגן יכול לחסום", at:"ctl", risk:1, out:"goal"},
+     {b:"לדמות בעיטה ולמסור לצד", d:"מרמה את החוסם", at:"cmp", risk:5, out:"assist"}]},
+
+{id:"outside_box_late", k:"shoot", w:2, pos:OUT, cond:function(C){ return C.late; },
+ t:"דקה 80, הכדור נופל מחוץ לרחבה", s:"אין מרחב פנימה. יש לך מטר לבעוט.",
+ ch:[{b:"לנסות מ־25 מטר", d:"אם זה נכנס זה השער של העונה", at:"lng", risk:-9, out:"goal"},
+     {b:"למצוא את הריצה מאחורי ההגנה", d:"מסירה שמפרקת קו", at:"lpa", risk:2, out:"assist"},
+     {b:"להחזיק ולסובב את ההתקפה", d:"עוד גל", at:"cmp", risk:9, out:"keep"}]},
+
+{id:"weak_foot", k:"shoot", w:2, pos:ATT.concat(["LM","RM","CM"]),
+ t:"הכדור נופל לרגל החלשה", s:"פתחת מרחב, אבל בצד שאתה פחות אוהב.",
+ ch:[{b:"לבעוט ברגל החלשה", d:"אף אחד לא מצפה", at:"fin", risk:-7, out:"goal"},
+     {b:"לגלגל לרגל החזקה", d:"רבע שנייה שהמגן ינצל", at:"agi", risk:-1, out:"goal"},
+     {b:"למסור ולהמשיך לרוץ", d:"פשוט ונכון", at:"spa", risk:7, out:"assist"}]},
+
+{id:"chip_keeper", k:"shoot", w:1, pos:ATT.concat(["CAM","CM","LW","RW"]),
+ t:"השוער יצא רחוק מדי", s:"אתה רואה אותו שלושה מטר מהקו. הכדור ברגל.",
+ ch:[{b:"לרים אותו מעליו", d:"אם זה עובר — זה גולאסו", at:"fin", risk:-10, out:"goal"},
+     {b:"להתקדם ולבעוט נמוך", d:"הבחירה הפחות רומנטית", at:"cmp", risk:-2, out:"goal"},
+     {b:"לגלגל לחבר בצד", d:"שער כמעט בטוח למישהו אחר", at:"vis", risk:2, out:"assist"}]},
+
+{id:"pen_box_foul", k:"shoot", w:2, pos:OUT,
+ t:"המגן נוגע בך ברחבה", s:"הרגל שלו הייתה שם. אתה עדיין על הרגליים, בקושי.",
+ ch:[{b:"להישאר על הרגליים ולבעוט", d:"אין פנדל, אבל יש שער", at:"bal", risk:-6, out:"goal"},
+     {b:"ליפול", d:"השופט יחליט · הקהל יזכור", at:"cmp", risk:1, out:"chance"},
+     {b:"להוציא לחבר שנשאר מאחור", d:"שקט, נכון, פחות דרמטי", at:"spa", risk:8, out:"assist"}]},
+
+{id:"second_ball_box", k:"shoot", w:2, pos:ATT.concat(["CM","CDM","CB","LB","RB"]),
+ t:"כדור שני אחרי קרן", s:"ההגנה הרחיקה חלש. הכדור נופל בדיוק לאזור שלך.",
+ ch:[{b:"וולה מהאוויר", d:"סיכון גבוה · פוטנציאל ענק", at:"fin", risk:-9, out:"goal"},
+     {b:"להוריד חזה ולהחזיר פנימה", d:"מסירה לתוך הבלגן", at:"ctl", risk:3, out:"assist"},
+     {b:"להחזיק ולהאט", d:"לא לתת מתפרצת", at:"cmp", risk:11, out:"keep"}]},
+
+{id:"one_touch_finish", k:"shoot", w:2, pos:ATT,
+ t:"נגיעה אחת או כלום", s:"הכדור מגיע מהיר וקרקעי. אין זמן להוריד.",
+ ch:[{b:"לכוון לפינה הרחוקה", d:"דיוק מעל הכל", at:"acc", risk:-5, out:"goal"},
+     {b:"להפנות בעקב", d:"אם זה יוצא — הקהל יעמוד", at:"agi", risk:-11, out:"goal"},
+     {b:"לעצור ולחכות לתמיכה", d:"מפספס את הרגע, שומר את הכדור", at:"ctl", risk:10, out:"keep"}]},
+
+{id:"tight_angle_gk", k:"shoot", w:2, pos:ATT.concat(["LW","RW","LM","RM"]),
+ t:"קו השער כמעט מאחוריך", s:"רדפת אחרי כדור אבוד והשגת אותו. הזווית כמעט אפס.",
+ ch:[{b:"לנסות בין השוער לעמוד", d:"כמעט בלתי אפשרי", at:"acc", risk:-12, out:"goal"},
+     {b:"למשוך אחורה לרחבה", d:"מסירה שמייצרת מצב אמיתי", at:"crs", risk:4, out:"assist"},
+     {b:"להשיג קרן", d:"נגיעה במגן · לפחות משהו", at:"cmp", risk:12, out:"keep"}]},
+
+{id:"pressure_penalty_late", k:"shoot", w:1, pos:OUT, cond:function(C){ return C.veryLate && C.lead <= 0; },
+ t:"פנדל בדקה 89", s:"התוצאה על הכף והכדור על הנקודה. הקהל שותק לרגע.",
+ ch:[{b:"לבעוט חזק למרכז", d:"אם הוא נשאר — זה נכנס", at:"cmp", risk:-4, out:"goal"},
+     {b:"פינה תחתונה", d:"קלאסי · הוא אולי ניחש", at:"acc", risk:-2, out:"goal"},
+     {b:"פנלקה", d:"או גיבור, או מם", at:"cmp", risk:-14, out:"goal"}]},
+
+{id:"rebound_keeper", k:"shoot", w:2, pos:ATT.concat(["CM","CAM"]),
+ t:"השוער הדף לרגליך", s:"הוא עוד על הקרקע. יש לך חצי שנייה.",
+ ch:[{b:"לדחוף פנימה מהר", d:"לפני שהמגן חוזר", at:"acc", risk:-3, out:"goal"},
+     {b:"לגעת הצידה לחבר בשער פתוח", d:"בישול קל", at:"cmp", risk:2, out:"assist"},
+     {b:"להרים מעליו", d:"הוא כבר על הקרקע", at:"fin", risk:-6, out:"goal"}]},
+
+{id:"solo_shot_wide", k:"shoot", w:2, pos:["LW","RW","LM","RM","LWB","RWB"],
+ t:"חתכת פנימה מהאגף", s:"עברת מגן אחד. השני מגיע. הרחבה נפתחת לרגע.",
+ ch:[{b:"לסובב לפינה הרחוקה", d:"החתימה של כל כנף", at:"fin", risk:-6, out:"goal"},
+     {b:"להזין נמוך לחלוץ", d:"הוא כבר רץ", at:"crs", risk:3, out:"assist"},
+     {b:"לעבור גם את השני", d:"אם תצליח — רחבה פתוחה", at:"drb", risk:-8, out:"chance"}]},
+
+{id:"header_cross_far", k:"aerial", w:3, pos:["ST","CF","CB","CDM","LW","RW","CM"],
+ t:"הזנה גבוהה לעמוד הרחוק", s:"הכדור באוויר. המגן קטן ממך בראש.",
+ ch:[{b:"לנגח לשער", d:"קפיצה ותזמון", at:"jmp", risk:-4, out:"goal"},
+     {b:"להוריד לרץ מאחוריך", d:"נגיחה שקטה שהופכת לבישול", at:"hdr", risk:3, out:"assist"},
+     {b:"להילחם על העמדה בלי לנגח", d:"תפנה מרחב לחבר", at:"str", risk:9, out:"none"}]},
+
+{id:"back_post_ghost", k:"offball", w:2, pos:ATT.concat(["LM","RM","LW","RW","CM"]),
+ t:"אתה יכול להיעלם לעמוד הרחוק", s:"כולם מסתכלים על הכדור. אף אחד לא מסתכל עליך.",
+ ch:[{b:"לרוץ לעמוד הרחוק", d:"אם ההזנה תגיע — זה שער", at:"gpos", risk:-4, out:"goal"},
+     {b:"להישאר בקו הפנדל", d:"אזור הכדור השני", at:"cmp", risk:2, out:"chance"},
+     {b:"למשוך בלם החוצה", d:"פותח לחבר · לא ייראה בסטטיסטיקה", at:"sta", risk:9, out:"none"}]},
+
+/* ── creating ─────────────────────────────────────────────────── */
+{id:"line_breaking", k:"create", w:3, pos:MID.concat(["CB","LB","RB","LWB","RWB"]),
+ t:"קו המסירה נפתח לרגע", s:"בין שני קשרים שלהם יש חלון. הוא ייסגר תוך שנייה.",
+ ch:[{b:"מסירה שוברת קו", d:"אם היא תעבור — הם פתוחים", at:"spa", risk:-5, out:"assist"},
+     {b:"להעביר הצידה בבטחה", d:"שומר את הגל", at:"spa", risk:10, out:"keep"},
+     {b:"לקדם בכדורגל רגליים", d:"לגרור אותם אליך", at:"drb", risk:-2, out:"chance"}]},
+
+{id:"third_man", k:"create", w:2, pos:MID.concat(ATT),
+ t:"ריצת האיש השלישי", s:"החלוץ מוריד לך. מאחוריו מישהו כבר יוצא לריצה.",
+ ch:[{b:"מסירה ראשונה לריצה", d:"התזמון הוא הכל", at:"vis", risk:-4, out:"assist"},
+     {b:"להסתובב ולנהוג בעצמך", d:"לוקח את זה על עצמך", at:"ctl", risk:-1, out:"chance"},
+     {b:"להחזיר ולבנות מחדש", d:"סבלנות", at:"spa", risk:11, out:"keep"}]},
+
+{id:"switch_long", k:"create", w:2, pos:MID.concat(["CB","LB","RB","LWB","RWB"]),
+ t:"הצד השני ריק לגמרי", s:"הם נדחסו לצד שלך. ארבעים מטר משמאל אין אף אחד.",
+ ch:[{b:"החלפת אגף באוויר", d:"מסירה ארוכה · מרשימה או מביכה", at:"lpa", risk:-6, out:"assist"},
+     {b:"למסור קצר ולהתקדם ביחד", d:"איטי אבל בטוח", at:"spa", risk:9, out:"keep"},
+     {b:"לנהוג לכיוון החלל", d:"למשוך אותם ואז לפתוח", at:"drb", risk:1, out:"chance"}]},
+
+{id:"low_cross", k:"create", w:3, pos:["LB","RB","LWB","RWB","LM","RM","LW","RW"],
+ t:"קו התחתית פתוח", s:"הגעת לקו. יש רגע אחד לפני שהמגן חוסם.",
+ ch:[{b:"הזנה נמוכה קשה", d:"קשה להגנה, קל לחלוץ", at:"crs", risk:-3, out:"assist"},
+     {b:"הזנה גבוהה לעמוד הרחוק", d:"יותר סיכוי, פחות ודאות", at:"crs", risk:-1, out:"chance"},
+     {b:"לחכות שהחלוץ יגיע", d:"מחזיק את הכדור בפינה", at:"ctl", risk:9, out:"keep"}]},
+
+{id:"pre_assist", k:"create", w:2, pos:MID.concat(["CB","CDM"]),
+ t:"המסירה לפני המסירה", s:"אתה רואה שתי מסירות קדימה. אף אחד אחר לא.",
+ ch:[{b:"למסור למי שיבשל", d:"לא ייספר לך · יהיה שער", at:"vis", risk:2, out:"chance"},
+     {b:"לנסות להגיע בעצמך", d:"אתה רוצה את השורה", at:"drb", risk:-5, out:"assist"},
+     {b:"לאפס ולבנות מחדש", d:"אין סיכון, אין תמורה", at:"spa", risk:12, out:"keep"}]},
+
+{id:"set_striker_free", k:"create", w:3, pos:MID.concat(["CB","LB","RB"]),
+ t:"החלוץ מסמן לריצה מאחורי הקו", s:"הוא הרים יד. ההגנה גבוהה מדי, והוא יודע.",
+ ch:[{b:"כדור לעומק מעל ההגנה", d:"אם התזמון מדויק — הוא לבד", at:"lpa", risk:-5, out:"assist"},
+     {b:"קרקעי בין הבלמים", d:"קשה יותר, קטלני יותר", at:"spa", risk:-7, out:"assist"},
+     {b:"לא למסור — הוא בנבדל", d:"קריאת משחק, לא פחדנות", at:"vis", risk:10, out:"keep"}]},
+
+{id:"quick_free", k:"setpiece", w:2, pos:OUT,
+ t:"עבירה לטובתכם, ההגנה לא מסודרת", s:"השופט לא דרש חומה. הם עוד רצים אחורה.",
+ ch:[{b:"להוציא מהר לעומק", d:"לנצל את הכאוס", at:"vis", risk:-3, out:"assist"},
+     {b:"לחכות לחומה ולבעוט", d:"רגע גדול, סיכוי קטן", at:"lng", risk:-8, out:"goal"},
+     {b:"לסדר את הקבוצה", d:"מוריד קצב, מעלה שליטה", at:"cmp", risk:11, out:"keep"}]},
+
+{id:"corner_taker", k:"setpiece", w:2, pos:["LM","RM","LW","RW","CAM","CM","LB","RB","LWB","RWB","CDM"],
+ t:"אתה בועט את הקרן", s:"תשעה גופים ברחבה. אתה בוחר לאן.",
+ ch:[{b:"עמוד ראשון, מסובב פנימה", d:"מסוכן לשוער", at:"crs", risk:-4, out:"assist"},
+     {b:"אחורה לקו הפנדל", d:"מצב בעיטה נקי", at:"crs", risk:-1, out:"chance"},
+     {b:"קרן קצרה", d:"פותח זווית, מוריד אוויר", at:"spa", risk:7, out:"chance"}]},
+
+{id:"fk_wide_delivery", k:"setpiece", w:2, pos:["LM","RM","LW","RW","CAM","CM","LB","RB"],
+ t:"עבירה באגף — הזנה או בעיטה", s:"ארבעים מטר מהשער, קרוב לקו.",
+ ch:[{b:"להזין לרחבה", d:"הבלמים שלכם עלו", at:"crs", risk:-2, out:"assist"},
+     {b:"לנסות ישירות", d:"זווית משוגעת", at:"lng", risk:-11, out:"goal"},
+     {b:"לשחק קצר ולבנות", d:"שולט בקצב", at:"spa", risk:10, out:"keep"}]},
+
+{id:"long_throw", k:"setpiece", w:1, pos:["LB","RB","LWB","RWB","LM","RM"],
+ t:"זריקת חוץ ארוכה", s:"אתה מסוגל להעיף אותה לרחבה. השאלה אם זה נכון עכשיו.",
+ ch:[{b:"להעיף לרחבה", d:"כאוס · לפעמים כאוס עובד", at:"str", risk:-3, out:"chance"},
+     {b:"קצר ולהמשיך לרוץ", d:"קומבינציה", at:"spa", risk:8, out:"keep"},
+     {b:"לחפש את הקשר שיסובב", d:"בונה מחדש", at:"vis", risk:10, out:"keep"}]},
+
+{id:"overload_side", k:"create", w:2, pos:MID.concat(WIDE),
+ t:"עומס באגף אחד", s:"שלושה מכם מול שניים שלהם. זה יעבוד רק אם מישהו יזוז נכון.",
+ ch:[{b:"מסירה משולשת מהירה", d:"אם כולם בקצב — הם פתוחים", at:"spa", risk:-3, out:"assist"},
+     {b:"אחד על אחד ולפרוץ", d:"אתה סומך על עצמך", at:"drb", risk:-6, out:"chance"},
+     {b:"להחזיר ולהחליף אגף", d:"סבלני, נכון", at:"lpa", risk:8, out:"keep"}]},
+
+{id:"between_lines", k:"receive", w:3, pos:["CAM","CM","CF","LM","RM","LW","RW","ST"],
+ t:"קיבלת בין הקווים", s:"אתה בגב לשער. שני קשרים מאחוריך, בלם מולך.",
+ ch:[{b:"להסתובב מהר", d:"אם תעבור — הרחבה נפתחת", at:"agi", risk:-6, out:"chance"},
+     {b:"להחזיר בנגיעה ולרוץ", d:"קיר · הכי בטוח והכי חכם", at:"spa", risk:5, out:"assist"},
+     {b:"להחזיק את הכדור בגוף", d:"קונה זמן לעלייה", at:"str", risk:9, out:"keep"}]},
+
+/* ── carrying ─────────────────────────────────────────────────── */
+{id:"drive_at_defence", k:"carry", w:3, pos:MID.concat(WIDE).concat(ATT),
+ t:"מרחב פתוח מולך", s:"אף אחד לא לוחץ. ההגנה שלהם נסוגה.",
+ ch:[{b:"לנהוג עד שיחליטו לצאת", d:"מושך מגן ופותח מרחב", at:"drb", risk:-1, out:"chance"},
+     {b:"לפרוץ מהר בין שניים", d:"אם תעבור — אתה מול השער", at:"acc", risk:-7, out:"goal"},
+     {b:"למסור ולהמשיך", d:"מסירה־וריצה קלאסית", at:"spa", risk:8, out:"assist"}]},
+
+{id:"press_escape", k:"carry", w:3, pos:OUT,
+ t:"שניים סוגרים עליך", s:"קיבלת בגב, והמלכודת נסגרת. שנייה אחת.",
+ ch:[{b:"לצאת בסיבוב", d:"אם תעבור — הם מפורקים", at:"agi", risk:-8, out:"chance"},
+     {b:"להשיג עבירה", d:"עוצר את הלחץ, שקט לקבוצה", at:"str", risk:4, out:"keep"},
+     {b:"לפנות לשוער", d:"לא זוהר · לא מפסיד כדור", at:"cmp", risk:10, out:"keep"}]},
+
+{id:"transition_run", k:"carry", w:2, pos:OUT, cond:function(C){ return !C.tired; },
+ t:"מתפרצת — שלושה מולם שניים", s:"הכדור אצלך, שני חברים רצים לצדדים.",
+ ch:[{b:"לנהוג עד הרחבה ואז למסור", d:"מושך את המגן ומפנה", at:"drb", risk:-2, out:"assist"},
+     {b:"למסור מוקדם", d:"פחות דרמטי, יותר בטוח", at:"vis", risk:4, out:"assist"},
+     {b:"לקחת את הבעיטה בעצמך", d:"אם תבקיע — כולם ישכחו", at:"fin", risk:-6, out:"goal"}]},
+
+{id:"nutmeg_chance", k:"carry", w:1, pos:WIDE.concat(ATT).concat(["CAM"]),
+ t:"הרגליים שלו פתוחות", s:"הוא נכנס לתיקול בעמידה רחבה.",
+ ch:[{b:"להעביר בין הרגליים", d:"היציע יתפוצץ · או שלא", at:"drb", risk:-10, out:"chance"},
+     {b:"לגעת הצידה ולעקוף", d:"פחות ראווה, יותר יעיל", at:"agi", risk:-2, out:"chance"},
+     {b:"למסור ולהתחיל ריצה", d:"פשוט", at:"spa", risk:8, out:"assist"}]},
+
+{id:"shield_corner", k:"carry", w:2, pos:OUT, cond:function(C){ return C.late && C.lead > 0; },
+ t:"פינת המגרש, שומרים על התוצאה", s:"אתה יכול לשרוף שלושים שניות שם.",
+ ch:[{b:"להצמיד לפינה ולהחזיק", d:"מקצועי, מכוער, נכון", at:"str", risk:10, out:"keep"},
+     {b:"לנסות להשיג עבירה", d:"עוד דקה מהשעון", at:"cmp", risk:6, out:"keep"},
+     {b:"להסתובב ולתקוף", d:"למה לא לסגור את המשחק", at:"drb", risk:-7, out:"goal"}]},
+
+{id:"first_touch_test", k:"receive", w:3, pos:OUT,
+ t:"כדור קשה מגיע אליך", s:"גבוה, מסתובב, ובדיוק כשמגן נכנס בגב.",
+ ch:[{b:"להוריד בנגיעה מושלמת", d:"אם תצליח — פתחת מרחב", at:"ctl", risk:-4, out:"chance"},
+     {b:"להחזיר בנגיעה אחת", d:"פשוט ובטוח", at:"spa", risk:8, out:"keep"},
+     {b:"להגן על הכדור בגוף", d:"קונה שנייה", at:"str", risk:5, out:"keep"}]},
+
+{id:"backheel_flick", k:"receive", w:1, pos:ATT.concat(["CAM","CM"]),
+ t:"נגיעת עקב אפשרית", s:"החבר רץ מאחוריך. אתה מרגיש אותו בלי להסתובב.",
+ ch:[{b:"נגיעת עקב לריצה", d:"אם היא מגיעה — הוא לבד מול השוער", at:"cmp", risk:-8, out:"assist"},
+     {b:"להסתובב ולמסור רגיל", d:"פחות יפה, יותר סביר", at:"ctl", risk:4, out:"assist"},
+     {b:"להחזיק ולחכות", d:"שומר החזקה", at:"str", risk:9, out:"keep"}]},
+
+/* ── defending ────────────────────────────────────────────────── */
+{id:"one_v_one_def", k:"defend", w:3, pos:DEF_.concat(["CDM","CM","LM","RM"]),
+ t:"כנף מהיר רץ עליך", s:"הוא מגיע במלוא הקצב. יש לך צעד אחד להחליט.",
+ ch:[{b:"להכניס תיקול", d:"אם תפספס — הוא בורח", at:"tkl", risk:-6, out:"win"},
+     {b:"להאט אותו ולדחוק החוצה", d:"נכון · פחות מרשים", at:"mrk", risk:5, out:"win"},
+     {b:"להישאר על הרגליים ולחכות לעזרה", d:"קניית זמן", at:"cmp", risk:8, out:"win"}]},
+
+{id:"offside_trap", k:"defend", w:2, pos:["CB","LB","RB","LWB","RWB","CDM"],
+ t:"הרגע להעלות את הקו", s:"החלוץ שלהם נשאר עמוק. אם כולם יעלו יחד — הוא בנבדל.",
+ ch:[{b:"להעלות את הקו ולסמן", d:"אם מישהו יאחר — הם לבד", at:"gpos", risk:-5, out:"win"},
+     {b:"להישאר עמוק ולסגור", d:"בטוח, מוותר על שטח", at:"mrk", risk:8, out:"win"},
+     {b:"לצאת ללחוץ את המוסר", d:"תוקף את המקור", at:"agg", risk:-3, out:"win"}]},
+
+{id:"cover_gap", k:"defend", w:2, pos:["CB","CDM","LB","RB","CM"],
+ t:"חור נפער בקו", s:"החבר שלך יצא ללחוץ ולא הספיק לחזור.",
+ ch:[{b:"להחליק לחור ולכסות", d:"תפקיד שלא יראו בסטטיסטיקה", at:"gpos", risk:6, out:"win"},
+     {b:"ליירט את המסירה", d:"אם תקרא נכון — מתפרצת", at:"itc", risk:-4, out:"chance"},
+     {b:"לצעוק ולסדר את הקו", d:"מנהיגות", at:"cmp", risk:9, out:"none"}]},
+
+{id:"last_ditch", k:"defend", w:2, pos:DEF_.concat(["CDM","CM"]),
+ t:"הוא נכנס לרחבה, אתה מאחור", s:"עוד שני צעדים והוא בועט.",
+ ch:[{b:"החלקה מהצד", d:"או חילוץ מושלם או פנדל", at:"tkl", risk:-9, out:"win"},
+     {b:"לרוץ בין הכדור לשער", d:"לחסום את קו הבעיטה", at:"spd", risk:2, out:"save"},
+     {b:"לדחוק אותו לזווית", d:"לתת לו לבעוט מהמקום הגרוע", at:"mrk", risk:6, out:"win"}]},
+
+{id:"press_trap", k:"defend", w:2, pos:MID.concat(ATT),
+ t:"רגע הלחיצה", s:"הבלם שלהם קיבל כדור רע. אם תצא עכשיו — הוא בבעיה.",
+ ch:[{b:"ללחוץ מיד בזווית", d:"סוגר מסירה, מכריח טעות", at:"agg", risk:-3, out:"win"},
+     {b:"לגבות את קו המסירה", d:"פחות ראווה, יותר בטוח", at:"itc", risk:5, out:"win"},
+     {b:"לחסוך אנרגיה", d:"רגליים לסוף המשחק", at:"cmp", risk:10, out:"none"}]},
+
+{id:"aerial_defensive", k:"aerial", w:3, pos:DEF_.concat(["CDM","CM","ST"]),
+ t:"כדור ארוך לחזית", s:"החלוץ שלהם גדול. הכדור מגיע גבוה בין שניכם.",
+ ch:[{b:"לתקוף את הכדור בקפיצה", d:"תזמון · הוא ידחוף", at:"jmp", risk:-4, out:"win"},
+     {b:"לתת לו לנגח ולזכות בשני", d:"קורא את הריבאונד", at:"itc", risk:3, out:"win"},
+     {b:"לגוף אותו החוצה", d:"פיזי · השופט מסתכל", at:"str", risk:1, out:"win"}]},
+
+{id:"track_runner", k:"defend", w:2, pos:MID.concat(["LB","RB","LWB","RWB"]),
+ t:"קשר שלהם יוצא לריצה מאחוריך", s:"אתה בעמדה מתקדמת. אם לא תחזור — הוא לבד.",
+ ch:[{b:"לחזור איתו עד הסוף", d:"עומס · אבל זה התפקיד", at:"sta", risk:2, out:"win"},
+     {b:"לצעוק ולהעביר לבלם", d:"אם התקשורת עובדת", at:"cmp", risk:6, out:"win"},
+     {b:"להישאר גבוה למתפרצת", d:"הימור התקפי", at:"gpos", risk:-6, out:"chance"}]},
+
+{id:"foul_or_not", k:"defend", w:2, pos:DEF_.concat(MID),
+ t:"עבירה טקטית או לתת להם לרוץ", s:"הם יוצאים למתפרצת ואתה הכי קרוב.",
+ ch:[{b:"לעצור אותו בעבירה", d:"צהוב אפשרי · הקבוצה תודה לך", at:"agg", risk:-2, out:"win"},
+     {b:"לרדוף ולנסות לגנוב נקי", d:"אם תצליח — זה מדהים", at:"spd", risk:-7, out:"win"},
+     {b:"לחזור ולסגור מרכז", d:"מוותר על הכדור, שומר על השער", at:"gpos", risk:7, out:"win"}]},
+
+{id:"clear_or_play", k:"build", w:3, pos:["CB","LB","RB","LWB","RWB","CDM","GK"],
+ t:"כדור בתוך הרחבה שלך", s:"החלוץ שלהם שלושה מטר ממך. יש לך בחירה.",
+ ch:[{b:"להרחיק גבוה ורחוק", d:"אין סיכון, אין יתרון", at:"str", risk:12, out:"win"},
+     {b:"לצאת בכדורגל מתחת ללחץ", d:"אם תעבור — הם פרוצים", at:"cmp", risk:-7, out:"chance"},
+     {b:"למסור קצר לשוער", d:"מאפס את הלחץ", at:"spa", risk:4, out:"keep"}]},
+
+{id:"marking_setpiece", k:"defend", w:2, pos:DEF_.concat(["CDM","CM","ST"]),
+ t:"קרן נגדכם — אתה על הכי טוב שלהם", s:"הוא מחפש מגע כדי לפתוח מרחב.",
+ ch:[{b:"להיצמד אליו לגמרי", d:"הוא ינסה לגרור אותך", at:"mrk", risk:1, out:"win"},
+     {b:"לתקוף את הכדור ולא אותו", d:"קורא את המסלול", at:"jmp", risk:-4, out:"win"},
+     {b:"לעמוד באזור הכדור השני", d:"פחות דרמטי, יותר יעיל", at:"gpos", risk:7, out:"win"}]},
+
+{id:"recover_own_error", k:"defend", w:2, pos:OUT,
+ t:"איבדת כדור בגובה מסוכן", s:"זו הייתה טעות שלך. הם רצים.",
+ ch:[{b:"לרדוף ולתקן", d:"אם תתקן — כולם יראו", at:"sta", risk:-4, out:"win"},
+     {b:"לעצור אותו בעבירה", d:"מכבה את השרפה", at:"agg", risk:-1, out:"win"},
+     {b:"לחזור לעמדה ולסמוך על ההגנה", d:"בגרות", at:"cmp", risk:7, out:"none"}]},
+
+{id:"block_the_shot", k:"defend", w:2, pos:DEF_.concat(MID),
+ t:"הוא נכנס לבעיטה", s:"אתה במסלול. הכדור יגיע חזק.",
+ ch:[{b:"לזרוק את הגוף", d:"כואב · מציל שער", at:"agg", risk:-3, out:"save"},
+     {b:"לסגור את הזווית בעמידה", d:"מפחית סיכון פנדל", at:"gpos", risk:5, out:"save"},
+     {b:"לזנק לרגליים", d:"אם תאחר — פנדל", at:"tkl", risk:-8, out:"win"}]},
+
+/* ── building from the back ───────────────────────────────────── */
+{id:"break_press_cb", k:"build", w:2, pos:["CB","CDM","LB","RB"],
+ t:"הם לוחצים גבוה עליך", s:"החלוץ שלהם מגיע בזווית שסוגרת לך צד.",
+ ch:[{b:"לנהוג קדימה ולשבור את הקו", d:"אם תעבור — הם בבעיה", at:"drb", risk:-6, out:"chance"},
+     {b:"מסירה ארוכה לחזית", d:"מוותר על החזקה, מרוויח שטח", at:"lpa", risk:3, out:"chance"},
+     {b:"לפנות לשוער ולהתחיל מחדש", d:"סבלנות", at:"spa", risk:10, out:"keep"}]},
+
+{id:"receive_under_press_dm", k:"build", w:2, pos:["CDM","CM","CB"],
+ t:"קיבלת עם הגב ללחץ", s:"הם ציפו לזה. שני קשרים כבר בדרך אליך.",
+ ch:[{b:"סיבוב בנגיעה אחת", d:"מסוכן · פותח את כל המגרש", at:"agi", risk:-7, out:"chance"},
+     {b:"החזרה בנגיעה לבלם", d:"מאפס ומתחיל שוב", at:"spa", risk:11, out:"keep"},
+     {b:"לחפש את הכנף ישר", d:"מדלג על הלחץ", at:"lpa", risk:-2, out:"assist"}]},
+
+{id:"tempo_call", k:"build", w:2, pos:MID.concat(["CB"]),
+ t:"מי קובע את הקצב", s:"המשחק מבולגן. מישהו צריך להאט אותו — או להאיץ.",
+ ch:[{b:"להאיץ עכשיו", d:"הם לא מסודרים", at:"vis", risk:-3, out:"chance"},
+     {b:"להאט ולהחזיק", d:"מרגיע את הקבוצה", at:"cmp", risk:9, out:"keep"},
+     {b:"לחפש מסירה ארוכה ישירה", d:"הימור על עומק", at:"lpa", risk:-5, out:"assist"}]},
+
+/* ── goalkeeping ──────────────────────────────────────────────── */
+{id:"gk_low_drive", k:"save", w:3, pos:["GK"],
+ t:"בעיטה נמוכה לפינה", s:"היא נשלחה מ־18 מטר, קרקעית ומהירה.",
+ ch:[{b:"לזנק ולתפוס", d:"אם תחזיק — אין ריבאונד", at:"ghan", risk:-5, out:"save"},
+     {b:"להדוף לצד", d:"בטוח יותר, נותן קרן", at:"gref", risk:2, out:"save"},
+     {b:"לחסום ברגל", d:"רפלקס טהור", at:"gref", risk:-3, out:"save"}]},
+
+{id:"gk_deflection", k:"save", w:2, pos:["GK"],
+ t:"הכדור שינה כיוון בדרך", s:"נגע ברגל של הבלם שלך. עכשיו הוא הולך לצד השני.",
+ ch:[{b:"לשנות משקל ולזנק", d:"כמעט בלתי אפשרי", at:"gref", risk:-9, out:"save"},
+     {b:"להאריך יד אחת", d:"אולי מספיק לשנות מסלול", at:"gdiv", risk:-4, out:"save"},
+     {b:"להישאר גדול ולקוות", d:"סטטיסטיקה, לא גבורה", at:"gpos", risk:3, out:"save"}]},
+
+{id:"gk_through_ball", k:"save", w:2, pos:["GK"],
+ t:"כדור לעומק מאחורי ההגנה", s:"החלוץ יוצא לריצה. אתה מחליט אם לצאת.",
+ ch:[{b:"לצאת מהרחבה ולנקות", d:"אם תאחר — אדום", at:"spd", risk:-7, out:"win"},
+     {b:"לצאת עד קצה הרחבה ולתפוס", d:"קריאה נכונה", at:"gpos", risk:-2, out:"save"},
+     {b:"להישאר ולהתכונן לאחד על אחד", d:"מוותר על שטח", at:"gref", risk:5, out:"save"}]},
+
+{id:"gk_build_press", k:"save", w:2, pos:["GK"],
+ t:"הם לוחצים על הפתיחה שלך", s:"שני חלוצים סוגרים על הבלמים. יש לך כדור ברגל.",
+ ch:[{b:"למסור קצר מתחת ללחץ", d:"אם תעבור — הם פרוצים", at:"gkic", risk:-6, out:"chance"},
+     {b:"להעיף ארוך לחלוץ", d:"מוותר על החזקה", at:"gkic", risk:5, out:"keep"},
+     {b:"לחכות ולמשוך אותם אליך", d:"מסוכן ומבריק", at:"gpos", risk:-3, out:"chance"}]},
+
+{id:"gk_penalty_face", k:"save", w:1, pos:["GK"],
+ t:"פנדל נגדך", s:"הוא מניח את הכדור. אתה מחפש רמז בעיניים שלו.",
+ ch:[{b:"לזנק מוקדם לצד", d:"ניחוש · אם צדקת אתה גיבור", at:"gdiv", risk:-6, out:"save"},
+     {b:"לחכות עד הרגע האחרון", d:"רפלקס טהור", at:"gref", risk:-4, out:"save"},
+     {b:"לשחק איתו במשחק ראש", d:"לזוז על הקו, לדחות", at:"gpos", risk:-2, out:"save"}]},
+
+{id:"gk_corner_claim", k:"save", w:2, pos:["GK"],
+ t:"קרן נכנסת גבוה", s:"תשעה גופים. אתה יכול לצאת — או להישאר.",
+ ch:[{b:"לצאת ולתפוס באוויר", d:"אם תחטיא — שער פתוח", at:"ghan", risk:-6, out:"save"},
+     {b:"לאגרף החוצה", d:"בטוח, פחות שולט", at:"gdiv", risk:-1, out:"save"},
+     {b:"להישאר על הקו", d:"מוכן לנגיחה", at:"gref", risk:4, out:"save"}]},
+
+{id:"gk_sweep_high", k:"save", w:2, pos:["GK"],
+ t:"קו ההגנה גבוה, מרחב מאחור", s:"אתה שוער־ליברו עכשיו, בין אם רצית או לא.",
+ ch:[{b:"לצאת גבוה ולקצור", d:"אם תקרא נכון — הרגתם התקפה", at:"gpos", risk:-4, out:"win"},
+     {b:"להישאר ולהיות מוכן", d:"פחות טעויות, יותר מצבים", at:"gref", risk:6, out:"save"},
+     {b:"לצעוק ולהוריד את הקו", d:"מנהיגות מהאחור", at:"gkic", risk:8, out:"none"}]},
+
+{id:"gk_second_wave", k:"save", w:2, pos:["GK"],
+ t:"הדפת — והכדור חוזר", s:"הכדור נפל לרגליו של השני שהגיע.",
+ ch:[{b:"לקום ולהתפרס מהר", d:"גדול ומהיר", at:"gref", risk:-5, out:"save"},
+     {b:"לזנק לרגליים", d:"מסוכן, לפעמים היחיד", at:"gdiv", risk:-7, out:"save"},
+     {b:"לצעוק לבלם לחסום", d:"קורא לעזרה בזמן", at:"gpos", risk:3, out:"save"}]},
+
+{id:"gk_distribution_fast", k:"save", w:2, pos:["GK"],
+ t:"תפסת — והם לא חזרו", s:"החלוץ שלכם כבר מסמן. חלון של שתי שניות.",
+ ch:[{b:"זריקה ארוכה למתפרצת", d:"אם תגיע — מצב אמיתי", at:"gkic", risk:-4, out:"assist"},
+     {b:"לגלגל למגן ולבנות", d:"שולט בקצב", at:"gkic", risk:8, out:"keep"},
+     {b:"להחזיק ולהרוויח שניות", d:"מנהל את המשחק", at:"cmp", risk:10, out:"keep"}]},
+
+/* ── mentality, body, and the head ────────────────────────────── */
+{id:"crowd_hostile", k:"offball", w:2, pos:OUT, cond:function(C){ return !C.home; },
+ t:"היציע שלהם מצא אותך", s:"בכל נגיעה יש שריקות. זה עובד עליך יותר ממה שתודה.",
+ ch:[{b:"לבקש את הכדור עוד יותר", d:"תשובה של שחקן גדול", at:"cmp", risk:-2, out:"chance"},
+     {b:"לשחק פשוט לרבע שעה", d:"להירגע לפני שממשיכים", at:"spa", risk:9, out:"keep"},
+     {b:"להשתיק אותם עם מהלך", d:"או ראווה או השפלה", at:"drb", risk:-8, out:"chance"}]},
+
+{id:"coach_shouting", k:"offball", w:2, pos:OUT, cond:function(C){ return C.shaky || C.losing; },
+ t:"המאמן צועק את השם שלך", s:"הוא לא מרוצה מהעמדה שלך. הוא צודק, חלקית.",
+ ch:[{b:"לעשות בדיוק מה שהוא אמר", d:"אמון · פחות חופש", at:"cmp", risk:6, out:"win"},
+     {b:"להישאר עם האינסטינקט שלך", d:"אם תצליח — הוא ישתוק", at:"vis", risk:-5, out:"chance"},
+     {b:"לרוץ יותר מכולם עשר דקות", d:"תשובה בגוף, לא בפה", at:"sta", risk:2, out:"win"}]},
+
+{id:"knock_pain", k:"offball", w:2, pos:OUT, cond:function(C){ return C.tired || C.late; },
+ t:"חטפת מכה והיא לא עוברת", s:"אתה יכול לרוץ, אבל כל צעד מזכיר לך.",
+ ch:[{b:"להמשיך ולהתעלם", d:"עומס נוסף · המאמן יעריך", at:"sta", risk:-3, out:"win"},
+     {b:"לסמן לספסל", d:"אחראי · יורד מהמשחק", at:"cmp", risk:8, out:"none"},
+     {b:"לשנות סגנון ולשחק חכם", d:"פחות ריצות, יותר מיקום", at:"gpos", risk:4, out:"chance"}]},
+
+{id:"teammate_hogging", k:"offball", w:1, pos:OUT,
+ t:"החבר לא מוסר לך", s:"פעם שלישית שאתה פתוח והוא בחר לבעוט.",
+ ch:[{b:"להמשיך לרוץ בשבילו", d:"בגרות · בסוף זה יגיע", at:"sta", risk:5, out:"chance"},
+     {b:"לדרוש את הכדור בקול", d:"נוכחות · חדר ההלבשה שומע", at:"agg", risk:-2, out:"chance"},
+     {b:"להיכנס לאזור שלו", d:"תוקפני · יכול לעצבן", at:"gpos", risk:-5, out:"goal"}]},
+
+{id:"ref_wrong", k:"offball", w:1, pos:OUT,
+ t:"השופט טעה נגדך", s:"זו הייתה עבירה. הוא נתן לצד השני.",
+ ch:[{b:"לשתוק ולהמשיך", d:"הראש נשאר במשחק", at:"cmp", risk:10, out:"none"},
+     {b:"להגיד לו מילה שקטה", d:"אולי הבאה תלך אליך", at:"cmp", risk:2, out:"none"},
+     {b:"לענות במשחק", d:"הכי טוב שיש", at:"drb", risk:-4, out:"chance"}]},
+
+{id:"one_goal_hungry", k:"offball", w:2, pos:ATT.concat(MID), cond:function(C){ return C.scored; },
+ t:"כבר הבקעת — ואתה רוצה עוד", s:"הרגליים קלות. הראש מחפש את השני.",
+ ch:[{b:"לחפש את השני בכל מחיר", d:"אנוכי · לפעמים נכון", at:"fin", risk:-6, out:"goal"},
+     {b:"לשחק בשביל הקבוצה", d:"הבישול שווה בדיוק כמו שער", at:"vis", risk:3, out:"assist"},
+     {b:"להוריד קצב ולנהל", d:"בגרות של שחקן ותיק", at:"cmp", risk:9, out:"keep"}]},
+
+{id:"chasing_game", k:"offball", w:2, pos:OUT, cond:function(C){ return C.late && C.losing; },
+ t:"אתם מפגרים ונגמר הזמן", s:"המאמן העלה עוד חלוץ. אין יותר תוכנית ב׳.",
+ ch:[{b:"לעלות גבוה ולהמר", d:"מפנה מרחב מאחור", at:"gpos", risk:-6, out:"goal"},
+     {b:"לקחת אחריות על כל כדור", d:"מוביל · מתיש", at:"sta", risk:-2, out:"chance"},
+     {b:"לחפש עבירה קרוב לרחבה", d:"מצב נייח = תקווה", at:"drb", risk:1, out:"chance"}]},
+
+{id:"derby_moment", k:"offball", w:2, pos:OUT, cond:function(C){ return C.derby; },
+ t:"דרבי — והוא הרגע ירד עליך", s:"היריב שלך מהתקשורת עומד מולך והחיוך שלו מעצבן.",
+ ch:[{b:"לעבור אותו נקי", d:"התשובה הכי כואבת", at:"drb", risk:-7, out:"chance"},
+     {b:"לשחק סביבו ולהשאיר אותו", d:"חכם · פחות מספק", at:"vis", risk:4, out:"assist"},
+     {b:"להיכנס בו קשה", d:"חדר ההלבשה יאהב · השופט לא", at:"agg", risk:-6, out:"win"}]},
+
+{id:"young_debut_nerves", k:"offball", w:2, pos:OUT, cond:function(C){ return C.young && C.early; },
+ t:"הנגיעה הראשונה", s:"אתה צעיר, זו הפתיחה, וכולם מסתכלים על הנגיעה הזאת.",
+ ch:[{b:"לשחק פשוט ולהיכנס למשחק", d:"מסירה קצרה · לבנות ביטחון", at:"spa", risk:9, out:"keep"},
+     {b:"לעשות משהו מיד", d:"או שאתה בפנים או שאתה בחוץ", at:"drb", risk:-8, out:"chance"},
+     {b:"ללחוץ קשה ולהודיע שאתה כאן", d:"אנרגיה במקום טכניקה", at:"agg", risk:-2, out:"win"}]},
+
+{id:"veteran_reads", k:"offball", w:2, pos:OUT, cond:function(C){ return C.veteran; },
+ t:"אתה רואה את זה לפני כולם", s:"הניסיון אומר לך איפה הכדור יהיה בעוד שתי מסירות.",
+ ch:[{b:"לזוז לשם עכשיו", d:"מיקום · לא ייראה בשידור", at:"gpos", risk:1, out:"chance"},
+     {b:"לסדר את מי שסביבך", d:"מנהיגות · הקבוצה מרוויחה", at:"cmp", risk:7, out:"win"},
+     {b:"לקחת את הכדור ולהכריע", d:"עוד יש לך את זה", at:"vis", risk:-4, out:"assist"}]},
+
+{id:"weather_rain", k:"offball", w:1, pos:OUT,
+ t:"הדשא רטוב והכדור מחליק", s:"כל מסירה מגיעה חזק יותר ממה שהתכוונת.",
+ ch:[{b:"לשחק קרקעי ומהיר", d:"מנצל את המשטח", at:"spa", risk:2, out:"chance"},
+     {b:"להרים ולוותר על עדינות", d:"מפחית סיכון · מפחית איכות", at:"lpa", risk:8, out:"keep"},
+     {b:"לנסות בעיטה מרחוק", d:"השוער יתקשה להחזיק", at:"lng", risk:-7, out:"goal"}]},
+
+{id:"sub_incoming", k:"offball", w:2, pos:OUT, cond:function(C){ return C.late && !C.hot; },
+ t:"הרביעי מרים לוח", s:"אתה לא יודע אם המספר שלך שם. יש לך שתי דקות להוכיח.",
+ ch:[{b:"לעשות משהו גדול עכשיו", d:"או שתישאר או שתלך בגדול", at:"drb", risk:-9, out:"goal"},
+     {b:"לעבוד קשה בלי כדור", d:"המאמן רואה את הריצות", at:"sta", risk:3, out:"win"},
+     {b:"לשחק בטוח ולא לטעות", d:"לא לתת סיבה להחליף", at:"cmp", risk:8, out:"keep"}]},
+
+{id:"captain_moment", k:"offball", w:1, pos:OUT, cond:function(C){ return C.trusted && (C.losing || C.late); },
+ t:"מישהו צריך להרים את הקבוצה", s:"הראשים למטה. הקפטן לא במגרש.",
+ ch:[{b:"לאסוף את כולם ולדבר", d:"מנהיגות · חדר ההלבשה יזכור", at:"cmp", risk:6, out:"win"},
+     {b:"להוביל בדוגמה — ריצה אחת ענקית", d:"פעולה במקום מילים", at:"sta", risk:-1, out:"chance"},
+     {b:"לדרוש את הכדור בכל מגע", d:"לוקח את המשחק על עצמך", at:"ctl", risk:-5, out:"assist"}]},
+
+{id:"nat_scout_watching", k:"offball", w:1, pos:OUT, cond:function(C){ return S.natWatch > 0; },
+ t:"הסלקטור ביציע", s:"הוא לא בא בשבילך, אבל הוא כאן.",
+ ch:[{b:"לשחק את המשחק שלך", d:"בלי להתאמץ להרשים", at:"cmp", risk:5, out:"chance"},
+     {b:"לנסות משהו שיזכר", d:"רגע אחד גדול", at:"fin", risk:-8, out:"goal"},
+     {b:"להיות מושלם בבסיס", d:"מסירות, ריצות, אפס טעויות", at:"spa", risk:7, out:"keep"}]},
+
+/* ── goalkeeping, second batch ────────────────────────────────── */
+{id:"gk_header_incoming", k:"save", w:2, pos:["GK"],
+ t:"נגיחה מטווח קצר", s:"הוא פגש את ההזנה שבעה מטר ממך.",
+ ch:[{b:"רפלקס יד אחת", d:"אין זמן לכלום אחר", at:"gref", risk:-6, out:"save"},
+     {b:"להתפרס ולחסום גוף", d:"מגדיל את השטח", at:"gpos", risk:-2, out:"save"},
+     {b:"לצאת אליו לפני הנגיחה", d:"אם תאחר — שער", at:"gdiv", risk:-8, out:"save"}]},
+
+{id:"gk_free_kick_wall", k:"save", w:2, pos:["GK"],
+ t:"עבירה מ־22 מטר", s:"אתה מסדר חומה. אחר כך זה רק אתה והוא.",
+ ch:[{b:"לכסות את הצד הפתוח", d:"סטטיסטיקה טובה", at:"gpos", risk:1, out:"save"},
+     {b:"להישאר במרכז ולהגיב", d:"רפלקס טהור", at:"gref", risk:-4, out:"save"},
+     {b:"להזיז את החומה ולהמר", d:"אם צדקת אתה נראה גאון", at:"gkic", risk:-6, out:"save"}]},
+
+{id:"gk_backpass_panic", k:"save", w:2, pos:["GK"],
+ t:"הבלם החזיר לך כדור רע", s:"הוא מגיע חלש, והחלוץ שלהם כבר רץ.",
+ ch:[{b:"לבעוט ראשון להעיף", d:"מכוער · מציל", at:"gkic", risk:-3, out:"keep"},
+     {b:"להוריד ולעבור אותו", d:"אם תצליח — היציע יעמוד", at:"ctl", risk:-11, out:"chance"},
+     {b:"להוציא לקו הצד", d:"זריקת חוץ נגדך, אבל שקט", at:"cmp", risk:6, out:"keep"}]},
+
+{id:"gk_one_v_one_late", k:"save", w:2, pos:["GK"], cond:function(C){ return C.late; },
+ t:"אחד על אחד בדקה 88", s:"התוצאה על הכף. הוא מגיע לבד.",
+ ch:[{b:"לצאת ולכסות שטח", d:"מקטין זווית", at:"gpos", risk:-4, out:"save"},
+     {b:"לחכות ולהתפרס ברגע האחרון", d:"עצבים", at:"gref", risk:-6, out:"save"},
+     {b:"לזנק לכדור", d:"או הצלה או פנדל", at:"gdiv", risk:-9, out:"save"}]},
+
+{id:"gk_cross_traffic", k:"save", w:2, pos:["GK"],
+ t:"הזנה עמוקה בין הקווים", s:"הרחבה שלך עמוסה. הכדור נופל בשטח האפור.",
+ ch:[{b:"לצאת בהחלטיות", d:"אם תשלוט — הרחבה שלך", at:"ghan", risk:-5, out:"save"},
+     {b:"להישאר ולתת לבלמים", d:"פחות אחריות, פחות שליטה", at:"gpos", risk:4, out:"win"},
+     {b:"לאגרף למרכז המגרש", d:"מוציא סכנה", at:"gdiv", risk:-1, out:"win"}]},
+
+{id:"gk_shot_stopping_streak", k:"save", w:2, pos:["GK"], cond:function(C){ return C.underdog; },
+ t:"הם מציפים אותך", s:"בעיטה שביעית. אתה במשחק אחר לגמרי היום.",
+ ch:[{b:"להישאר בקצב שלך", d:"קור רוח מעל הכל", at:"cmp", risk:-2, out:"save"},
+     {b:"לזנק לכל דבר", d:"מרשים · מסוכן", at:"gdiv", risk:-6, out:"save"},
+     {b:"לצעוק ולסדר את ההגנה", d:"מנסה לעצור את הזרם", at:"gpos", risk:3, out:"win"}]},
+
+{id:"gk_time_waste", k:"save", w:1, pos:["GK"], cond:function(C){ return C.late && C.lead > 0; },
+ t:"אתה יכול לשרוף זמן", s:"הכדור בידיים והשופט מסתכל על השעון.",
+ ch:[{b:"לקחת את הזמן עד הצהוב", d:"מקצועי · הקהל ישרוק", at:"cmp", risk:8, out:"keep"},
+     {b:"לחלק מהר ולתקוף", d:"אולי תסגור את המשחק", at:"gkic", risk:-4, out:"assist"},
+     {b:"לחלק בטוח לבלם", d:"שומר החזקה", at:"gkic", risk:5, out:"keep"}]},
+
+{id:"gk_line_decision", k:"save", w:2, pos:["GK"],
+ t:"כדור ארוך נופל מעל ההגנה", s:"אתה גבוה מהקו. או שאתה חוזר, או שאתה יוצא.",
+ ch:[{b:"לחזור אחורה ולסגור שער", d:"בטוח", at:"gpos", risk:2, out:"save"},
+     {b:"לצאת ולנקות", d:"אם תקרא נכון — הרגת התקפה", at:"spd", risk:-6, out:"win"},
+     {b:"לקרוא לבלם ולגבות", d:"תקשורת", at:"gkic", risk:5, out:"win"}]},
+
+{id:"gk_penalty_rebound", k:"save", w:1, pos:["GK"],
+ t:"עצרת פנדל — הכדור חוזר", s:"הבועט מגיע ראשון לריבאונד.",
+ ch:[{b:"לקום ולזנק שוב", d:"רגע גדול פעמיים", at:"gref", risk:-7, out:"save"},
+     {b:"להתפרס על הקרקע", d:"סוגר את החלק התחתון", at:"gdiv", risk:-3, out:"save"},
+     {b:"לנעול את הכדור בגוף", d:"עוצר את הכל", at:"ghan", risk:-1, out:"save"}]},
+
+{id:"gk_organise_wall", k:"save", w:1, pos:["GK"],
+ t:"אתה מסדר את הקבוצה במצב נייח", s:"שלושה מהם חופשיים בקופסה. יש עשר שניות.",
+ ch:[{b:"לסדר שמירה אישית", d:"מנהיגות · הקבוצה מקשיבה", at:"gpos", risk:4, out:"win"},
+     {b:"לצעוק שיעלו את הקו", d:"אגרסיבי · מסוכן", at:"gkic", risk:-4, out:"win"},
+     {b:"להתמקד בעמדה של עצמך", d:"שומר על מה שבשליטתך", at:"gref", risk:6, out:"save"}]},
+
+{id:"gk_wet_ball", k:"save", w:1, pos:["GK"],
+ t:"הכדור רטוב ומחליק", s:"כל תפיסה היום היא הימור.",
+ ch:[{b:"לאגרף כל דבר", d:"לא מסתכן בהחזקה", at:"gdiv", risk:1, out:"save"},
+     {b:"לנסות לתפוס בכל זאת", d:"אם תחזיק — שליטה", at:"ghan", risk:-6, out:"save"},
+     {b:"להטות לקרן", d:"פשוט ובטוח", at:"gref", risk:3, out:"save"}]},
+
+{id:"gk_sweeper_pass", k:"save", w:2, pos:["GK"],
+ t:"יש לך זמן וכדור ברגל", s:"אף אחד לא לוחץ. אתה יכול לפתוח את המשחק.",
+ ch:[{b:"מסירה ארוכה מדויקת לכנף", d:"אם תגיע — הם פרוצים", at:"gkic", risk:-5, out:"assist"},
+     {b:"לגלגל לקשר האחורי", d:"בונה בסבלנות", at:"gkic", risk:8, out:"keep"},
+     {b:"להעיף לחזית", d:"מוותר על החזקה", at:"str", risk:4, out:"keep"}]},
+
+/* ── more outfield ────────────────────────────────────────────── */
+{id:"give_and_go", k:"create", w:3, pos:OUT,
+ t:"מסירה־וריצה", s:"מסרת קצר, ועכשיו אתה יכול להיעלם מאחורי המגן.",
+ ch:[{b:"לרוץ מיד לתוך המרחב", d:"תזמון · אם היא תחזור אתה בפנים", at:"acc", risk:-4, out:"chance"},
+     {b:"להישאר ולתמוך", d:"בטוח · שומר מבנה", at:"gpos", risk:8, out:"keep"},
+     {b:"לרוץ ולדרוש את הכדור בקול", d:"נוכחות", at:"agg", risk:-1, out:"assist"}]},
+
+{id:"halfspace_arrival", k:"offball", w:3, pos:MID.concat(WIDE).concat(["ST","CF"]),
+ t:"החצי־מרחב פתוח", s:"בין הבלם למגן יש אזור שאף אחד לא מכסה.",
+ ch:[{b:"להיכנס לשם עכשיו", d:"מיקום שמייצר מצבים", at:"gpos", risk:-3, out:"chance"},
+     {b:"למשוך את המגן חוצה", d:"פותח לחבר", at:"sta", risk:7, out:"none"},
+     {b:"לבקש את הכדור ולסובב", d:"לוקח פיקוד", at:"ctl", risk:-1, out:"assist"}]},
+
+{id:"deep_cross_hunt", k:"aerial", w:2, pos:["ST","CF","CB","CDM","LW","RW"],
+ t:"הזנה מגיעה מרחוק", s:"אתה בין שני בלמים. הכדור יגיע גבוה.",
+ ch:[{b:"להשתחל בין שניהם", d:"אמיץ · נגיחה קשה", at:"jmp", risk:-6, out:"goal"},
+     {b:"להיפתח לעמוד הרחוק", d:"פחות צפוי", at:"gpos", risk:-2, out:"goal"},
+     {b:"להוריד בראש לרץ", d:"בישול שקט", at:"hdr", risk:2, out:"assist"}]},
+
+{id:"double_team", k:"carry", w:2, pos:WIDE.concat(ATT),
+ t:"הם הכפילו עליך", s:"שני שחקנים על האגף. חבר שלך פתוח באמצע.",
+ ch:[{b:"לנסות לעבור את שניהם", d:"אם תעבור — כל האגף פתוח", at:"drb", risk:-9, out:"chance"},
+     {b:"לשחרר פנימה", d:"נכון · אנונימי", at:"spa", risk:6, out:"assist"},
+     {b:"להשיג עבירה ולעצור את הלחץ", d:"רגיעה", at:"bal", risk:3, out:"keep"}]},
+
+{id:"switch_of_play_run", k:"offball", w:2, pos:WIDE.concat(["LB","RB","LWB","RWB"]),
+ t:"הכדור בצד השני", s:"אם תרוץ עכשיו — כשהוא יגיע תהיה לבד.",
+ ch:[{b:"לרוץ ארבעים מטר", d:"עומס · אבל אתה תגיע חופשי", at:"sta", risk:-3, out:"chance"},
+     {b:"לחכות בעמדה", d:"שומר רגליים", at:"gpos", risk:7, out:"none"},
+     {b:"להישאר גבוה ולכבול מגן", d:"עוזר לקבוצה בלי כדור", at:"cmp", risk:9, out:"none"}]},
+
+{id:"clean_tackle_chance", k:"defend", w:3, pos:OUT,
+ t:"הכדור פתוח בין שניכם", s:"שניכם מגיעים באותה מהירות.",
+ ch:[{b:"להיכנס נחוש", d:"או שאתה יוצא עם הכדור או עם צהוב", at:"agg", risk:-5, out:"win"},
+     {b:"לתקל בתזמון", d:"טכני, לא פיזי", at:"tkl", risk:-2, out:"win"},
+     {b:"לוותר על המגע ולסגור", d:"בגרות", at:"gpos", risk:8, out:"win"}]},
+
+{id:"midfield_screen", k:"defend", w:2, pos:["CDM","CM","CB","CAM"],
+ t:"קו המסירה למרכז החוד", s:"הם מחפשים את החלוץ שלהם ברגליים.",
+ ch:[{b:"לעמוד בקו המסירה", d:"לא ייראה, יעבוד", at:"gpos", risk:6, out:"win"},
+     {b:"לצאת ליירט", d:"אם תקרא — מתפרצת", at:"itc", risk:-5, out:"chance"},
+     {b:"להיצמד לחלוץ מקדימה", d:"פיזי", at:"mrk", risk:1, out:"win"}]},
+
+{id:"long_range_test", k:"shoot", w:2, pos:MID.concat(["CB","LB","RB"]),
+ t:"החומה נפתחה מרחוק", s:"אתה על גבול המחצית ההתקפית. השוער קצת מקדימה.",
+ ch:[{b:"לנסות מ־30 מטר", d:"אחד למאה · שער העונה", at:"lng", risk:-12, out:"goal"},
+     {b:"לקדם ולחפש מסירה", d:"סבלני", at:"vis", risk:6, out:"assist"},
+     {b:"לנהוג עד הרחבה", d:"מושך לחץ", at:"drb", risk:-2, out:"chance"}]},
+
+{id:"pen_area_hold", k:"receive", w:2, pos:["ST","CF","CAM"],
+ t:"גב לשער בתוך הרחבה", s:"בלם דוחף אותך. הכדור מגיע גבוה לרגליים.",
+ ch:[{b:"להסתובב על הציר ולבעוט", d:"קשה · מרהיב", at:"agi", risk:-9, out:"goal"},
+     {b:"להוריד לחבר שנכנס", d:"קלאסי · יעיל", at:"ctl", risk:2, out:"assist"},
+     {b:"להחזיק ולהשיג עבירה", d:"מצב נייח", at:"str", risk:5, out:"keep"}]},
+
+{id:"final_pass_choice", k:"create", w:3, pos:MID.concat(WIDE).concat(ATT),
+ t:"המסירה האחרונה", s:"שני חברים בשתי עמדות. אחד בטוח, אחד קטלני.",
+ ch:[{b:"המסירה הקטלנית", d:"אם תעבור — שער כמעט בטוח", at:"vis", risk:-6, out:"assist"},
+     {b:"המסירה הבטוחה", d:"שומר את ההתקפה", at:"spa", risk:7, out:"chance"},
+     {b:"לבעוט בעצמך", d:"למה לא", at:"fin", risk:-4, out:"goal"}]},
+
+{id:"counter_press", k:"defend", w:2, pos:OUT,
+ t:"איבדתם כדור בגובה", s:"חמש שניות ראשונות. אם תלחץ עכשיו הם לא יצאו.",
+ ch:[{b:"ללחוץ מיד", d:"עומס · מחזיר כדורים", at:"agg", risk:-3, out:"win"},
+     {b:"לחזור למבנה", d:"מסודר, פחות אגרסיבי", at:"gpos", risk:7, out:"win"},
+     {b:"לגבות את המרכז", d:"קורא את המסירה הבאה", at:"itc", risk:-1, out:"chance"}]},
+
+{id:"free_role_moment", k:"offball", w:2, pos:MID.concat(ATT), cond:function(C){ return C.trusted; },
+ t:"המאמן נתן לך חופש", s:"אתה יכול להסתובב איפה שתרצה בעשר הדקות הבאות.",
+ ch:[{b:"להיכנס לרחבה כל פעם", d:"מחפש שערים", at:"gpos", risk:-4, out:"goal"},
+     {b:"לירד ולקחת את הכדור", d:"מנהל את המשחק", at:"vis", risk:1, out:"assist"},
+     {b:"להישאר בין הקווים", d:"בין הכל", at:"ctl", risk:3, out:"chance"}]},
+
+{id:"pressure_from_bench", k:"offball", w:1, pos:OUT, cond:function(C){ return C.shaky; },
+ t:"מישהו מחמם בספסל בעמדה שלך", s:"אתה רואה אותו מותח. המאמן מסתכל לכיוון שלך.",
+ ch:[{b:"לעשות משהו מיוחד עכשיו", d:"או שתישאר או שתלך", at:"drb", risk:-8, out:"goal"},
+     {b:"לשחק אפס טעויות", d:"לא לתת סיבה", at:"cmp", risk:8, out:"keep"},
+     {b:"לרוץ יותר מכולם", d:"עומס · אמון", at:"sta", risk:1, out:"win"}]},
+
+{id:"physical_battle", k:"aerial", w:2, pos:OUT,
+ t:"קרב פיזי לאורך כל המשחק", s:"הוא לא מוותר על שום כדור. גם אתה לא.",
+ ch:[{b:"להשתמש בגוף בחזרה", d:"פיזי · השופט סופר", at:"str", risk:-3, out:"win"},
+     {b:"לשחק מהר יותר ממנו", d:"טכני", at:"agi", risk:-1, out:"chance"},
+     {b:"למשוך אותו למקום לא נכון", d:"תחכום", at:"gpos", risk:6, out:"none"}]},
+
+{id:"rondo_escape", k:"build", w:2, pos:MID.concat(["CB","LB","RB"]),
+ t:"מלכודת בפינה שלכם", s:"שלושה מהם סוגרים. יש מסירה אחת שפותחת הכל.",
+ ch:[{b:"למסור בין שניים", d:"אם היא עוברת — הם מפורקים", at:"spa", risk:-8, out:"chance"},
+     {b:"להוציא לקו הצד", d:"מכוער, בטוח", at:"cmp", risk:11, out:"keep"},
+     {b:"לצאת בדריבל מהפינה", d:"סיכון · פרס", at:"drb", risk:-6, out:"chance"}]},
+
+{id:"seal_the_win", k:"offball", w:2, pos:OUT, cond:function(C){ return C.late && C.lead === 1; },
+ t:"עוד שער סוגר את זה", s:"אתם מובילים באחד. עוד שער והמשחק נגמר.",
+ ch:[{b:"לעלות ולחפש את השני", d:"מסוכן מאחור", at:"gpos", risk:-5, out:"goal"},
+     {b:"להחזיק כדור ולנהל", d:"מקצועי", at:"cmp", risk:9, out:"keep"},
+     {b:"ללחוץ גבוה ולא לתת לצאת", d:"עומס", at:"sta", risk:-1, out:"win"}]},
+
+{id:"free_kick_direct", k:"setpiece", w:2, pos:OUT,
+ t:"עבירה במרכז, 20 מטר", s:"החומה מסודרת. השוער מסמן לצד.",
+ ch:[{b:"מעל החומה לפינה", d:"טכניקה טהורה", at:"lng", risk:-8, out:"goal"},
+     {b:"מתחת לחומה", d:"הם יקפצו", at:"pow", risk:-6, out:"goal"},
+     {b:"להזין לרחבה", d:"מפנה את ההימור לאחרים", at:"crs", risk:1, out:"assist"}]},
+
+{id:"pen_taker_choice", k:"setpiece", w:1, pos:OUT, cond:function(C){ return !C.veryLate; },
+ t:"פנדל — ואתה לא הבועט הקבוע", s:"הכדור על הנקודה. הבועט הרשמי מסתכל עליך.",
+ ch:[{b:"לקחת את הפנדל", d:"אם תבקיע — הסטטוס שלך משתנה", at:"cmp", risk:-5, out:"goal"},
+     {b:"לתת לו לבעוט", d:"נכון · לא זוהר", at:"cmp", risk:10, out:"none"},
+     {b:"לבקש שהוא יבעט ולהיות על הריבאונד", d:"תחכום", at:"gpos", risk:4, out:"goal"}]}
 ];
 
 function sitsFor(pos){
   return SITS.filter(function(s){ return s.pos.indexOf(pos) >= 0; });
 }
 
+/* Everything a situation might want to ask about the moment it fires in.
+   Situations declare a cond(C) instead of the engine hard-coding them, so
+   the library can grow without the picker growing with it. */
+function matchCtx(){
+  var myG = M.me === M.home ? M.hg : M.ag;
+  var opG = M.me === M.home ? M.ag : M.hg;
+  return {
+    min:M.min, myG:myG, opG:opG, lead:myG - opG,
+    home:M.me === M.home,
+    early:M.min <= 22, mid:M.min > 22 && M.min < 70, late:M.min >= 70, veryLate:M.min >= 84,
+    winning:myG > opG, losing:myG < opG, level:myG === opG,
+    tired:S.load >= 55 || S.fit <= 62, fresh:S.load < 40 && S.fit > 78,
+    underdog:M.opp.rep - club(S.club).rep >= 8,
+    favourite:club(S.club).rep - M.opp.rep >= 8,
+    trusted:S.trust >= 62, shaky:S.trust < 42,
+    scored:M.gAdded > 0, assisted:M.aAdded > 0,
+    hot:M.gAdded + M.aAdded >= 1, young:S.age <= 21, veteran:S.age >= 30,
+    derby:S.rivals && S.rivals.some(function(r){ return r.club === M.fx.opp; })
+  };
+}
+
 function openMoment(m){
   var pool = sitsFor(S.pos);
   if(!pool.length) pool = sitsFor("CM");
-  var late = M.min >= 78;
+  var C = matchCtx();
   var cand = pool.filter(function(s){
-    if(s.id === "late_game" && !(late && M.hg !== M.ag)) return false;
-    if(s.id === "tired_choice" && S.load < 55) return false;
+    if(s.cond && !s.cond(C)) return false;
     return S.slSit !== s.id;          // never the same situation twice running
   });
   if(!cand.length) cand = pool;
@@ -4350,8 +5002,9 @@ var STAT_GROUPS = [
     ["fouled","עבירות שספגת"],["possessionLost","איבודי כדור"]]},
   {n:"הגנה", keys:[["tackle","תיקולים"],["interception","יירוטים"],["clearance","הרחקות"],
     ["block","חסימות"],["recovery","כדורים שנאספו"],["duelWon","דו־קרבות שנוצחו"],
-    ["duelLost","דו־קרבות שאבדו"],["aerialWon","ניצחונות אוויריים"],["aerialLost","הפסדים אוויריים"]]},
-  {n:"שוער", keys:[["save","הצלות"],["bigSave","הצלות גדולות"],["goalConceded","ספג"],["cleanSheet","שער נקי"]]},
+    ["duelLost","דו־קרבות שאבדו"],["aerialWon","ניצחונות אוויריים"],["aerialLost","הפסדים אוויריים"],
+    ["cleanSheet","שער נקי"]]},
+  {n:"שוער", keys:[["save","הצלות"],["bigSave","הצלות גדולות"],["goalConceded","ספג"]]},
   {n:"משמעת", keys:[["foul","עבירות"],["yellow","צהובים"],["red","אדומים"],["error","טעויות שהובילו לשער"]]}
 ];
 
@@ -4641,7 +5294,7 @@ function showPostMatch(rating, myG, opG, scoutHit, R){
     + '<div class="sbscore"><span class="g">'+M.hg+'</span><span class="clk">סיום</span><span class="g">'+M.ag+'</span></div>'
     + '<div class="sbteam away"><div class="sbmini" style="background:'+M.away.c+';color:'+M.away.t+'">'+M.away.ab+'</div><b>'+M.away.n+'</b></div>'
   + '</div>'
-  + '<div style="flex:1;overflow-y:auto;padding:18px;display:flex;justify-content:center">'
+  + '<div style="flex:1;overflow-y:auto;padding:18px;display:flex;justify-content:center;align-items:flex-start">'
   + '<div style="width:min(880px,100%);display:flex;flex-direction:column;gap:14px">'
 
     + '<div class="p"><h3>הדוח שלך <span class="r">'+res+'</span></h3><div class="pb">'
