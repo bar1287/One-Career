@@ -666,6 +666,9 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 }
 .ratebig .num.w{background:var(--warn)} .ratebig .num.b{background:var(--bad)} .ratebig .num.g{background:var(--gold)}
 
+.injp{border-color:var(--bad)}
+.injp h3{color:var(--bad-ink)}
+
 .moverow{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
 .moverow:first-of-type{border-top:0}
 .moverow .mvi{
@@ -1260,6 +1263,7 @@ function newState(name, pos, startId){
     slCd:{}, slPending:null, slEchoes:[], promises:[], board:null, euroRep:0,
     watch:[], watchClubs:[], seasonSt:blankStats(), roleScores:[],
     moves:[], sigCount:0,
+    injury:null, injHistory:[], knock:0, comeback:null,
     euro:null,
     readMode:"normal",
     seed: (Date.now()%100000)
@@ -1522,7 +1526,13 @@ var WEEK_GAINS = [];
 function actGrow(keys, amt){
   grow(keys, amt).forEach(function(g){ WEEK_GAINS.push(g); });
 }
+function news(text, kind){
+  S.news.unshift({w:S.week, k:kind||"", t:text});
+  if(S.news.length > 60) S.news.length = 60;
+}
+
 function availableActions(){
+  if(isInjured()) return REHAB;
   return ACTIONS.filter(function(a){
     var gk = S.pos === "GK";
     if(a.only && a.only !== S.pos) return false;
@@ -1799,14 +1809,35 @@ function viewHub(){
   var expect = expectedMinutes();
 
   var days = ["ב׳","ג׳","ד׳","ה׳","ו׳","ש׳","א׳"];
+  var pool = availableActions();
   var dayHtml = days.map(function(d,i){
-    if(i===5) return '<div class="day f"><b>'+d+'</b>'+opp.ab+'</div>';
+    if(i===5) return '<div class="day f"><b>'+d+'</b>'+(isInjured()?"—":opp.ab)+'</div>';
     if(i===6) return '<div class="day d"><b>'+d+'</b>מנוחה</div>';
-    var a = S.picked[i]!==undefined ? ACTIONS.filter(function(x){return x.id===S.picked[i]})[0] : null;
+    var a = S.picked[i]!==undefined ? pool.filter(function(x){return x.id===S.picked[i]})[0] : null;
     return '<div class="day'+(a?"":" d")+'"><b>'+d+'</b>'+(a?a.i:"—")+'</div>';
   }).join("");
 
-  var actsHtml = availableActions().map(function(a){
+  var injBanner = "";
+  if(isInjured()){
+    var pc = Math.round(clamp(S.injury.rehab/S.injury.weeks, 0, 1)*100);
+    injBanner = '<div class="p injp"><h3>🚑 '+S.injury.n+' ב'+S.injury.part+'</h3><div class="pb">'
+      + '<div class="kv"><span>שבועות שנותרו</span><b class="n" style="color:var(--bad)">'+Math.ceil(S.injury.left)+'</b></div>'
+      + '<div class="bar" style="margin:8px 0 4px"><i class="w" style="width:'+pc+'%"></i></div>'
+      + '<p class="hint" style="margin:8px 0 0">בחר תוכנית שיקום לשבוע. "לדחוף את הקצב" מקצר את ההיעדרות אבל מגדיל את הסיכון להישנות מיד עם החזרה.</p>'
+      + (S.injHistory.length > 1 ? '<div class="kv" style="margin-top:8px"><span>פציעות בקריירה</span><b class="n">'+S.injHistory.length+'</b></div>' : '')
+    + '</div></div>';
+  } else if(S.comeback){
+    injBanner = '<div class="p" style="border-color:var(--warn)"><h3>⚠ חלון חזרה</h3><div class="pb">'
+      + '<p style="margin:0;font-size:13.5px;line-height:1.55">חזרת לא מזמן. '+S.comeback.weeks+' שבועות של סיכון מוגבר להישנות ('
+      + Math.round(S.comeback.risk)+'%). המאמן ייתן לך פחות דקות, וכל עומס נוסף נספר פעמיים.</p>'
+    + '</div></div>';
+  } else if(S.knock > 0){
+    injBanner = '<div class="p" style="border-color:var(--warn)"><h3>🩹 אתה משחק עם חבטה</h3><div class="pb">'
+      + '<p style="margin:0;font-size:13.5px;line-height:1.55">האזור המתוק מצטמצם ב-3.5 נקודות ועוד '+S.knock+' שבועות זה יעבור. "התאוששות ופיזיו" מקצר את זה.</p>'
+    + '</div></div>';
+  }
+
+  var actsHtml = pool.map(function(a){
     var on = S.picked.indexOf(a.id)>=0;
     var idx = S.picked.indexOf(a.id);
     var full = S.picked.length>=S.slots && !on;
@@ -1830,6 +1861,8 @@ function viewHub(){
 
   + '<div style="display:flex;flex-direction:column;gap:14px">'
 
+    + injBanner
+
     + '<div class="p hero">'
       + '<div class="heroband">'
         + '<div class="hb"><div class="hbc" style="background:'+me.c+';color:'+me.t+'">'+me.ab+'</div>'
@@ -1845,7 +1878,8 @@ function viewHub(){
       + '<span class="lbl">'+S.picked.length+'/'+S.slots+'</span><span class="slots">'+slotsHtml+'</span></span></h3>'
     + '<div class="pb"><div class="acts">'+actsHtml+'</div>'
     + '<div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap">'
-      + '<button class="btn pri big" id="play"'+(S.picked.length===0?" disabled":"")+'>שחק את המחזור ▸</button>'
+      + '<button class="btn pri big" id="play"'+(S.picked.length===0?" disabled":"")+'>'
+        + (isInjured() ? 'סיים שבוע שיקום ▸' : 'שחק את המחזור ▸')+'</button>'
       + '<button class="btn" id="clear">נקה</button>'
       + '<span class="hint">צפי דקות: <b>'+expect.label+'</b></span>'
     + '</div></div></div>'
@@ -1915,7 +1949,9 @@ function meter(label, val, cls){
 }
 
 function expectedMinutes(){
-  var t = S.trust + (S.fit-70)*0.3 + (S.sharp-50)*0.2;
+  if(isInjured()) return {label:"פצוע", start:false, mins:0};
+  var t = S.trust + (S.fit-70)*0.3 + (S.sharp-50)*0.2 - (S.knock > 0 ? 6 : 0)
+        - (S.comeback ? 8 : 0);
   if(t>=68) return {label:"הרכב פותח", start:true, mins:90};
   if(t>=48) return {label:"הרכב / חילוף מוקדם", start:true, mins:ri(60,90)};
   if(t>=32) return {label:"ספסל · כניסה סבירה", start:false, mins:ri(18,35)};
@@ -2873,6 +2909,7 @@ function showStorylet(){
    WEEK → MATCH
    ════════════════════════════════════════════════════════════════ */
 function startWeek(){
+  if(isInjured()) return rehabWeek();
   WEEK_GAINS = [];
   var xp = 0;
   S.picked.forEach(function(id){
@@ -2882,6 +2919,8 @@ function startWeek(){
   S.trainXp = xp;
   S.trainGains = WEEK_GAINS.slice();
   /* natural weekly recovery — stamina and youth shed load faster */
+  if(S.knock > 0) S.knock--;
+  comebackTick();
   var shed = 18 + (S.a.sta||45)*0.14 + (S.age <= 23 ? 3 : 0) + (hasTrait("engine") ? 4 : 0);
   S.load  = clamp(S.load - shed, 0, 100);
   S.fit   = clamp(S.fit + 9 - S.load*0.06, 20, 100);
@@ -3342,6 +3381,135 @@ function skipToEnd(){
 
 
 
+
+
+/* ══════════════════════════════════════════════════════════════════
+   INJURY, REHAB AND THE COST OF PLAYING HURT
+   The GDD asked for a graded model and the prototype had a flag. This is
+   the model: five severities, a rehab that takes real weeks, a comeback
+   that is not the same player who went off, and a re-injury window that
+   punishes rushing back. Playing through a knock is always available and
+   always costs something.
+   ════════════════════════════════════════════════════════════════ */
+var INJ = [
+  {id:"knock",  n:"חבטה",              w:[0,0], sev:1, d:"כואב, לא מסוכן. אפשר לשחק."},
+  {id:"strain", n:"מתיחה בשריר",       w:[1,2], sev:2, d:"שבוע-שבועיים. חוזרים בזהירות."},
+  {id:"muscle", n:"קרע שריר",          w:[3,5], sev:3, d:"חודש. הכשירות תיפול."},
+  {id:"joint",  n:"נזק ברצועה",        w:[6,11],sev:4, d:"עונה חצי. חוזרים אחרים."},
+  {id:"severe", n:"פציעה קשה",         w:[14,26],sev:5,d:"החזרה עצמה תהיה הסיפור."}
+];
+var INJ_PART = ["ירך אחורית","שריר מפשעה","קרסול","ברך","שוק","גב תחתון","כתף","ירך קדמית"];
+
+/* the chance of getting hurt this match, before anything you chose */
+function injuryRisk(mins){
+  var base = 0.020 + mins/90*0.020;
+  base += Math.max(0, S.load-60)/100*0.055;          /* load is the main driver */
+  base += Math.max(0, 70-S.fit)/100*0.045;
+  base += Math.max(0, S.age-30)*0.0035;
+  base -= (S.a.sta||45)/100*0.010;
+  if(S.perkPhysio) base *= 0.72;
+  if(S.perkChef)   base *= 0.90;
+  if(hasTrait("engine")) base *= 0.85;
+  if(S.injHistory && S.injHistory.length >= 3) base *= 1.15;
+  return clamp(base, 0.004, 0.22);
+}
+
+function rollSeverity(){
+  var r = rnd();
+  var loadTilt = Math.max(0, S.load-70)/100;         /* tired bodies break worse */
+  if(r < 0.40 - loadTilt*0.15) return INJ[0];
+  if(r < 0.72 - loadTilt*0.10) return INJ[1];
+  if(r < 0.90) return INJ[2];
+  if(r < 0.98) return INJ[3];
+  return INJ[4];
+}
+
+function applyInjury(kind, part){
+  var weeks = kind.w[0] === 0 ? 0 : ri(kind.w[0], kind.w[1]);
+  if(S.perkPhysio && weeks > 1) weeks = Math.max(1, weeks - 1);
+  S.injury = weeks > 0
+    ? {n:kind.n, part:part, sev:kind.sev, weeks:weeks, left:weeks, rehab:0, id:kind.id}
+    : null;
+  S.knock = weeks > 0 ? 0 : ri(2,3);                 /* a knock is carried, not treated */
+  if(weeks > 0){
+    if(!S.injHistory) S.injHistory = [];
+    S.injHistory.push({s:S.season, w:S.week, n:kind.n, part:part, weeks:weeks});
+    S.fit = clamp(S.fit - 8 - kind.sev*4, 15, 100);
+    S.sharp = clamp(S.sharp - 10 - kind.sev*5, 0, 100);
+    S.morale = clamp(S.morale - 6 - kind.sev*4, 0, 100);
+    S.trust = clamp(S.trust - kind.sev*1.2, 0, 100);
+  }
+  return weeks;
+}
+
+function isInjured(){ return !!(S.injury && S.injury.left > 0); }
+
+/* every week out is a week of choices, not a skipped screen */
+var REHAB = [
+  {id:"rehab_slow", i:"🧊", t:"שיקום שמרני", d:"עובדים לפי הספר. חוזרים שלמים.",
+   fx:["+1.0 שבוע שיקום","+5 כשירות"],
+   run:function(){ S.injury.rehab += 1.0; S.fit = clamp(S.fit + 5, 15, 100);
+                   S.injury.risk = (S.injury.risk||0); }, xp:35},
+  {id:"rehab_push", i:"🔥", t:"לדחוף את הקצב", d:"חוזרים מוקדם — ומגדילים סיכון להישנות.",
+   fx:["+1.9 שבוע שיקום","+16% הישנות","+9 עומס"],
+   run:function(){ S.injury.rehab += 1.9; S.injury.risk = (S.injury.risk||0) + 16;
+                   S.load = clamp(S.load + 9, 0, 100); }, xp:55},
+  {id:"rehab_gym", i:"🏋", t:"חדר כושר וליבה", d:"לא מקצר, אבל חוזרים חזקים יותר.",
+   fx:["+0.7 שבוע שיקום","++PHY"],
+   run:function(){ S.injury.rehab += 0.7; grow(["str","jmp","sta"], 0.5); }, xp:60},
+  {id:"rehab_film", i:"▶", t:"וידאו ולמידה", d:"הראש ממשיך להתקדם גם כשהגוף עוצר.",
+   fx:["+0.7 שבוע שיקום","++ראיית משחק"],
+   run:function(){ S.injury.rehab += 0.7; grow(["vis","gpos","cmp"], 0.45); }, xp:60},
+  {id:"rehab_room", i:"🤝", t:"להישאר עם הקבוצה", d:"שומר על החיבור בחדר ועל אמון המאמן.",
+   fx:["+0.6 שבוע שיקום","+אמון","+מורל"],
+   run:function(){ S.injury.rehab += 0.6; S.trust = clamp(S.trust + 1.6, 0, 100);
+                   S.morale = clamp(S.morale + 7, 0, 100);
+                   if(S.squad) S.squad.slice(0,4).forEach(function(pl){ pl.rel.personal = clamp(pl.rel.personal+3, 0, 100); }); }, xp:45}
+];
+
+/* the week that passes while you are out */
+function rehabWeek(){
+  var picked = S.picked.slice();
+  S.injury.rehab = S.injury.rehab || 0;
+  var xp = 0;
+  picked.forEach(function(id){
+    var a = REHAB.filter(function(x){ return x.id === id; })[0];
+    if(a){ a.run(); xp += a.xp; }
+  });
+  if(!picked.length){ S.injury.rehab += 0.8; }        /* doing nothing still heals */
+
+  S.trainXp = xp;
+  S.load = clamp(S.load - 14, 0, 100);
+  S.sharp = clamp(S.sharp - 4, 0, 100);
+  S.injury.left = Math.max(0, S.injury.weeks - S.injury.rehab);
+
+  var back = S.injury.left <= 0;
+  if(back){
+    /* you come back, but not as the player who went off */
+    S.comeback = {risk: clamp(8 + (S.injury.risk||0) + S.injury.sev*4, 0, 60), weeks: 2 + S.injury.sev};
+    S.sharp = clamp(S.sharp - 6, 0, 100);
+    S.fit = clamp(S.fit - 4, 15, 100);
+    news("🩹 " + S.name + " חוזר לאימונים אחרי " + S.injury.n + ".", "you");
+    S.injury = null;
+  }
+  S.week++;
+  S.picked = [];
+  S.money += S.wage;
+  runCoachMarket(); runStorylets(); saveGame();
+  if(S.week > S.maxWeek) return endSeason();
+  S.screen = "hub"; render();
+  var got = addXp(xp);
+  if(back) toast("🩹 חזרת לכושר. שבועות ראשונים — סיכון להישנות.");
+  else toast("שבוע שיקום. עוד " + Math.ceil(S.injury.left) + " שבועות.");
+}
+
+/* the second injury inside the comeback window is the one that ends seasons */
+function comebackTick(){
+  if(!S.comeback) return;
+  S.comeback.weeks--;
+  if(S.comeback.weeks <= 0) S.comeback = null;
+}
+function reinjuryRisk(){ return S.comeback ? S.comeback.risk/100 : 0; }
 
 /* ══════════════════════════════════════════════════════════════════
    SIGNATURE MOVES
@@ -5026,7 +5194,7 @@ function pickChoice(i, btn){
   /* Sweet-zone width is where your stats become difficulty you can feel.
      A 40-rated attribute gives a sliver; an 85 gives a comfortable window. */
   var w = 6 + at*0.34 + S.sharp*0.07 + (S.prep.coach?4:0)
-        + momEdge()*5.5
+        + momEdge()*5.5 - (S.knock > 0 ? 3.5 : 0)
         - ((M && M.opp ? M.opp.rep : 50) - 48)*0.085
         - Math.max(0, S.load-45)*0.13 - Math.max(0, 70-S.fit)*0.16
         + c.risk*0.55;
@@ -5505,6 +5673,19 @@ function finishMatch(){
 
   if(M.playing){
     S.apps++; S.careerApps++; S.minutes += M.mins; S.ratings.push(rating);
+    M.hurt = null;
+    var risk = injuryRisk(M.mins) + reinjuryRisk()*0.55 + (M.load2 ? 0.012 : 0)
+             + (S.knock > 0 ? 0.035 : 0);
+    if(rnd() < risk){
+      var kind = rollSeverity();
+      /* inside the comeback window it is rarely just a knock */
+      if(S.comeback && kind.sev < 3 && rnd() < 0.5) kind = INJ[kind.sev];
+      var part = INJ_PART[ri(0, INJ_PART.length-1)];
+      var wks = applyInjury(kind, part);
+      M.hurt = {n:kind.n, part:part, weeks:wks, sev:kind.sev};
+      news((wks ? "🚑 " : "🩹 ") + S.name + " — " + kind.n + " ב" + part
+        + (wks ? " · " + wks + " שבועות בחוץ." : " · ממשיך לשחק."), wks ? "b" : "w");
+    }
     if(rating > S.bestRating) S.bestRating = rating;
     S.streak = rating >= 7 ? S.streak + 1 : 0;
     if(S.streak > S.bestStreak) S.bestStreak = S.streak;
@@ -5750,6 +5931,15 @@ function showPostMatch(rating, myG, opG, scoutHit, R){
     + '</div></div>'
 
     + '<div class="grid g2">'
+      + (M.hurt
+        ? '<div class="p" style="border-color:var(--bad)"><h3>🚑 יצאת פצוע</h3><div class="pb">'
+          + '<p style="margin:0 0 9px;font-size:14px;font-weight:850">'+M.hurt.n+' ב'+M.hurt.part+'</p>'
+          + (M.hurt.weeks
+            ? '<div class="kv"><span>שבועות בחוץ</span><b class="n" style="color:var(--bad)">'+M.hurt.weeks+'</b></div>'
+              + '<p class="hint" style="margin:9px 0 0">בשבועות הבאים תבחר תוכנית שיקום במקום אימונים. אפשר לדחוף את הקצב ולחזור מוקדם — במחיר סיכון להישנות.</p>'
+            : '<p class="hint" style="margin:0">אתה ממשיך לשחק עם זה. האזור המתוק יצטמצם עד שזה יעבור.</p>')
+        + '</div></div>'
+        : '')
       + '<div class="p"><h3>מה המאמן ראה</h3><div class="pb">'
         + (M.playing && M.role
           ? '<div class="rolehead"><div class="rolenum '+(M.role.score>=72?"":(M.role.score>=50?"w":"b"))+'">'+M.role.score+'</div>'
