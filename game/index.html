@@ -666,6 +666,36 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 }
 .ratebig .num.w{background:var(--warn)} .ratebig .num.b{background:var(--bad)} .ratebig .num.g{background:var(--gold)}
 
+.objrow{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.objrow:first-of-type{border-top:0}
+.objrow .oi{
+  width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--sunken);font-size:12px;font-weight:850;color:var(--ink2)
+}
+.objrow.done .oi{background:var(--accent);color:#fff}
+.objrow b{display:block;font-size:13px;font-weight:850}
+.objrow span:not(.oi){display:block;font-size:11.5px;color:var(--ink3);margin-top:2px}
+.objrow.done b{color:var(--accent-ink)}
+.sponrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.sponrow:first-of-type{border-top:0}
+.sponrow.off{opacity:.55}
+.sponrow .spi{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;background:var(--sunken);font-size:15px}
+.sponrow.on .spi{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.sponrow b{display:block;font-size:13px;font-weight:850}
+.sponrow span:not(.spi){display:block;font-size:11.5px;color:var(--ink3);line-height:1.45;margin-top:2px}
+.btn.xs{padding:5px 10px;font-size:11.5px;flex:0 0 auto}
+.nemhead{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.nemside{flex:1;display:flex;flex-direction:column;gap:2px}
+.nemside.e{text-align:end}
+.nemside b{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.nemside .xs{font-size:11px;color:var(--ink3)}
+.nemvs{
+  flex:0 0 auto;border-radius:99px;padding:4px 11px;font-size:11px;font-weight:850;
+  background:var(--sunken);color:var(--ink2)
+}
+.nemvs.up{background:var(--accent-soft);color:var(--accent-ink)}
+.nemvs.dn{background:var(--bad-soft);color:var(--bad-ink)}
+
 .injp{border-color:var(--bad)}
 .injp h3{color:var(--bad-ink)}
 
@@ -1264,6 +1294,8 @@ function newState(name, pos, startId){
     watch:[], watchClubs:[], seasonSt:blankStats(), roleScores:[],
     moves:[], sigCount:0,
     injury:null, injHistory:[], knock:0, comeback:null,
+    objectives:[], brand:6, sponsor:null, assets:[], nemesis:null,
+    sigSeason:0, cleanSheets:0, lowRuns:0,
     euro:null,
     readMode:"normal",
     seed: (Date.now()%100000)
@@ -1278,6 +1310,8 @@ function newState(name, pos, startId){
   s.rivals = buildRivals();
   s.coach = newCoach();
   s.cup = newCup();
+  s.objectives = buildObjectives();
+  s.nemesis = pickNemesis();
   return s;
 }
 
@@ -1706,6 +1740,7 @@ function avgRating(){ if(!S.ratings.length) return 6.0; return S.ratings.reduce(
 /* grow a set of sub-attributes, respecting the potential ceiling.
    Returns [{k, amount}] so the UI can show "+1 דריבל" chips. */
 function grow(keys, amount){
+  if(hasAsset("coach2")) amount *= 1.20;
   var out = [], head = S.potential - ovr();
   keys.forEach(function(k){
     if(S.a[k] === undefined) return;
@@ -1862,6 +1897,31 @@ function viewHub(){
   + '<div style="display:flex;flex-direction:column;gap:14px">'
 
     + injBanner
+
+    + (function(){
+        if(!S.objectives || !S.objectives.length) return "";
+        return '<div class="p"><h3>יעדי העונה <span class="r">'
+          + S.objectives.filter(function(o){return o.done}).length+'/'+S.objectives.length+'</span></h3><div class="pb">'
+        + S.objectives.map(function(ob){
+            var st = objState(ob), who = OBJ_WHO[ob.who];
+            return '<div class="objrow'+(ob.done?" done":"")+'">'
+              + '<span class="oi">'+(ob.done?"✔":who.i)+'</span>'
+              + '<div style="flex:1"><b>'+st.t+'</b>'
+                + '<span>'+who.n+' · '+(st.d.lower ? "מקום "+st.cur : (ob.id==="value" ? money(st.cur) : (ob.id==="rate" ? (st.cur/10).toFixed(1) : st.cur))+' / '+(ob.id==="value" ? money(ob.tgt) : (ob.id==="rate" ? (ob.tgt/10).toFixed(1) : ob.tgt)))+'</span>'
+                + '<div class="bar" style="margin-top:5px"><i class="'+(ob.done?"":(st.pct<0.5?"w":""))+'" style="width:'+Math.round(st.pct*100)+'%"></i></div>'
+              + '</div></div>';
+          }).join("")
+        + '<p class="hint" style="margin:10px 0 0">יעד שהושג משולם מיד. שלושה יעדים שלא הושגו בסוף העונה — והאמון נפגע.</p>'
+        + '</div></div>';
+      })()
+
+    + (S.nemesis && fx && fx.opp === S.nemesis.club && !isInjured()
+      ? '<div class="p" style="border-color:var(--accent)"><h3>🔥 השבוע מול היריב שלך</h3><div class="pb">'
+        + '<p style="margin:0;font-size:13.5px;line-height:1.55"><b><bdi>'+S.nemesis.n+'</bdi></b> · '
+        + POS[S.nemesis.pos].n+' · OVR '+S.nemesis.ovr+'. ראש בראש '
+        + S.nemesis.h2h.w+'-'+S.nemesis.h2h.d+'-'+S.nemesis.h2h.l+'. '
+        + 'העיתונות תשווה, בין שתרצה ובין שלא.</p></div></div>'
+      : '')
 
     + '<div class="p hero">'
       + '<div class="heroband">'
@@ -2371,6 +2431,51 @@ function viewWorld(){
 }
 
 /* ── CAREER ────────────────────────────────────────────────────── */
+function brandPanel(){
+  var t = brandTier(), b = Math.round(S.brand||0);
+  var cur = S.sponsor ? SPONSORS.filter(function(x){ return x.id === S.sponsor.id; })[0] : null;
+  var open = SPONSORS.filter(function(sp){ return (S.brand||0) >= sp.need && (!cur || sp.id !== cur.id); });
+  var shut = SPONSORS.filter(function(sp){ return (S.brand||0) < sp.need; });
+
+  return '<div class="p"><h3>מיתוג וספונסרים</h3><div class="pb">'
+    + '<div class="rolehead"><div class="rolenum '+(b>=65?"":(b>=30?"w":"b"))+'">'+b+'</div>'
+      + '<div><span class="lbl">'+t.i+' '+t.n+'</span>'
+      + '<p style="margin:4px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink2)">'
+      + 'מיתוג נבנה משערים, ציונים גבוהים, מהלכי חתימה ומהמועדון שאתה משחק בו. הוא קובע אילו ספונסרים בכלל מדברים איתך.</p></div></div>'
+    + '<div class="line"></div>'
+    + (cur
+      ? '<div class="sponrow on"><span class="spi">'+cur.i+'</span><div style="flex:1"><b>'+cur.n+'</b>'
+        + '<span>₪'+cur.pay+'k לשבוע · '+(cur.askD || "בלי דרישות")+'</span></div>'
+        + '<button class="btn ghost xs" id="spDrop">בטל</button></div>'
+      : '<div class="empty">אין לך ספונסר. חתימה מוסיפה הכנסה שבועית קבועה.</div>')
+    + (open.length ? '<p class="lbl" style="margin:13px 0 7px">הצעות פתוחות</p>'
+        + open.map(function(sp){
+            return '<div class="sponrow"><span class="spi">'+sp.i+'</span>'
+              + '<div style="flex:1"><b>'+sp.n+' · ₪'+sp.pay+'k</b><span>'+sp.d+'</span></div>'
+              + '<button class="btn pri xs" data-spon="'+sp.id+'">חתום</button></div>';
+          }).join("") : "")
+    + (shut.length ? '<p class="lbl" style="margin:13px 0 7px">עוד לא מדברים איתך</p>'
+        + shut.map(function(sp){
+            return '<div class="sponrow off"><span class="spi">'+sp.i+'</span>'
+              + '<div style="flex:1"><b>'+sp.n+'</b><span>דרוש מיתוג '+sp.need+' · יש לך '+b+'</span></div></div>';
+          }).join("") : "")
+  + '</div></div>';
+}
+
+function assetPanel(){
+  return '<div class="p"><h3>נכסים <span class="r">₪'+Math.round(S.money)+'k בבנק</span></h3><div class="pb">'
+    + '<p class="hint" style="margin:0 0 11px">בניגוד לחנות, נכסים הם קבועים. הם נשארים איתך לכל הקריירה.</p>'
+    + ASSETS.map(function(a){
+        var got = hasAsset(a.id), can = S.money >= a.cost;
+        return '<div class="sponrow'+(got?" on":"")+'"><span class="spi">'+a.i+'</span>'
+          + '<div style="flex:1"><b>'+a.n+'</b><span>'+a.d+'</span></div>'
+          + (got ? '<span class="tag ok">בבעלותך</span>'
+                 : '<button class="btn '+(can?"pri":"")+' xs" data-asset="'+a.id+'"'+(can?"":" disabled")+'>₪'+a.cost+'k</button>')
+        + '</div>';
+      }).join("")
+  + '</div></div>';
+}
+
 function viewCareer(){
   var intHtml = S.interest.length ? S.interest.map(function(x){
     var lv = ["","בירור ראשוני","סקאוט בדרך","הצעה אפשרית"][x.lvl];
@@ -2468,7 +2573,11 @@ function viewCareer(){
     + '</div></div>';
   }
 
-  return boardHtml + renewHtml + offersHtml + mhHtml + '<div class="grid g2">' + shopHtml
+  return boardHtml + renewHtml + offersHtml + mhHtml + '<div class="grid g2">'
+  + brandPanel()
+  + nemesisCard()
+  + assetPanel()
+  + shopHtml
   + '<div class="p"><h3>עניין ממועדונים</h3><div class="pb">'+intHtml
   + '<p class="hint" style="margin:11px 0 0">מסדרונות ההעברות אמיתיים: קפיצה של עד ~14 נקודות מוניטין מעל ה-OVR שלך. הצעה ממשית מגיעה רק אחרי שסקאוט באמת ראה אותך.</p>'
   + '</div></div>'
@@ -2516,6 +2625,14 @@ function bind(){
   Array.prototype.forEach.call(stage.querySelectorAll("[data-buy]"), function(b){
     b.onclick = function(){ buyItem(b.getAttribute("data-buy")); };
   });
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-asset]"), function(b){
+    b.onclick = function(){ buyAsset(b.getAttribute("data-asset")); };
+  });
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-spon]"), function(b){
+    b.onclick = function(){ signSponsor(b.getAttribute("data-spon")); };
+  });
+  var spd = document.getElementById("spDrop");
+  if(spd) spd.onclick = function(){ dropSponsor("החלטה שלך"); saveGame(); render(); };
   var bs = document.getElementById("bSign");   if(bs) bs.onclick = signBoard;
   var bc = document.getElementById("bCancel"); if(bc) bc.onclick = cancelBoard;
   var ry = document.getElementById("renewYes"); if(ry) ry.onclick = acceptRenewal;
@@ -2921,7 +3038,9 @@ function startWeek(){
   /* natural weekly recovery — stamina and youth shed load faster */
   if(S.knock > 0) S.knock--;
   comebackTick();
-  var shed = 18 + (S.a.sta||45)*0.14 + (S.age <= 23 ? 3 : 0) + (hasTrait("engine") ? 4 : 0);
+  brandDecay();
+  var shed = 18 + (S.a.sta||45)*0.14 + (S.age <= 23 ? 3 : 0) + (hasTrait("engine") ? 4 : 0)
+           + (hasAsset("flat") ? 4 : 0);
   S.load  = clamp(S.load - shed, 0, 100);
   S.fit   = clamp(S.fit + 9 - S.load*0.06, 20, 100);
   S.sharp = clamp(S.sharp - 3, 0, 100);
@@ -3383,6 +3502,301 @@ function skipToEnd(){
 
 
 
+
+/* ══════════════════════════════════════════════════════════════════
+   SEASON OBJECTIVES
+   Somebody is always expecting something. The manager wants minutes and
+   a role delivered; the board wants a league position; you want the
+   number that gets you the next contract. Objectives are generated from
+   where you actually are, tracked live off state, and paid on completion.
+   ════════════════════════════════════════════════════════════════ */
+var OBJ_LIB = [
+  {id:"apps", who:"coach", t:function(n){ return n+" הופעות בליגה"; },
+   tgt:function(){ return clamp(Math.round(S.maxWeek*(0.35 + S.trust/240)), 4, S.maxWeek); },
+   cur:function(){ return S.apps; }, rw:{money:28, xp:400, trust:5}},
+
+  {id:"rate", who:"coach", t:function(n){ return "ציון עונה ממוצע "+(n/10).toFixed(1)+" ומעלה"; },
+   tgt:function(){ return Math.round((6.5 + clamp((ovr()-50)/60, 0, 0.5))*10); },
+   cur:function(){ return S.ratings.length ? Math.round(avgRating()*10) : 0; },
+   soft:true, rw:{money:36, xp:520, trust:7}},
+
+  {id:"role", who:"coach", t:function(n){ return "ציון תפקיד ממוצע "+n+" ומעלה"; },
+   tgt:function(){ return 64; },
+   cur:function(){ return S.roleScores.length
+     ? Math.round(S.roleScores.reduce(function(a,b){return a+b},0)/S.roleScores.length) : 0; },
+   soft:true, rw:{money:30, xp:460, trust:8}},
+
+  {id:"goals", who:"coach", t:function(n){ return n+" שערים"; },
+   tgt:function(){ var w = POS[S.pos].w.SHO || 0.05;
+     return clamp(Math.round(S.maxWeek*(w*1.5+0.08)), 1, 26); },
+   cur:function(){ return S.goals; }, rw:{money:44, xp:620, trust:6}},
+
+  {id:"assists", who:"coach", t:function(n){ return n+" בישולים"; },
+   tgt:function(){ var w = POS[S.pos].w.PAS || 0.05;
+     return clamp(Math.round(S.maxWeek*(w*1.1+0.06)), 1, 20); },
+   cur:function(){ return S.assists; }, rw:{money:40, xp:560, trust:6}},
+
+  {id:"place", who:"board", t:function(n){ return "המועדון מסיים במקום "+n+" או מעל"; },
+   tgt:function(){ var st = clubStanding(S.club);
+     var n = st ? st.of : 14;
+     var rank = LEAGUES[S.league].clubs.slice().sort(function(a,b){ return b.rep-a.rep; })
+       .findIndex(function(c){ return c.id === S.club; }) + 1;
+     return clamp(rank + 2, 1, n); },
+   cur:function(){ var st = clubStanding(S.club); return st ? st.pos : 99; },
+   lower:true, rw:{money:60, xp:700, trust:4}},
+
+  {id:"value", who:"you", t:function(n){ return "שווי שוק של "+money(n)+" לפחות"; },
+   tgt:function(){ return Math.round(value()*1.9); },
+   cur:function(){ return value(); }, rw:{money:0, xp:800, trust:0, brand:8}},
+
+  {id:"level", who:"you", t:function(n){ return "להגיע לרמה "+n; },
+   tgt:function(){ return S.level + 3; }, cur:function(){ return S.level; },
+   rw:{money:20, xp:0, trust:0, brand:5}},
+
+  {id:"sig", who:"you", t:function(n){ return n+" מהלכי חתימה שמצליחים"; },
+   tgt:function(){ return clamp(3 + Math.floor((S.moves||[]).length*0.8), 3, 12); },
+   cur:function(){ return S.sigSeason || 0; }, rw:{money:34, xp:520, trust:0, brand:10}},
+
+  {id:"clean", who:"coach", t:function(n){ return n+" שערים נקיים"; },
+   tgt:function(){ return clamp(Math.round(S.maxWeek*0.28), 2, 12); },
+   cur:function(){ return S.cleanSheets || 0; }, only:["GK","CB","LB","RB","CDM"],
+   rw:{money:38, xp:540, trust:7}}
+];
+
+function buildObjectives(){
+  var pool = OBJ_LIB.filter(function(o){ return !o.only || o.only.indexOf(S.pos) >= 0; });
+  /* one from the board, two from the manager, one of your own */
+  var byWho = {coach:[], board:[], you:[]};
+  pool.forEach(function(o){ byWho[o.who].push(o); });
+  function pick(arr, n){
+    var out = [], c = arr.slice();
+    while(out.length < n && c.length) out.push(c.splice(ri(0,c.length-1), 1)[0]);
+    return out;
+  }
+  var chosen = pick(byWho.board,1).concat(pick(byWho.coach,2)).concat(pick(byWho.you,1));
+  return chosen.map(function(o){
+    var tgt = o.tgt();
+    return {id:o.id, who:o.who, tgt:tgt, done:false, failed:false};
+  });
+}
+function objDef(id){ return OBJ_LIB.filter(function(o){ return o.id === id; })[0]; }
+
+function objState(ob){
+  var d = objDef(ob.id);
+  var cur = d.cur();
+  var pct = d.lower
+    ? clamp((ob.tgt + 6 - cur)/6, 0, 1)
+    : clamp(cur/Math.max(1, ob.tgt), 0, 1);
+  var met = d.lower ? cur <= ob.tgt : cur >= ob.tgt;
+  return {cur:cur, pct:pct, met:met, t:d.t(ob.tgt), d:d};
+}
+
+/* called after every match — objectives that complete pay immediately */
+function checkObjectives(){
+  if(!S.objectives) return [];
+  var paid = [];
+  S.objectives.forEach(function(ob){
+    if(ob.done) return;
+    var st = objState(ob);
+    /* league position is only settled at the end of the season */
+    if(st.d.lower && S.week <= S.maxWeek) return;
+    if(!st.met) return;
+    ob.done = true;
+    var rw = st.d.rw;
+    if(rw.money){ S.money += rw.money; }
+    if(rw.xp){ addXp(rw.xp); }
+    if(rw.trust){ S.trust = clamp(S.trust + rw.trust, 0, 100); }
+    if(rw.brand){ S.brand = clamp((S.brand||0) + rw.brand, 0, 100); }
+    paid.push({t:st.t, rw:rw, who:ob.who});
+  });
+  return paid;
+}
+var OBJ_WHO = {coach:{n:"המאמן", i:"☰"}, board:{n:"ההנהלה", i:"◧"}, you:{n:"אתה", i:"◉"}};
+
+/* ══════════════════════════════════════════════════════════════════
+   BRAND, SPONSORS AND A LIFE
+   Money in a career game is only interesting if it buys things that
+   change the game, and income is only interesting if it has to be
+   earned. Brand is earned on the pitch and in the room; sponsors pay
+   for brand and ask for something back; assets are permanent and
+   mechanical, unlike the shop's consumables.
+   ════════════════════════════════════════════════════════════════ */
+function brandGain(rating, role, g, a, sig){
+  var v = 0;
+  v += Math.max(0, rating - 6.9) * 1.6;
+  v += g*2.2 + a*1.3 + sig*1.1;
+  v += (role >= 78 ? 0.8 : 0);
+  v += (club(S.club).rep - 45)/90;
+  if(S.euro) v += 0.5;
+  if(hasTrait("idol")) v *= 1.15;
+  /* the closer to a household name, the harder every point is */
+  v *= clamp(1 - (S.brand||0)/118, 0.12, 1);
+  return v;
+}
+/* reputation fades if you stop giving it reasons. Each week brand pulls
+   towards a floor set by the club you play for and how much you play. */
+function brandDecay(){
+  var floor = clamp((club(S.club).rep - 35)*0.9 + (S.natCaps ? 12 : 0), 0, 70);
+  var b = S.brand || 0;
+  if(b > floor) S.brand = Math.max(floor, b - (0.5 + b*0.022));
+  else S.brand = Math.min(floor, b + 0.3);
+}
+function brandTier(){
+  var b = S.brand || 0;
+  if(b >= 85) return {n:"שם עולמי", i:"🌍"};
+  if(b >= 65) return {n:"כוכב ליגה", i:"⭐"};
+  if(b >= 45) return {n:"שם מוכר", i:"📣"};
+  if(b >= 25) return {n:"מתחיל להיות מדובר", i:"📰"};
+  return {n:"אנונימי", i:"·"};
+}
+
+var SPONSORS = [
+  {id:"local", n:"מוסך שכונתי", i:"🔧", need:0,  pay:2,  d:"שלט קטן על הגדר. כסף קטן, בלי דרישות.",
+   ask:null},
+  {id:"drinks", n:"מותג משקה אנרגיה", i:"🥤", need:22, pay:6,
+   d:"תשלום שבועי הגון — ומחייב אותך לצילומים.", ask:"media",
+   askD:"חריץ אחד בשבוע נשרף על צילומים (‎−1 חריץ פעולה)."},
+  {id:"boots", n:"חברת נעליים", i:"👟", need:38, pay:10,
+   d:"נעליים חדשות כל חודש — אזור מתוק ‎+3%.", ask:"boots",
+   askD:"בונוס קבוע: אזור מתוק ‎+3%."},
+  {id:"bank", n:"בנק", i:"🏦", need:52, pay:15,
+   d:"קמפיין רציני. מצפים ממך להתנהגות ללא רבב.", ask:"clean",
+   askD:"כרטיס אדום או שערוריה מבטלים את החוזה."},
+  {id:"global", n:"מותג ספורט עולמי", i:"🌍", need:74, pay:28,
+   d:"החוזה שמשנה את החיים. גם הלחץ משתנה.", ask:"perform",
+   askD:"ציון מתחת ל-6.0 בשלושה משחקים ברצף — והם יוצאים."}
+];
+
+var ASSETS = [
+  {id:"flat", i:"🏠", n:"דירה ליד מרכז האימונים", cost:240,
+   d:"קבוע: ‎+4 להתאוששות השבועית ו-‎+3 כשירות.", fx:["+4 דעיכת עומס","+3 כשירות"]},
+  {id:"gym", i:"🏋", n:"חדר כושר בבית", cost:190,
+   d:"קבוע: אימוני כוח נותנים ‎+35% יותר.", fx:["++אימון פיזי"]},
+  {id:"car", i:"🚗", n:"רכב שמדברים עליו", cost:300,
+   d:"קבוע: ‎+6 מיתוג. הקהל מזהה אותך ברמזור.", fx:["+6 מיתוג"]},
+  {id:"family", i:"❤", n:"להביא את המשפחה לעיר", cost:220,
+   d:"קבוע: ‎+8 מורל ופחות ירידות אחרי הפסד.", fx:["+8 מורל","עמידות נפשית"]},
+  {id:"agent2", i:"✎", n:"סוכן מהשורה הראשונה", cost:380,
+   d:"קבוע: הצעות טובות ב-‎+18% ותנאי חוזה עדיפים.", fx:["+18% הצעות"]},
+  {id:"coach2", i:"🎓", n:"מאמן אישי", cost:340,
+   d:"קבוע: כל אימון נותן ‎+20% ואזור מתוק ‎+2%.", fx:["++כל אימון","+2% אזור מתוק"]}
+];
+function hasAsset(id){ return S.assets && S.assets.indexOf(id) >= 0; }
+function buyAsset(id){
+  var a = ASSETS.filter(function(x){ return x.id === id; })[0];
+  if(!a || hasAsset(id) || S.money < a.cost) return;
+  S.money -= a.cost;
+  if(!S.assets) S.assets = [];
+  S.assets.push(id);
+  if(id === "car")    S.brand = clamp((S.brand||0) + 6, 0, 100);
+  if(id === "family") S.morale = clamp(S.morale + 8, 0, 100);
+  if(id === "flat")   S.fit = clamp(S.fit + 3, 20, 100);
+  toast(a.i + " " + a.n + " — נרכש.");
+  saveGame(); render();
+}
+function signSponsor(id){
+  var sp = SPONSORS.filter(function(x){ return x.id === id; })[0];
+  if(!sp || (S.brand||0) < sp.need) return;
+  S.sponsor = {id:sp.id, since:S.season, weeks:0};
+  if(sp.ask === "media") S.slots = Math.max(2, S.slots - 1);
+  toast(sp.i + " חתמת עם " + sp.n + " · ₪" + sp.pay + "k לשבוע");
+  saveGame(); render();
+}
+function dropSponsor(why){
+  if(!S.sponsor) return;
+  var sp = SPONSORS.filter(function(x){ return x.id === S.sponsor.id; })[0];
+  if(sp && sp.ask === "media") S.slots = Math.min(6, S.slots + 1);
+  news("📉 " + (sp ? sp.n : "הספונסר") + " ביטלו את החוזה" + (why ? " — " + why : "") + ".", "b");
+  S.sponsor = null;
+}
+function sponsorPay(){
+  if(!S.sponsor) return 0;
+  var sp = SPONSORS.filter(function(x){ return x.id === S.sponsor.id; })[0];
+  return sp ? sp.pay : 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   THE NEMESIS
+   One name, chosen at the start, in your position, roughly your age.
+   He develops on his own schedule whether you watch or not, the press
+   compares you, and when your clubs meet it means something.
+   ════════════════════════════════════════════════════════════════ */
+function pickNemesis(){
+  var fam = famOf(S.pos), best = null;
+  /* A rival you never play is just a name. Look in the clubs you actually
+     face this season first, then the rest of your league, then the world. */
+  var pools = [];
+  if(S.fixtures && S.fixtures.length) pools.push(S.fixtures.map(function(f){ return club(f.opp); }));
+  pools.push(LEAGUES[S.league].clubs);
+  pools.push(LG_IDS.reduce(function(t,l){ return t.concat(LEAGUES[l].clubs); }, []));
+
+  for(var pi=0; pi<pools.length && !best; pi++){
+    var pool = pools[pi];
+    for(var t=0;t<Math.min(60, pool.length*3);t++){
+      var cl = pool[ri(0, pool.length-1)];
+      if(!cl || cl.id === S.club) continue;
+      var sq = clubSquad(cl.id).filter(function(pl){
+        return famOf(pl.pos) === fam && pl.age <= S.age + 3 && pl.ovr >= ovr() - 5 && pl.ovr <= ovr() + 14;
+      });
+      if(!sq.length) continue;
+      var cand = sq[ri(0, sq.length-1)];
+      if(!best || Math.abs(cand.ovr - ovr()) < Math.abs(best.ovr - ovr())) best = cand;
+    }
+  }
+  if(!best) return null;
+  return {n:best.n, club:best.club, i:best.i, pos:best.pos, ovr:best.ovr, age:best.age,
+          g:0, a:0, apps:0, seasons:[], h2h:{w:0, d:0, l:0}, lead:0};
+}
+/* he plays a season while you play yours */
+function nemesisWeek(){
+  var N = S.nemesis;
+  if(!N) return;
+  var w = POS[N.pos] ? POS[N.pos].w : POS.CM.w;
+  var quality = clamp((N.ovr - 45)/45, 0.1, 1);
+  if(rnd() < 0.82){
+    N.apps++;
+    if(rnd() < (w.SHO||0.05)*1.5*quality) N.g++;
+    if(rnd() < (w.PAS||0.05)*1.1*quality) N.a++;
+  }
+  if(rnd() < 0.05){
+    var lines = [
+      "📰 " + N.n + " שוב על השער של העיתונים.",
+      "📰 סקאוטים מדווחים: " + N.n + " הוא הכי מבוקש בעמדה.",
+      "📰 " + N.n + " הוזמן לנבחרת."
+    ];
+    news(lines[ri(0,lines.length-1)], "w");
+  }
+}
+function nemesisSeason(){
+  var N = S.nemesis;
+  if(!N) return;
+  N.seasons.push({s:S.season, g:N.g, a:N.a, apps:N.apps, ovr:N.ovr});
+  /* he improves, faster if he is ahead of you */
+  var lead = (N.g*2 + N.a) - (S.goals*2 + S.assists);
+  N.lead = lead;
+  N.ovr = clamp(N.ovr + (lead > 4 ? ri(2,5) : ri(0,3)), 30, 95);
+  N.age++;
+  N.g = 0; N.a = 0; N.apps = 0;
+}
+function nemesisCard(){
+  var N = S.nemesis;
+  if(!N) return "";
+  var mine = S.goals*2 + S.assists, his = N.g*2 + N.a;
+  return '<div class="p" style="border-color:var(--accent)"><h3>היריב שלך <span class="r">'+POS[N.pos].short+'</span></h3><div class="pb">'
+    + '<div class="nemhead">'
+      + '<div class="nemside"><span class="lbl">אתה</span><b class="n">'+ovr()+'</b>'
+        + '<span class="xs">'+S.goals+' שערים · '+S.assists+' בישולים</span></div>'
+      + '<div class="nemvs '+(mine>=his?"up":"dn")+'">'+(mine>=his?"מוביל":"מפגר")+'</div>'
+      + '<div class="nemside e"><span class="lbl"><bdi>'+N.n+'</bdi></span><b class="n">'+N.ovr+'</b>'
+        + '<span class="xs">'+N.g+' שערים · '+N.a+' בישולים</span></div>'
+    + '</div>'
+    + '<div class="kv"><span>מועדון</span><b><bdi>'+club(N.club).n+'</bdi></b></div>'
+    + '<div class="kv"><span>ראש בראש</span><b class="n">'+N.h2h.w+'-'+N.h2h.d+'-'+N.h2h.l+'</b></div>'
+    + '<div class="kv"><span>שווי שוק שלו</span><b class="n">'+money(valueOf(N.ovr, N.age, N.ovr+6))+'</b></div>'
+    + '<button class="btn ghost" data-pc="'+N.club+'#'+N.i+'" style="margin-top:10px;width:100%">לכרטיס שלו</button>'
+  + '</div></div>';
+}
+
 /* ══════════════════════════════════════════════════════════════════
    INJURY, REHAB AND THE COST OF PLAYING HURT
    The GDD asked for a graded model and the prototype had a flag. This is
@@ -3522,51 +3936,51 @@ function reinjuryRisk(){ return S.comeback ? S.comeback.risk/100 : 0; }
    ════════════════════════════════════════════════════════════════ */
 var MOVES = [
   {id:"elastico", n:"אלסטיקו", i:"🌀", d:"פנימה־חוצה בנגיעה אחת. המגן הולך לכיוון הלא נכון.",
-   req:{drb:60, agi:56}, on:["carry","receive","offball"],
+   req:{drb:54, agi:50}, on:["carry","receive","offball"],
    ch:{b:"אלסטיקו", d:"חתימה אישית · אם יוצא, הוא מחוץ למשחק", at:"drb", risk:-2, out:"chance"}},
 
   {id:"knuckle", n:"בעיטת נאקל", i:"💥", d:"בעיטה בלי סיבוב שמשנה מסלול באוויר. שוערים שונאים אותה.",
-   req:{pow:62, lng:58}, on:["shoot","setpiece"],
+   req:{pow:56, lng:52}, on:["shoot","setpiece"],
    ch:{b:"בעיטת נאקל", d:"חתימה אישית · השוער לא יקרא את זה", at:"lng", risk:-1, out:"goal"}},
 
   {id:"nolook", n:"מסירה בלי להסתכל", i:"👁", d:"אתה מסתכל לצד אחד ומוסר לשני.",
-   req:{vis:62, cmp:58}, on:["create","build","receive"],
+   req:{vis:56, cmp:52}, on:["create","build","receive"],
    ch:{b:"מסירה בלי להסתכל", d:"חתימה אישית · ההגנה זזה למקום הלא נכון", at:"vis", risk:0, out:"assist"}},
 
   {id:"panenka", n:"פנלקה", i:"🎩", d:"בעיטה מגולגלת למרכז אחרי שהשוער כבר זינק.",
-   req:{cmp:66}, on:["setpiece"],
+   req:{cmp:60}, on:["setpiece"],
    ch:{b:"פנלקה", d:"חתימה אישית · גיבור או מם", at:"cmp", risk:-3, out:"goal"}},
 
   {id:"doublemove", n:"תנועה כפולה", i:"↔", d:"צעד לכיוון אחד, פריצה לשני. הבלם נשאר עומד.",
-   req:{acc:62, bal:56}, on:["offball","receive"],
+   req:{acc:56, bal:50}, on:["offball","receive"],
    ch:{b:"תנועה כפולה", d:"חתימה אישית · אתה נעלם מהבלם", at:"acc", risk:-1, out:"goal"}},
 
   {id:"slidemaster", n:"החלקה נקייה", i:"🧹", d:"מגלשה שלוקחת כדור בלי לגעת בשחקן.",
-   req:{tkl:62, cmp:56}, on:["defend","aerial"],
+   req:{tkl:56, cmp:50}, on:["defend","aerial"],
    ch:{b:"החלקה נקייה", d:"חתימה אישית · כדור בלבד, בלי עבירה", at:"tkl", risk:1, out:"win"}},
 
   {id:"ironhead", n:"נגיחת ברזל", i:"🪨", d:"נגיחה מנקודת אפס עם כל הגוף.",
-   req:{hdr:62, jmp:58}, on:["aerial","setpiece"],
+   req:{hdr:56, jmp:52}, on:["aerial","setpiece"],
    ch:{b:"נגיחת ברזל", d:"חתימה אישית · אף שוער לא נהנה מזה", at:"hdr", risk:-1, out:"goal"}},
 
   {id:"wall", n:"גוף כמו קיר", i:"🧱", d:"אתה מחזיק כדור מול שני שחקנים ולא זז.",
-   req:{str:62, bal:58}, on:["receive","carry","build"],
+   req:{str:56, bal:52}, on:["receive","carry","build"],
    ch:{b:"גוף כמו קיר", d:"חתימה אישית · הם לא יזיזו אותך", at:"str", risk:4, out:"keep"}},
 
   {id:"claim", n:"יציאה על הכדור", i:"🧤", d:"אתה קוצר הזנות מעל כל הרחבה.",
-   req:{ghan:62, gpos:58}, on:["save"],
+   req:{ghan:56, gpos:52}, on:["save"],
    ch:{b:"יציאה על הכדור", d:"חתימה אישית · הרחבה שלך", at:"ghan", risk:1, out:"save"}},
 
   {id:"quarterback", n:"פתיחה מדויקת", i:"🎯", d:"ארבעים מטר לרגל, בדיוק לקצב הריצה.",
-   req:{lpa:62}, on:["build","save","create"],
+   req:{lpa:56}, on:["build","save","create"],
    ch:{b:"פתיחה ארוכה מדויקת", d:"חתימה אישית · מדלגת על כל הלחץ", at:"lpa", risk:-1, out:"assist"}},
 
   {id:"firsttime", n:"גימור בנגיעה", i:"⚡", d:"אתה לא מוריד. אתה גומר.",
-   req:{fin:64, ctl:58}, on:["shoot"],
+   req:{fin:58, ctl:52}, on:["shoot"],
    ch:{b:"גימור בנגיעה ראשונה", d:"חתימה אישית · אין זמן לחסום", at:"fin", risk:-2, out:"goal"}},
 
   {id:"presskiller", n:"סיבוב מהלחץ", i:"🔄", d:"קיבלת בגב, יצאת בסיבוב, והמלכודת נשארה מאחור.",
-   req:{agi:62, cmp:60}, on:["build","receive","carry"],
+   req:{agi:56, cmp:54}, on:["build","receive","carry"],
    ch:{b:"סיבוב מהלחץ", d:"חתימה אישית · שני לוחצים נשארים מאחור", at:"agi", risk:0, out:"chance"}}
 ];
 
@@ -5195,6 +5609,8 @@ function pickChoice(i, btn){
      A 40-rated attribute gives a sliver; an 85 gives a comfortable window. */
   var w = 6 + at*0.34 + S.sharp*0.07 + (S.prep.coach?4:0)
         + momEdge()*5.5 - (S.knock > 0 ? 3.5 : 0)
+        + (hasAsset("coach2") ? 2 : 0)
+        + (S.sponsor && S.sponsor.id === "boots" ? 3 : 0)
         - ((M && M.opp ? M.opp.rep : 50) - 48)*0.085
         - Math.max(0, S.load-45)*0.13 - Math.max(0, 70-S.fit)*0.16
         + c.risk*0.55;
@@ -5667,6 +6083,16 @@ function finishMatch(){
   var myG = M.me===M.home ? M.hg : M.ag;
   var opG = M.me===M.home ? M.ag : M.hg;
 
+  if(S.nemesis && M.fx.opp === S.nemesis.club){
+    var h = S.nemesis.h2h;
+    if(myG > opG) h.w++; else if(myG < opG) h.l++; else h.d++;
+    S.brand = clamp((S.brand||0) + (myG > opG ? 4 : 1), 0, 100);
+    M.wasNemesis = true;
+    news((myG > opG ? "🔥 " : "") + S.name + " מול <bdi>" + S.nemesis.n + "</bdi>: "
+      + myG + "–" + opG + " · ראש בראש " + h.w + "-" + h.d + "-" + h.l,
+      myG > opG ? "ok" : (myG < opG ? "b" : "w"));
+  }
+
   applyResult(S.club, M.fx.opp, myG, opG);
   awardGoals(S.league, S.club, myG); awardGoals(S.league, M.fx.opp, opG);
   simWorld(S.club);
@@ -5763,13 +6189,30 @@ function finishMatch(){
   var ovrAfter = ovr();
   S.ovrPrev = ovrBefore;
 
+  /* brand, season counters, and whoever is keeping score of you */
+  if(M.playing){
+    S.brand = clamp((S.brand||0) + brandGain(rating, M.role ? M.role.score : 55,
+      M.gAdded||0, M.aAdded||0, M.sigLanded||0), 0, 100);
+    S.sigSeason = (S.sigSeason||0) + (M.sigLanded||0);
+    if(M.st && M.st.cleanSheet) S.cleanSheets = (S.cleanSheets||0) + 1;
+    S.lowRuns = rating < 6.0 ? (S.lowRuns||0) + 1 : 0;
+    if(S.sponsor){
+      var spd = SPONSORS.filter(function(x){ return x.id === S.sponsor.id; })[0];
+      if(spd && spd.ask === "perform" && S.lowRuns >= 3) dropSponsor("שלושה משחקים חלשים ברצף");
+      if(spd && spd.ask === "clean" && M.st && M.st.red) dropSponsor("כרטיס אדום");
+    }
+  }
+  var objPaid = checkObjectives();
+  nemesisWeek();
+
   var badges = checkBadges();
   var newTraits = checkTraits();
   var newMoves = checkMoves();
 
   showPostMatch(rating, myG, opG, scoutHit, {
     xp:xp, rows:xpRows, levels:levels, gains:matchGains,
-    ovrBefore:ovrBefore, ovrAfter:ovrAfter, badges:badges, traits:newTraits, moves:newMoves
+    ovrBefore:ovrBefore, ovrAfter:ovrAfter, badges:badges, traits:newTraits, moves:newMoves,
+    obj:objPaid
   });
   if(newMoves.length) setTimeout(function(){ showMove(newMoves[0]); }, 1500);
   S.trainXp = 0; S.trainGains = [];
@@ -5900,6 +6343,19 @@ function showPostMatch(rating, myG, opG, scoutHit, R){
         : '<div class="empty">לא היית בסגל. הצפייה מהיציע היא גם מידע — האמון ירד מעט.</div>')
     + '</div></div>'
 
+    + (R.obj && R.obj.length
+      ? '<div class="p" style="border-color:var(--gold)"><h3>🎯 יעד הושג</h3><div class="pb">'
+        + R.obj.map(function(o){
+            var bits = [];
+            if(o.rw.money) bits.push("₪"+o.rw.money+"k");
+            if(o.rw.xp) bits.push(o.rw.xp+" XP");
+            if(o.rw.trust) bits.push("+"+o.rw.trust+" אמון");
+            if(o.rw.brand) bits.push("+"+o.rw.brand+" מיתוג");
+            return '<div class="objrow done"><span class="oi">✔</span><div style="flex:1"><b>'+o.t+'</b>'
+              + '<span>'+OBJ_WHO[o.who].n+' · '+bits.join(" · ")+'</span></div></div>';
+          }).join("")
+        + '</div></div>'
+      : '')
     + (M.playing ? statLineHtml(M.st, S.pos) : '')
 
     + '<div class="p rewards"><h3>התקדמות</h3><div class="pb">'
@@ -6075,7 +6531,8 @@ function nextWeek(){
   S.prep = {video:0, analyst:0, coach:0, unit:0, sp:0};
   S.coachWeeks++;
 
-  S.money += S.wage;
+  S.money += S.wage + sponsorPay();
+  if(S.sponsor) S.sponsor.weeks++;
   if(played){
     S.money += Math.round(S.wage*0.10);                       // appearance
     S.money += bonusG*Math.round(S.wage*0.35) + bonusA*Math.round(S.wage*0.2);
@@ -6401,6 +6858,19 @@ function endSeason(){
     S.lastSeasonRating = S.ratings.length ? avgRating() : (S.lastSeasonRating || 6.6);
     S.ratings=[]; S.picked=[]; S.inbox=[]; S.seen=0;
     S.seasonSt = blankStats(); S.roleScores = [];
+    nemesisSeason();
+    /* if you have moved leagues, the story needs a rival in the new one */
+    if(S.nemesis && CLUBS[S.nemesis.club].lg !== S.league && rnd() < 0.6){
+      var old = S.nemesis;
+      var fresh = pickNemesis();
+      if(fresh){ fresh.h2h = old.h2h; fresh.seasons = old.seasons;
+        news("📰 בליגה החדשה כבר מדברים עליך מול <bdi>"+fresh.n+"</bdi>.", "w");
+        S.nemesis = fresh; }
+    }
+    var missed = (S.objectives||[]).filter(function(o){ return !o.done; }).length;
+    if(missed >= 3) S.trust = clamp(S.trust - 6, 0, 100);
+    S.objectives = buildObjectives();
+    S.sigSeason = 0; S.cleanSheets = 0; S.lowRuns = 0;
     /* off-season development: driven by minutes played, capped by potential.
        After 30 the physical attributes start going the other way. */
     var devKeys = Object.keys(ATTR).filter(function(k){ return S.a[k] > 25; });
