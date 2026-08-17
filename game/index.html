@@ -265,24 +265,54 @@ body{
   display:flex;flex-direction:column;overflow:hidden;
 }
 .stage{
-  flex:0 0 448px;height:448px;overflow:hidden;padding:10px 12px 4px;
+  flex:0 0 420px;height:420px;overflow:hidden;padding:9px 12px 3px;
   min-width:0;min-height:0;position:relative;
 }
-.pager{flex:0 0 26px;height:26px}
+/* the action bar is never inside a panel and never scrolls away */
+.actbar{
+  flex:0 0 54px;height:54px;display:flex;align-items:center;gap:10px;
+  padding:0 12px;border-top:1px solid var(--line2);
+  background:linear-gradient(180deg, var(--sunken), var(--surface));
+}
+.actbar .btn{flex:0 0 auto;min-width:190px}
+.actbar .abinfo{display:flex;flex-direction:column;gap:2px;min-width:0}
+.actbar .abinfo b{font-size:12px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actbar .abinfo span{font-size:10px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actbar .abchips{display:flex;gap:6px;margin-inline-start:auto;flex-wrap:nowrap;overflow:hidden}
 .stage>.boardpage{
-  display:grid;gap:9px;align-content:start;height:100%;
+  position:absolute;inset:9px 12px 3px;
+  display:grid;gap:9px;align-items:stretch;
   grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-rows:minmax(0,1fr);
 }
 .stage>.boardpage.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .stage>.boardpage.c1{grid-template-columns:minmax(0,1fr)}
-.stage>.boardpage[hidden]{display:none}
-.stage>.boardpage>.bcol{
-  display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0;overflow:hidden;align-content:start
+.bcolwrap{position:relative;min-width:0;min-height:0;height:100%;overflow:hidden}
+.bfade{
+  position:absolute;inset-inline:0;bottom:0;height:34px;pointer-events:none;opacity:0;
+  transition:opacity .18s;border-radius:0 0 11px 11px;
+  background:linear-gradient(180deg, transparent, var(--paper) 82%);
 }
-.p.clipped{overflow:hidden}
+.bfade.on{opacity:1}
+.bfade.on::after{
+  content:"⌄";position:absolute;inset-inline:0;bottom:1px;text-align:center;
+  font-size:13px;font-weight:900;color:var(--ink3);opacity:.75
+}
 
-.ovbody{flex:1 1 auto;min-height:0;height:100%;overflow:hidden;padding:9px 12px 2px;position:relative}
-.ovbody>.boardpage{display:grid;gap:9px;align-content:start;height:100%;grid-template-columns:repeat(3,minmax(0,1fr))}
+/* the column owns the scrolling, wherever it sits in the tree */
+.bcol{
+  display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0;
+  position:absolute;inset:0;
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;padding-inline-end:3px;
+}
+.bcol::-webkit-scrollbar{width:5px}
+.bcol::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px}
+.bcol::-webkit-scrollbar-track{background:transparent}
+.bcol>.p{flex:0 0 auto}
+
+.ovbody{flex:1 1 auto;min-height:0;overflow:hidden;position:relative}
+.ovbody>.boardpage{position:absolute;inset:9px 12px 2px;display:grid;gap:9px;align-items:stretch;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
 .ovbody>.boardpage.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .ovbody>.boardpage.c1{grid-template-columns:minmax(0,1fr)}
 .ovbody>.boardpage[hidden]{display:none}
@@ -291,15 +321,13 @@ body{
 .ovfoot{flex:0 0 auto;display:flex;justify-content:center;padding:5px 12px 9px}
 .ovfoot .btn{min-width:200px}
 .dbbody{padding:9px 12px 2px}
-.dbbody>.boardpage{display:grid;gap:9px;align-content:start;height:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+.dbbody>.boardpage{position:absolute;inset:9px 12px 2px;display:grid;gap:9px;align-items:stretch;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
 .dbbody>.boardpage.c1{grid-template-columns:minmax(0,1fr)}
 .dbbody>.boardpage[hidden]{display:none}
 .dbbody>.boardpage>.bcol{display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0;overflow:hidden}
 
-.pager{
-  display:flex;align-items:center;justify-content:center;gap:8px;padding:2px 12px;
-}
-.pager.off{visibility:hidden}
+.pager{display:flex;align-items:center;justify-content:center;gap:8px;padding:2px 12px}
+.pager.off{display:none}
 .pgbtn{
   width:26px;height:22px;border:0;border-radius:7px;background:var(--sunken);color:var(--ink2);
   font-size:12px;font-weight:900;cursor:pointer;display:grid;place-items:center;
@@ -968,7 +996,7 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
   font-size:13px;font-weight:850;color:var(--ink3)
 }
 .dbtab.on{background:var(--sunken);color:var(--ink)}
-.dbbody{flex:1 1 auto;min-height:0;overflow:hidden}
+.dbbody{flex:1 1 auto;min-height:0;overflow:hidden;position:relative}
 .xiwrap{display:flex;flex-direction:column;gap:14px}
 .xipitch{
   position:relative;border-radius:12px;padding:8px 6px;display:grid;gap:6px;
@@ -1177,7 +1205,7 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
     <nav class="rail" id="rail"></nav>
     <div class="board" id="boardWrap">
       <div class="stage" id="stage"></div>
-      <div class="pager" id="pager"></div>
+      <div class="actbar" id="actbar"></div>
     </div>
   </div>
   <div id="layers"></div>
@@ -2182,10 +2210,8 @@ function viewHub(){
       + '<span class="lbl">'+S.picked.length+'/'+S.slots+'</span><span class="slots">'+slotsHtml+'</span></span></h3>'
     + '<div class="pb"><div class="acts">'+actsHtml+'</div>'
     + '<div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap">'
-      + '<button class="btn pri big" id="play"'+(S.picked.length===0?" disabled":"")+'>'
-        + (isInjured() ? 'סיים שבוע שיקום ▸' : 'שחק את המחזור ▸')+'</button>'
-      + '<button class="btn" id="clear">נקה</button>'
-      + '<span class="hint">צפי דקות: <b>'+expect.label+'</b></span>'
+      + '<button class="btn" id="clear">נקה בחירה</button>'
+      + '<span class="hint">צפי דקות: <b>'+expect.label+'</b> · הכפתור לשחק נמצא בסרגל התחתון</span>'
     + '</div></div></div>'
 
   + '</div>'
@@ -3828,17 +3854,15 @@ function windowTables(root, maxRows){
 }
 
 /* ── the packer ───────────────────────────────────────────────────
-   Generic: give it a container and a pager slot and it turns whatever
-   panels are inside into pages that fit exactly. Used for the main
-   stage, the match report, the season summary and the club pages —
-   which is why no screen in this game scrolls. */
+   Panels are distributed into columns that fit the stage's width and
+   scroll on their own. Nothing is clipped, nothing is hidden, and the
+   page itself never moves — that last part is what made it feel like a
+   document. Long tables still get a windowed pager so a thirty-row table
+   does not turn a column into a mile of scrolling. */
 function packBoards(stage, pager, colsHint, state){
-  if(!stage) return null;
-  state = state || {page:0, pages:0};
+  if(!stage) return state || {};
+  state = state || {};
 
-  /* Only descend through LAYOUT wrappers. Anything else — a panel, a pitch
-     of eleven buttons, a shop grid — is atomic, or the packer would take it
-     apart and lay out its pieces as if they were panels. */
   function isWrapper(el){
     if(el.tagName !== "DIV") return false;
     var c = (typeof el.className === "string") ? el.className : "";
@@ -3850,37 +3874,28 @@ function packBoards(stage, pager, colsHint, state){
   }
   var panels = [];
   function collect(el){
-    if(!el.children.length){ if(el.textContent.trim() || el.querySelector) panels.push(el); return; }
+    if(!el.children.length){ if(el.textContent.trim()) panels.push(el); return; }
     if(!isWrapper(el)){ panels.push(el); return; }
     Array.prototype.slice.call(el.children).forEach(collect);
   }
   Array.prototype.slice.call(stage.children).forEach(collect);
   if(!panels.length){
     if(pager){ pager.innerHTML = ""; pager.className = "pager off"; }
-    state.pages = 0; return state;
+    return state;
   }
 
   var budget = stage.clientHeight;
-  /* If the container has no usable height — a browser that collapsed the
-     flex chain, a hidden tab, a viewport still settling — pack nothing.
-     Scrolling one screen is a small cost; a blank screen is not. */
-  if(!(budget > 90)){
-    if(pager){ pager.innerHTML = ""; pager.className = "pager off"; }
-    stage.classList.add("nopack");
-    state.pages = 1; state.page = 0; state.stage = stage; state.pager = pager;
-    return state;
-  }
-  stage.classList.remove("nopack");
-  var cols = colsHint || (panels.length <= 2 ? Math.max(1, panels.length) : 3);
+  var wide = stage.clientWidth;
+  var cols = colsHint || (wide >= 900 ? 3 : (wide >= 560 ? 2 : 1));
   if(panels.length < cols) cols = Math.max(1, panels.length);
-  var gap = 9;
 
   var shape = document.createElement("div");
   shape.className = "boardpage" + (cols===2?" c2":(cols===1?" c1":""));
   for(var c0=0;c0<cols;c0++) shape.appendChild(document.createElement("div"));
   stage.innerHTML = "";
   stage.appendChild(shape);
-  var colW = shape.firstChild.getBoundingClientRect().width;
+  var colW = shape.firstChild ? shape.firstChild.getBoundingClientRect().width : 0;
+  if(!colW) colW = Math.max(160, wide/cols);
   stage.innerHTML = "";
 
   var probe = document.createElement("div");
@@ -3888,76 +3903,60 @@ function packBoards(stage, pager, colsHint, state){
     + colW + "px;visibility:hidden;pointer-events:none";
   stage.appendChild(probe);
   panels.forEach(function(pl){ probe.appendChild(pl); });
-
-  var rowBudget = Math.max(4, Math.floor((budget - 96)/25));
-  panels.forEach(function(pl){ windowTables(pl, rowBudget); });
-
-  var heights = panels.map(function(pl){ return pl.getBoundingClientRect().height; });
-  panels.forEach(function(pl, i){
-    if(heights[i] <= budget) return;
-    windowTables(pl, Math.max(3, Math.floor(rowBudget*0.55)));
-    var h2 = pl.getBoundingClientRect().height;
-    if(h2 > budget){ pl.classList.add("clipped"); pl.style.maxHeight = budget + "px"; }
-    heights[i] = Math.min(h2, budget);
-  });
+  if(budget > 90) panels.forEach(function(pl){ windowTables(pl, 14); });
+  var heights = panels.map(function(pl){ return pl.getBoundingClientRect().height || 120; });
   probe.remove();
 
-  /* Fill in reading order — column by column, page by page. In RTL the grid
-     puts the first column on the right, so this is the order a Hebrew reader
-     expects, and it packs far denser than "shortest column first". */
-  var pages = [], page = null, colH = [], ci = 0;
-  function newPage(){
-    page = []; colH = [];
-    for(var i=0;i<cols;i++) colH.push(0);
-    pages.push(page);
-  }
-  newPage();
+  /* fill the shortest column, in reading order — RTL puts column 0 on the right */
+  var colH = [], byCol = [];
+  for(var i=0;i<cols;i++){ colH.push(0); byCol.push([]); }
   panels.forEach(function(pl, i){
-    var h = heights[i] + gap;
-    while(ci < cols && colH[ci] + h > budget + 2 && colH[ci] > 0) ci++;
-    if(ci >= cols){
-      if(page.length){ newPage(); ci = 0; } else ci = 0;
-    }
-    colH[ci] += h;
-    page.push({el:pl, col:ci});
+    var best = 0;
+    for(var c=1;c<cols;c++) if(colH[c] < colH[best]) best = c;
+    colH[best] += heights[i] + 9;
+    byCol[best].push(pl);
   });
 
   stage.innerHTML = "";
-  pages.forEach(function(pg, i){
-    var el = document.createElement("div");
-    el.className = "boardpage" + (cols===2?" c2":(cols===1?" c1":""));
-    if(i !== 0) el.hidden = true;
-    var byCol = [];
-    for(var c=0;c<cols;c++) byCol.push([]);
-    pg.forEach(function(it){ byCol[it.col].push(it.el); });
-    for(var c2=0;c2<cols;c2++){
-      var colEl = document.createElement("div");
-      colEl.className = "bcol";
-      byCol[c2].forEach(function(x){ colEl.appendChild(x); });
-      el.appendChild(colEl);
-    }
-    stage.appendChild(el);
-  });
+  var page = document.createElement("div");
+  page.className = "boardpage" + (cols===2?" c2":(cols===1?" c1":""));
+  for(var c2=0;c2<cols;c2++){
+    var wrap = document.createElement("div");
+    wrap.className = "bcolwrap";
+    var colEl = document.createElement("div");
+    colEl.className = "bcol";
+    byCol[c2].forEach(function(x){ colEl.appendChild(x); });
+    var fade = document.createElement("i");
+    fade.className = "bfade";
+    wrap.appendChild(colEl);
+    wrap.appendChild(fade);
+    page.appendChild(wrap);
+    markScroll(colEl, fade);
+  }
+  stage.appendChild(page);
 
-  state.pages = pages.length;
-  state.page = 0;
-  state.stage = stage;
-  state.pager = pager;
-  paintPagerFor(state);
+  if(pager){ pager.innerHTML = ""; pager.className = "pager off"; }
+  state.pages = 1; state.page = 0; state.stage = stage; state.pager = pager;
   return state;
+}
+
+/* a column that can scroll says so, and stops saying it at the bottom */
+function markScroll(col, fade){
+  function paint(){
+    var more = col.scrollHeight - col.clientHeight - col.scrollTop;
+    fade.classList.toggle("on", more > 6);
+  }
+  col.addEventListener("scroll", paint, {passive:true});
+  setTimeout(paint, 0);
+  setTimeout(paint, 120);
 }
 
 function layoutBoards(){
   var stage = document.getElementById("stage");
   if(!stage) return;
-  /* keep what the view rendered: if packing fails for any reason we put it
-     back rather than leaving the player looking at an empty board */
   var backup = stage.innerHTML;
   try {
-    BOARD = packBoards(stage, document.getElementById("pager"), 0, BOARD);
-    /* the self-check that matters: after packing, is anything actually on
-       screen? If the board came out empty the packing is wrong, whatever
-       the reason, and the un-packed markup is always better than nothing. */
+    BOARD = packBoards(stage, null, 0, BOARD);
     var shown = 0;
     Array.prototype.forEach.call(stage.querySelectorAll(".p"), function(pl){
       if(pl.getBoundingClientRect().height > 4) shown++;
@@ -3965,11 +3964,24 @@ function layoutBoards(){
     if(!shown) throw new Error("board packed to nothing (h=" + stage.clientHeight + ")");
   } catch(err){
     stage.innerHTML = backup;
-    stage.classList.add("nopack");            /* let it scroll rather than hide */
-    var pg = document.getElementById("pager");
-    if(pg){ pg.innerHTML = ""; pg.className = "pager off"; }
+    stage.classList.add("nopack");
     reportIssue("פריסה", err);
   }
+  renderActionBar();
+}
+
+/* an overlay uses the same columns */
+function packOverlay(bodyEl, cols){
+  if(!bodyEl) return null;
+  try {
+    var host = bodyEl.parentNode, used = 0;
+    Array.prototype.forEach.call(host.children, function(ch){
+      if(ch !== bodyEl) used += ch.getBoundingClientRect().height;
+    });
+    var h = Math.round(host.getBoundingClientRect().height - used);
+    if(h > 90) bodyEl.style.height = h + "px";
+  } catch(e){}
+  return packBoards(bodyEl, null, cols || 0, {});
 }
 
 /* one place that surfaces a failure instead of swallowing it */
@@ -3987,62 +3999,47 @@ function reportIssue(where, err){
   } catch(e){}
 }
 
-/* an overlay gets the same treatment: a body, a pager, no scrolling */
-function packOverlay(bodyEl, cols){
-  if(!bodyEl) return null;
-  /* give the body a definite height instead of trusting the flex chain */
-  try {
-    var host = bodyEl.parentNode;
-    var used = 0;
-    Array.prototype.forEach.call(host.children, function(ch){
-      if(ch !== bodyEl) used += ch.getBoundingClientRect().height;
-    });
-    var h = Math.round(host.getBoundingClientRect().height - used);
-    if(h > 90) bodyEl.style.height = h + "px";
-  } catch(e){}
-  var pager = bodyEl.parentNode.querySelector(".pager.ov");
-  if(!pager){
-    pager = document.createElement("div");
-    pager.className = "pager ov";
-    bodyEl.parentNode.insertBefore(pager, bodyEl.nextSibling);
-  }
-  return packBoards(bodyEl, pager, cols || 0, {page:0, pages:0});
+/* ── the action bar: the one control that is always reachable ───── */
+function renderActionBar(){
+  var bar = document.getElementById("actbar");
+  if(!bar || typeof S === "undefined" || !S) return;
+
+  var fx = S.fixtures[S.week-1] || S.fixtures[S.fixtures.length-1];
+  var opp = fx ? club(fx.opp) : null;
+  var hurt = isInjured();
+  var exp = expectedMinutes();
+  var ready = S.picked.length > 0;
+
+  var label = hurt ? "סיים שבוע שיקום ▸" : "שחק את המחזור ▸";
+  var title = hurt
+    ? S.injury.n + " · עוד " + Math.ceil(S.injury.left) + " שבועות"
+    : (opp ? (fx.home ? "בית מול " : "חוץ מול ") + opp.n : "מחזור " + S.week);
+  var sub = hurt
+    ? "בחר תוכנית שיקום לשבוע"
+    : (ready ? exp.label + " · " + S.picked.length + "/" + S.slots + " אימונים"
+             : "בחר לפחות אימון אחד במסך היום");
+
+  bar.innerHTML = ''
+    + '<button class="btn pri big" id="abPlay">' + (ready ? label : "לבחור אימונים ▸") + '</button>'
+    + '<div class="abinfo"><b>' + title + '</b><span>' + sub + '</span></div>'
+    + '<div class="abchips">'
+      + '<span class="tag' + (S.load>72?" b":(S.load>52?" w":"")) + '">עומס ' + Math.round(S.load) + '%</span>'
+      + '<span class="tag">כשירות ' + Math.round(S.fit) + '%</span>'
+      + '<span class="tag' + (S.trust>=55?" ok":" w") + '">אמון ' + Math.round(S.trust) + '</span>'
+    + '</div>';
+
+  var b = document.getElementById("abPlay");
+  if(b) b.onclick = function(){
+    if(!S.picked.length){ S.screen = "hub"; render(); return; }
+    startWeek();
+  };
 }
 
-function paintPagerFor(st){
-  var pager = st.pager;
-  if(!pager) return;
-  if(st.pages <= 1){ pager.innerHTML = ""; pager.className = pager.className.replace("pager","pager off"); return; }
-  pager.className = pager.className.indexOf("ov") >= 0 ? "pager ov" : "pager";
-  pager.innerHTML = '<button class="pgbtn pgp">▶</button>'
-    + '<span class="pgdots"></span>'
-    + '<button class="pgbtn pgn">◀</button>'
-    + '<span class="pgname">' + (st.page+1) + ' / ' + st.pages + '</span>';
-  var dots = pager.querySelector(".pgdots");
-  for(var i=0;i<st.pages;i++){
-    var d = document.createElement("button");
-    d.className = "pgdot" + (i===st.page?" on":"");
-    d.onclick = (function(n){ return function(){ goPage(st, n); }; })(i);
-    dots.appendChild(d);
-  }
-  pager.querySelector(".pgp").onclick = function(){ goPage(st, st.page-1); };
-  pager.querySelector(".pgn").onclick = function(){ goPage(st, st.page+1); };
-  pager.querySelector(".pgp").disabled = st.page === 0;
-  pager.querySelector(".pgn").disabled = st.page >= st.pages-1;
-}
+function paintPagerFor(st){}
+function goPage(st, n){}
+function paintPager(){}
+function showPage(n){}
 
-function goPage(st, n){
-  if(!st || n < 0 || n >= st.pages) return;
-  var pages = st.stage.querySelectorAll(":scope > .boardpage");
-  for(var i=0;i<pages.length;i++) pages[i].hidden = (i !== n);
-  st.page = n;
-  paintPagerFor(st);
-}
-/* the main stage keeps its old entry points */
-function paintPager(){ paintPagerFor(BOARD); }
-function showPage(n){ goPage(BOARD, n); }
-
-/* swipe and keys move between pages */
 function bindShell(){
   var stage = document.getElementById("stage");
   var x0 = null, y0 = null;
@@ -4054,10 +4051,6 @@ function bindShell(){
     if(x0 === null) return;
     var t = e.changedTouches[0];
     var dx = t.clientX - x0, dy = t.clientY - y0;
-    if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)*1.6){
-      /* RTL: swiping right goes forward */
-      showPage(BOARD.page + (dx > 0 ? 1 : -1));
-    }
     x0 = null;
   }, {passive:true});
 
