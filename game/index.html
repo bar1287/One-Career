@@ -201,6 +201,82 @@ th{font-size:9.5px !important}
 .empty{font-size:11.5px;padding:12px}
 
 
+
+/* ══════════════════════════════════════════════════════════════════
+   THE SHOT
+   ════════════════════════════════════════════════════════════════ */
+.shot{display:flex;flex-direction:column;gap:8px}
+.goalwrap{
+  position:relative;border-radius:11px;overflow:hidden;
+  background:linear-gradient(180deg,#2C3E50 0%,#3E5871 42%,#2E8B57 42%,#1F6F43 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
+}
+.crowd{
+  position:absolute;inset-inline:0;top:0;height:34%;opacity:.5;
+  background-image:radial-gradient(circle at 12% 40%, #F7F5F1 0 2px, transparent 2px),
+    radial-gradient(circle at 32% 65%, #E8C766 0 2px, transparent 2px),
+    radial-gradient(circle at 52% 30%, #F7F5F1 0 2px, transparent 2px),
+    radial-gradient(circle at 72% 60%, #8FA3B8 0 2px, transparent 2px),
+    radial-gradient(circle at 88% 35%, #F7F5F1 0 2px, transparent 2px);
+  background-size:26px 26px;
+}
+.goal{position:relative;height:118px;margin:20px 7% 0;direction:ltr}
+.goal .net{
+  position:absolute;inset:0;border-radius:3px 3px 0 0;
+  background-image:linear-gradient(90deg, rgba(255,255,255,.30) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,.30) 1px, transparent 1px);
+  background-size:11px 11px;background-color:rgba(255,255,255,.07);
+}
+.goal .post{position:absolute;top:0;bottom:0;width:6px;background:#F7F5F1;border-radius:3px;box-shadow:0 0 10px rgba(0,0,0,.3)}
+.goal .post.l{left:0} .goal .post.r{right:0}
+.goal .bar{position:absolute;left:0;right:0;top:0;height:6px;background:#F7F5F1;border-radius:3px}
+.keeper{
+  position:absolute;bottom:0;left:50%;width:34px;height:56px;margin-left:-17px;
+  transition:transform .3s cubic-bezier(.2,.8,.3,1);
+}
+.keeper i{
+  position:absolute;inset:0;border-radius:9px 9px 5px 5px;background:#EDA100;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.22);
+}
+.keeper i::after{
+  content:"";position:absolute;left:6px;right:6px;top:-11px;height:13px;border-radius:99px;background:#F0C27A;
+}
+.keeper.diveL{transform:translateX(38px) rotate(-58deg)}
+.keeper.diveR{transform:translateX(-38px) rotate(58deg)}
+.aim{
+  position:absolute;top:-16px;bottom:-10px;left:50%;width:2px;margin-left:-1px;
+  background:linear-gradient(180deg,rgba(255,255,255,.15),#fff 30%,#fff 70%,rgba(255,255,255,.15));
+  box-shadow:0 0 10px rgba(255,255,255,.75);
+}
+.aim::after{
+  content:"";position:absolute;left:-6px;top:-8px;width:14px;height:14px;
+  border:2px solid #fff;border-radius:99px;box-shadow:0 0 8px rgba(255,255,255,.7);
+}
+.aim.locked{background:var(--gold);box-shadow:0 0 12px rgba(232,199,102,.9)}
+.aim.locked::after{border-color:var(--gold)}
+.ball{
+  position:absolute;bottom:-16%;left:50%;width:16px;height:16px;margin-left:-8px;
+  border-radius:99px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.45), inset -3px -3px 0 rgba(0,0,0,.12);
+}
+.shotmsg{
+  position:absolute;left:0;right:0;top:34%;text-align:center;font-size:22px;font-weight:900;
+  color:#fff;text-shadow:0 3px 12px rgba(0,0,0,.6);opacity:0;transform:scale(.85);
+  transition:opacity .18s, transform .18s;pointer-events:none;
+}
+.shotmsg.on{opacity:1;transform:scale(1)}
+.shotmsg.good{color:#8FE3B4} .shotmsg.bad{color:#FFC9C0}
+.grass{height:16px;background:linear-gradient(180deg,#1F6F43,#175835)}
+.powwrap{display:flex;flex-direction:column;gap:4px}
+.pow{
+  position:relative;height:16px;border-radius:99px;background:var(--sunken);overflow:hidden;direction:ltr;
+  box-shadow:inset 0 0 0 1px var(--line);
+}
+.pow>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#EDA100,#eb6834);width:0}
+.pow .sweet{
+  position:absolute;top:0;bottom:0;background:rgba(27,175,122,.30);
+  box-shadow:inset 0 0 0 1px rgba(27,175,122,.75);border-radius:4px;
+}
+
 /* ══════════════════════════════════════════════════════════════════
    THE MENU — FIFA career shape: categories across the top, the sections
    of the active category down the side.
@@ -6372,6 +6448,7 @@ function pickChoice(i, btn){
   if(btn) btn.classList.add("on");
 
   var c = MO.choices[i];
+  if(isShotChoice(c)){ MO.shooting = true; return startShot(c); }
   var at = S.a[c.at] || 45;
   /* Sweet-zone width is where your stats become difficulty you can feel.
      A 40-rated attribute gives a sliver; an 85 gives a comfortable window. */
@@ -6417,11 +6494,208 @@ function pickChoice(i, btn){
   })();
 }
 
+
+/* ══════════════════════════════════════════════════════════════════
+   THE SHOT — New Star Soccer's contribution to this game
+   When the action you picked is a shot, the generic meter is replaced by
+   the thing NSS built its whole game on: you look at the goal, you see
+   the keeper, and you place the ball yourself. Two inputs — where, then
+   how hard — and the result is decided by what you actually did, not by
+   a dice roll behind the curtain. Attributes make the aim easier to
+   land and the keeper easier to beat; they never take the shot for you.
+   ════════════════════════════════════════════════════════════════ */
+var SHOT = null, SHOT_LAST = null;
+
+function isShotChoice(c){ return c && (c.out === "goal") && S.pos !== "GK"; }
+
+function shotHtml(){
+  return '<div class="shot" id="shotBox">'
+    + '<div class="goalwrap">'
+      + '<div class="crowd"></div>'
+      + '<div class="goal">'
+        + '<div class="net"></div>'
+        + '<div class="post l"></div><div class="post r"></div><div class="bar"></div>'
+        + '<div class="keeper" id="shKeep"><i></i></div>'
+        + '<div class="aim" id="shAim"></div>'
+        + '<div class="ball" id="shBall"></div>'
+        + '<div class="shotmsg" id="shMsg"></div>'
+      + '</div>'
+      + '<div class="grass"></div>'
+    + '</div>'
+    + '<div class="powwrap"><span class="lbl" id="shStage">כוון — לחץ כדי לנעול</span>'
+      + '<div class="pow"><i id="shPow"></i><span class="sweet" id="shSweet"></span></div></div>'
+    + '<button class="btn pri big" id="shFire">כוון ▸</button>'
+  + '</div>';
+}
+
+function startShot(choice){
+  var box = document.getElementById("moExec");
+  box.innerHTML = shotHtml();
+  box.style.display = "block";
+
+  var fin = S.a[choice.at] || S.a.fin || 45;
+  var comp = S.a.cmp || 45;
+  var gkSkill = clamp(38 + (M ? M.opp.rep : 55)*0.55, 35, 92);
+
+  /* aim sweeps slower the calmer and sharper you are; tired legs speed it up */
+  var aimSpeed = 1.55 - comp*0.0068 - S.sharp*0.0022
+               + Math.max(0, S.load-45)*0.010 + Math.max(0, 70-S.fit)*0.009
+               - (S.perkPsych ? 0.12 : 0) + (choice.risk < 0 ? 0.18 : 0);
+  aimSpeed = clamp(aimSpeed, 0.55, 2.4);
+
+  /* the band of power that actually beats a keeper — finishing widens it */
+  var sweetW = clamp(16 + fin*0.30 + (hasTrait("finisher") ? 6 : 0) + (S.perkBoots ? 4 : 0)
+                     - Math.max(0, S.load-55)*0.10, 12, 48);
+  var sweetC = clamp(52 + (rnd()-0.5)*22, 26, 78);
+
+  SHOT = {
+    choice:choice, phase:"aim", x:8, dir:1, speed:aimSpeed,
+    aimX:null, pow:0, powDir:1, powSpeed:1.9,
+    sweetC:sweetC, sweetW:sweetW, gk:gkSkill,
+    keepX:50, keepDir:(rnd()<0.5?-1:1), keepSpeed:0.35 + gkSkill*0.008,
+    done:false, raf:null
+  };
+
+  document.getElementById("shSweet").style.left = (sweetC - sweetW/2) + "%";
+  document.getElementById("shSweet").style.width = sweetW + "%";
+
+  var fire = document.getElementById("shFire");
+  fire.onclick = shotTap;
+  document.getElementById("shotBox").onclick = function(e){
+    if(e.target !== fire) shotTap();
+  };
+
+  var info = document.getElementById("moInfo");
+  if(info) info.innerHTML = '';
+
+  shotLoop();
+}
+
+function shotLoop(){
+  if(!SHOT || SHOT.done) return;
+  var aim = document.getElementById("shAim");
+  var keep = document.getElementById("shKeep");
+  var pow = document.getElementById("shPow");
+  if(!aim || !keep){ SHOT = null; return; }
+
+  /* the keeper never stands still */
+  SHOT.keepX += SHOT.keepDir * SHOT.keepSpeed;
+  if(SHOT.keepX > 74){ SHOT.keepX = 74; SHOT.keepDir = -1; }
+  if(SHOT.keepX < 26){ SHOT.keepX = 26; SHOT.keepDir = 1; }
+  keep.style.left = SHOT.keepX + "%";
+
+  if(SHOT.phase === "aim"){
+    SHOT.x += SHOT.dir * SHOT.speed;
+    if(SHOT.x > 96){ SHOT.x = 96; SHOT.dir = -1; }
+    if(SHOT.x < 4){ SHOT.x = 4; SHOT.dir = 1; }
+    aim.style.left = SHOT.x + "%";
+  } else if(SHOT.phase === "power"){
+    SHOT.pow += SHOT.powDir * SHOT.powSpeed;
+    if(SHOT.pow > 100){ SHOT.pow = 100; SHOT.powDir = -1; }
+    if(SHOT.pow < 0){ SHOT.pow = 0; SHOT.powDir = 1; }
+    pow.style.width = SHOT.pow + "%";
+  }
+  SHOT.raf = requestAnimationFrame(shotLoop);
+}
+
+function shotTap(){
+  if(!SHOT || SHOT.done) return;
+  if(SHOT.phase === "aim"){
+    SHOT.aimX = SHOT.x;
+    SHOT.phase = "power";
+    document.getElementById("shAim").classList.add("locked");
+    document.getElementById("shStage").textContent = "עוצמה — עצור בתוך הירוק";
+    document.getElementById("shFire").textContent = "בעט ▸";
+    return;
+  }
+  if(SHOT.phase === "power"){
+    SHOT.phase = "fly";
+    resolveShot();
+  }
+}
+
+function resolveShot(){
+  SHOT.done = true;
+  if(SHOT.raf) cancelAnimationFrame(SHOT.raf);
+
+  /* Two things stop perfect input from being a perfect goal, and both are
+     football: the ball does not go exactly where you meant, and a good
+     keeper sometimes reads you. Skill shrinks the first and the second
+     stays honest — which is why a striker beats a great keeper more often
+     than a teenager does, but never every time. */
+  var acc = S.a.acc || 45, fin = S.a[SHOT.choice.at] || S.a.fin || 45;
+  var err = clamp(29 - fin*0.20 - acc*0.06, 3.5, 22);
+  var aimX = clamp(SHOT.aimX + (rnd()-0.5)*err, 0, 100);
+  var power = SHOT.pow;
+
+  var readChance = clamp(0.08 + SHOT.gk*0.0050 - (S.a.cmp||45)*0.0016, 0.05, 0.55);
+  if(rnd() < readChance){
+    var lean = clamp((aimX - SHOT.keepX) * (0.55 + rnd()*0.35), -26, 26);
+    SHOT.keepX = clamp(SHOT.keepX + lean, 14, 86);
+    SHOT.read = true;
+  }
+  var offCentre = Math.abs(power - SHOT.sweetC);
+  var powerOk = offCentre <= SHOT.sweetW/2;
+  var powerBad = offCentre > SHOT.sweetW;
+
+  /* outside the posts is a miss, and the corners are the best place to be */
+  var wide = aimX < 9 || aimX > 91;
+  var corner = (aimX >= 9 && aimX <= 22) || (aimX >= 78 && aimX <= 91);
+
+  /* how far the keeper can reach, in goal-width percent */
+  var reach = 11 + SHOT.gk*0.17 + (powerOk ? 0 : 5) + (powerBad ? 5 : 0);
+  if(corner) reach -= 4;
+  var gap = Math.abs(aimX - SHOT.keepX);
+  var beaten = gap > reach;
+
+  var result, grade;
+  if(wide && !powerOk){ result = "wide"; grade = "fail"; }
+  else if(powerBad && power > SHOT.sweetC){ result = "over"; grade = "fail"; }
+  else if(powerBad){ result = "weak"; grade = "poor"; }
+  else if(!beaten){ result = "save"; grade = powerOk ? "good" : "poor"; }
+  else if(wide){ result = "post"; grade = "poor"; }
+  else { result = "goal"; grade = powerOk ? "great" : "good"; }
+
+  var ball = document.getElementById("shBall");
+  var msg  = document.getElementById("shMsg");
+  var keep = document.getElementById("shKeep");
+  if(ball){
+    ball.style.transition = "left .42s cubic-bezier(.2,.7,.3,1), bottom .42s cubic-bezier(.2,.7,.3,1), transform .42s";
+    ball.style.left = aimX + "%";
+    ball.style.bottom = (26 + clamp(power, 0, 100)*0.52) + "%";
+    ball.style.transform = "scale(.62)";
+  }
+  if(keep){
+    keep.style.left = SHOT.keepX + "%";
+    keep.classList.add(aimX < SHOT.keepX ? "diveL" : "diveR");
+  }
+
+  SHOT_LAST = result;
+  var TXT = {
+    goal:"⚽ גול!", save:(SHOT.read ? "🧤 הוא קרא אותך" : "🧤 השוער הדף"),
+    wide:"↗ החוצה", over:"⤴ מעל המסגרת",
+    weak:"😐 חלש מדי", post:"🅾 העמוד!"
+  };
+  if(msg){ msg.textContent = TXT[result]; msg.className = "shotmsg on " + (result==="goal"?"good":"bad"); }
+  if(result === "goal"){ confetti(60, ["#1baf7a","#E8C766","#FFFFFF"]); shake(); }
+
+  var st = document.getElementById("shStage");
+  if(st) st.textContent = result === "goal" ? "בדיוק לשם כיוונת." :
+    (result === "save" ? "הוא היה שם. פעם הבאה לפינה." : "לא הפעם.");
+
+  setTimeout(function(){
+    resolveMoment(SHOT.choice, grade, false, MO && MO.sit ? MO.sit.k : "shoot",
+      {shot:result, goal:result === "goal", onTarget:(result === "goal" || result === "save")});
+    SHOT = null;
+  }, 620);
+}
+
 function fireMoment(){
-  if(!MO || MO.pick===null || MO.fired) return;
+  if(!MO || MO.pick===null || MO.fired || MO.shooting) return;
   MO.fired = true;
   if(MO.raf) cancelAnimationFrame(MO.raf);
-  document.getElementById("moFire").disabled = true;
+  var fb = document.getElementById("moFire");
+  if(fb) fb.disabled = true;
 
   var off = Math.abs(MO.pos - MO.center);
   var half = MO.w/2;
@@ -6431,14 +6705,20 @@ function fireMoment(){
 
 /* every Skill Moment leaves a line in the box score — that line, not the
    position, is what the rating engine later reads */
-function momentStats(kind, out, grade, made){
+function momentStats(kind, out, grade, made, shot){
   var ok  = (grade === "great" || grade === "good");
   var bad = (grade === "fail");
   var gk  = (S.pos === "GK");
 
   if(out === "goal"){
     stat("shots");
-    if(made) stat("shotOnTarget");
+    if(shot){
+      if(shot.goal) stat("shotOnTarget");
+      else if(shot.onTarget) stat("shotOnTarget");
+      else stat("shotOffTarget");
+      if(!shot.goal && shot.onTarget && rnd() < 0.4) stat("bigChanceMissed");
+    }
+    else if(made) stat("shotOnTarget");
     else if(ok){ stat("shotOnTarget"); if((kind === "shoot" || kind === "aerial") && rnd() < 0.45) stat("bigChanceMissed"); }
     else { stat("shotOffTarget"); if(bad && rnd() < 0.5) stat("bigChanceMissed"); }
   }
@@ -6489,7 +6769,7 @@ function momentStats(kind, out, grade, made){
   if(kind === "setpiece" && ok && out !== "goal" && rnd() < 0.35) stat("fouled");
 }
 
-function resolveMoment(choice, grade, silent, kind){
+function resolveMoment(choice, grade, silent, kind, forced){
   var txt, cls, pts;
   var out  = choice ? (choice.out || "none") : "none";
   var risky = choice ? choice.risk < 2 : false;
@@ -6507,11 +6787,14 @@ function resolveMoment(choice, grade, silent, kind){
      A centre-back who wins a header at a corner can score; a striker who
      slides a through ball gets the assist. */
   var landed = (grade === "great") || (grade === "good" && rnd() < 0.38);
+  /* a shot you aimed yourself is not re-rolled behind your back */
+  if(forced && forced.shot) landed = true;
   var outcome = "";
 
   var made = false;
 
-  if(landed && out === "goal" && rnd() < (hasTrait("finisher") ? 0.44 : 0.34)){
+  if(landed && out === "goal" && (forced && forced.shot ? forced.goal
+        : rnd() < (hasTrait("finisher") ? 0.44 : 0.34))){
     made = true;
     if(M.me===M.home) M.hg++; else M.ag++;
     S.goals++; S.careerGoals++; M.gAdded++; M.score += 1.2; stat("goals");
@@ -6545,7 +6828,7 @@ function resolveMoment(choice, grade, silent, kind){
     addEv(M.min, "✔ פעולה נקייה שלך.", "you");
   }
 
-  momentStats(kind, out, grade, made);
+  momentStats(kind, out, grade, made, forced && forced.shot ? forced : null);
 
   /* momentum answers to what just happened */
   if(M){
@@ -6827,6 +7110,8 @@ function statLineHtml(st, pos){
 }
 
 function closeMoment(){
+  if(SHOT && SHOT.raf) cancelAnimationFrame(SHOT.raf);
+  SHOT = null;
   var el = document.getElementById("momentLayer");
   if(el) el.remove();
   MO = null;
