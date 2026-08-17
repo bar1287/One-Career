@@ -666,6 +666,21 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 }
 .ratebig .num.w{background:var(--warn)} .ratebig .num.b{background:var(--bad)} .ratebig .num.g{background:var(--gold)}
 
+/* ── the box score and the rating breakdown ────────────────────── */
+.statwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 18px}
+.statgrp>p{margin:0 0 4px}
+.statgrp .kv{font-size:12.5px;padding:4px 0}
+.statgrp .kv b{font-variant-numeric:tabular-nums}
+.bd{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.bdrow{display:grid;grid-template-columns:1fr 84px 46px;align-items:center;gap:8px;font-size:12.5px}
+.bdrow .bn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bdrow .bt{height:8px;border-radius:99px;background:var(--sunken);position:relative;box-shadow:inset 0 0 0 1px var(--line)}
+.bdrow .bt>i{position:absolute;top:0;bottom:0;left:50%;border-radius:99px;background:var(--accent)}
+.bdrow .bt>i.dn{background:var(--bad)}
+.bdrow .bv{text-align:left;font-weight:850;font-variant-numeric:tabular-nums}
+.bdrow .bv.up{color:var(--accent)} .bdrow .bv.dn{color:var(--bad)}
+.bdmid{position:absolute;top:-2px;bottom:-2px;left:50%;width:1px;background:var(--line)}
+
 .delta{font-size:12px;font-weight:850}
 .delta.up{color:var(--accent)} .delta.dn{color:var(--bad)}
 
@@ -2680,6 +2695,7 @@ function openMatch(){
     onPitch: exp.start, entryMin: exp.start ? 0 : ri(55,75),
     mins: exp.mins, playing: exp.mins>0,
     score:0, count:0, gAdded:0, aAdded:0,
+    st: blankStats(), rates:null, noise:undefined,
     running:false, timer:null
   };
 
@@ -2885,6 +2901,90 @@ function runClock(){
   tickMatch();
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   THE ORDINARY RUN OF PLAY
+   A match report is not only the highlights. Between Skill Moments you
+   are still passing, pressing, losing duels — and the rating engine
+   counts all of it, exactly as the analytics providers do. The rates
+   come from the position's own weights, so a CDM naturally fills a
+   defensive line and a winger a dribbling one, without either being
+   scripted, and every rate is scaled by fitness, load and sharpness.
+   ════════════════════════════════════════════════════════════════ */
+function ambientRates(){
+  var W = POS[S.pos].w;
+  if(S.pos === "GK") return {pass:0.26, drib:0, def:0.062, aer:0.022, shot:0, key:0.008};
+  return {
+    pass: 0.20 + (W.PAS||0)*1.90 + (W.DEF||0)*0.55,
+    drib: 0.012 + (W.DRI||0)*0.20,
+    def:  0.010 + (W.DEF||0)*0.28 + (W.PHY||0)*0.07,
+    aer:  0.005 + (W.PHY||0)*0.085 + (W.SHO||0)*0.03,
+    shot: 0.004 + (W.SHO||0)*0.055,
+    key:  0.003 + (W.PAS||0)*0.055 + (W.DRI||0)*0.022
+  };
+}
+
+/* one number for "how well is your body carrying you today" */
+function formEdge(){
+  return (S.sharp-50)/500 - Math.max(0, S.load-55)/420 - Math.max(0, 70-S.fit)/380;
+}
+
+function ambientOdds(){
+  var f = formEdge(), q = (ovr() - (M ? M.opp.rep : 60))/900;
+  return {
+    pass: S.pos === "GK"
+          ? clamp(0.700 + ((S.a.gkic||45)-45)/260 + f, 0.52, 0.94)
+          : clamp(0.745 + (grpVal("PAS")-50)/300 + f + q, 0.55, 0.945),
+    def:  clamp(0.600 + (grpVal("DEF")-50)/280 + f + q, 0.36, 0.87),
+    aer:  clamp(0.480 + ((S.a.hdr||45)+(S.a.str||45)-100)/300 + f + q, 0.22, 0.88),
+    drib: clamp(0.545 + (grpVal("DRI")-50)/260 + f + q, 0.28, 0.90),
+    shot: clamp(0.330 + (grpVal("SHO")-50)/320 + f, 0.18, 0.62)
+  };
+}
+
+/* one minute of unremarkable football */
+function ambientTick(){
+  if(!M || !M.playing || !M.onPitch || !M.st) return;
+  var R = M.rates || (M.rates = ambientRates());
+  var O = ambientOdds();
+  var i, n;
+
+  n = R.pass + (rnd()-0.5)*R.pass*0.7;
+  for(i=0;i<4;i++){
+    if(rnd() >= n) break;
+    n -= 1;
+    stat("passes");
+    if(rnd() < O.pass) stat("passCompleted");
+    else { stat("passFailed"); if(rnd() < 0.45) stat("possessionLost"); }
+    if(n <= 0) break;
+  }
+
+  if(rnd() < R.key)  stat("keyPass");
+  if(rnd() < R.drib){ if(rnd() < O.drib) stat("dribbleWon"); else stat("dribbleLost"); }
+  if(rnd() < R.aer) { if(rnd() < O.aer) stat("aerialWon"); else stat("aerialLost"); }
+  if(rnd() < R.shot){ stat("shots"); if(rnd() < O.shot) stat("shotOnTarget"); else stat("shotOffTarget"); }
+
+  if(rnd() < R.def){
+    var won = rnd() < O.def;
+    if(S.pos === "GK"){
+      if(won){ if(rnd() < 0.62){ stat("save"); if(rnd() < 0.20) stat("bigSave"); } else stat("recovery"); }
+      else if(rnd() < 0.03) stat("error");
+    } else if(won){
+      var roll = rnd();
+      if(roll < 0.24) stat("tackle");
+      else if(roll < 0.46) stat("interception");
+      else if(roll < 0.66) stat("clearance");
+      else if(roll < 0.74) stat("block");
+      else stat("recovery");
+      stat("duelWon");
+    } else {
+      stat("duelLost");
+      if(rnd() < 0.34){ stat("foul"); if(rnd() < 0.055) stat("yellow"); }
+      if(rnd() < 0.012) stat("error");
+    }
+  }
+  if(rnd() < 0.006 + (S.a.agi||45)/9000) stat("fouled");
+}
+
 function tickMatch(){
   if(M.min>=90) return finishMatch();
 
@@ -2897,6 +2997,8 @@ function tickMatch(){
     var r = document.getElementById("mRole"); if(r) r.textContent = "על המגרש";
     addEv(M.min, "חילוף: אתה נכנס. המאמן: \"לחץ את הבלם השמאלי, אל תרדוף אחרי שער.\"", "you");
   }
+
+  if(M.onPitch && M.playing) ambientTick();
 
   var nm = M.moments.filter(function(m){return !m.done && m.min===M.min})[0];
   if(nm && M.onPitch){
@@ -2929,6 +3031,28 @@ function tickMatch(){
   M.timer = setTimeout(tickMatch, M.onPitch ? 105 : 42);
 }
 
+/* When you are not in the room, your on-pitch self still makes decisions,
+   and it makes them like a player of your position would: a centre-back
+   picks the clearance far more often than the shot — but not always. */
+function autoChoice(sit){
+  var W = POS[S.pos].w, best = [], tot = 0;
+  for(var i=0;i<sit.ch.length;i++){
+    var o = sit.ch[i].out || "none", wt;
+    if(o === "goal")        wt = 0.20 + (W.SHO||0)*3.0 + (W.DRI||0)*0.5;
+    else if(o === "assist") wt = 0.30 + (W.PAS||0)*2.0 + (W.DRI||0)*0.8;
+    else if(o === "chance") wt = 0.35 + (W.PAS||0)*1.5;
+    else if(o === "win")    wt = 0.30 + (W.DEF||0)*2.2 + (W.PHY||0)*0.8;
+    else if(o === "save")   wt = 0.15 + (W.DEF||0)*1.4 + (S.pos === "GK" ? 2.5 : 0);
+    else if(o === "keep")   wt = 0.50;
+    else                    wt = 0.40;
+    if(hasTrait("gambler") && sit.ch[i].risk < 0) wt *= 1.4;
+    best.push(wt); tot += wt;
+  }
+  var roll = rnd()*tot, acc = 0;
+  for(var j=0;j<sit.ch.length;j++){ acc += best[j]; if(roll <= acc) return sit.ch[j]; }
+  return sit.ch[sit.ch.length-1];
+}
+
 function skipToEnd(){
   if(M.timer) clearTimeout(M.timer);
   M.moments.forEach(function(m){ m.done = true; });
@@ -2940,33 +3064,28 @@ function skipToEnd(){
     }
   }
 
-  /* A simulated match derives your contribution from the position's own
-     weights and your attributes — no position is locked out of anything. */
+  /* A simulated match is played by the same engine, not by a shortcut:
+     real situations are drawn for your position, a grade is rolled from
+     your attributes against the opponent, and resolveMoment writes the
+     same box-score lines a live match would write. */
   if(M.playing){
-    var share = M.mins/90;
-    var W = POS[S.pos].w;
-    var gRate = (W.SHO||0)*1.15 + (W.PAC||0)*0.16 + (W.DRI||0)*0.16;
-    var aRate = (W.PAS||0)*0.85 + (W.DRI||0)*0.30;
-    var quality = 0.6 + (grpVal(S.pos==="GK"?"REF":"SHO")-48)/120 + (S.sharp-50)/240;
-    var creat   = 0.6 + (grpVal(S.pos==="GK"?"KIC":"PAS")-48)/120 + (S.sharp-50)/240;
-    var g = 0, a = 0;
-    if(rnd() < gRate*share*clamp(quality,0.25,1.9)) g++;
-    if(g && rnd() < 0.14) g++;
-    if(rnd() < aRate*share*clamp(creat,0.25,1.9)) a++;
-    for(var q=0;q<g;q++){ if(M.me===M.home) M.hg++; else M.ag++; }
-    if(g){ S.goals+=g; S.careerGoals+=g; M.gAdded+=g; }
-    if(a){ S.assists+=a; S.careerAssists+=a; M.aAdded+=a; }
+    var wasOn = M.onPitch; M.onPitch = true;
+    for(var t=0;t<M.mins;t++) ambientTick();
+    M.onPitch = wasOn;
 
-    /* and the rest of the performance is sampled, not assumed good */
-    var strength = (ovr() - M.opp.rep)/26 + (S.sharp-52)/120 - Math.max(0,S.load-70)/170;
-    var n = Math.max(1, Math.round(M.mins/11));
-    M.count = n; M.score = 0; M.chances = 0; M.duels = 0; M.errors = 0;
-    for(var s=0;s<n;s++){
-      var roll = rnd() + rnd() - 1 + clamp(strength,-0.7,0.7)*0.5;   // bell-ish
-      if(roll > 0.36){ M.score += 1.15; if(rnd()<0.35) M.chances++; else M.duels++; }
-      else if(roll > 0.02){ M.score += 0.55; }
-      else if(roll > -0.34){ M.score -= 0.35; }
-      else { M.score -= 0.95; M.errors++; }
+    var strength = (ovr() - M.opp.rep)/26 + (S.sharp-52)/120
+                 - Math.max(0,S.load-70)/170 - Math.max(0,70-S.fit)/140;
+    strength = clamp(strength, -0.85, 0.85);
+
+    var pool = sitsFor(S.pos);
+    if(!pool.length) pool = sitsFor("CM");
+    var n = Math.max(1, Math.round(M.mins/8.5));
+    for(var i=0;i<n;i++){
+      var sit = pool[ri(0,pool.length-1)];
+      var ch  = autoChoice(sit);
+      var roll = (rnd()+rnd())/2 + strength*0.30 + (ch.risk||0)*0.010;
+      var grade = roll > 0.70 ? "great" : (roll > 0.46 ? "good" : (roll > 0.26 ? "poor" : "fail"));
+      resolveMoment(ch, grade, true, sit.k);
     }
   }
 
@@ -3342,6 +3461,7 @@ function pickChoice(i, btn){
   /* Sweet-zone width is where your stats become difficulty you can feel.
      A 40-rated attribute gives a sliver; an 85 gives a comfortable window. */
   var w = 6 + at*0.34 + S.sharp*0.07 + (S.prep.coach?4:0)
+        - ((M && M.opp ? M.opp.rep : 50) - 48)*0.085
         - Math.max(0, S.load-45)*0.13 - Math.max(0, 70-S.fit)*0.16
         + c.risk*0.55;
   if(hasTrait("clutch") && M && M.min >= 75) w *= 1.15;
@@ -3391,10 +3511,71 @@ function fireMoment(){
   resolveMoment(MO.choices[MO.pick], grade, false);
 }
 
-function resolveMoment(choice, grade, silent){
+/* every Skill Moment leaves a line in the box score — that line, not the
+   position, is what the rating engine later reads */
+function momentStats(kind, out, grade, made){
+  var ok  = (grade === "great" || grade === "good");
+  var bad = (grade === "fail");
+  var gk  = (S.pos === "GK");
+
+  if(out === "goal"){
+    stat("shots");
+    if(made) stat("shotOnTarget");
+    else if(ok){ stat("shotOnTarget"); if((kind === "shoot" || kind === "aerial") && rnd() < 0.45) stat("bigChanceMissed"); }
+    else { stat("shotOffTarget"); if(bad && rnd() < 0.5) stat("bigChanceMissed"); }
+  }
+  else if(out === "assist"){
+    if(made){ stat("keyPass"); stat("bigChanceCreated"); }
+    else if(ok){
+      if(rnd() < 0.5){ stat("keyPass"); if(rnd() < 0.30) stat("bigChanceCreated"); }
+      else { stat("passes"); stat("passCompleted"); }
+    }
+    else { stat("passes"); stat("passFailed"); stat("possessionLost"); }
+  }
+  else if(out === "chance"){
+    if(ok){
+      if(rnd() < 0.55){ stat("keyPass"); if(grade === "great" && rnd() < 0.4) stat("bigChanceCreated"); }
+      else { stat("passes"); stat("passCompleted"); }
+    }
+    else { stat("passes"); stat("passFailed"); if(bad) stat("possessionLost"); }
+  }
+  else if(out === "win"){
+    if(ok){
+      if(kind === "aerial") stat("aerialWon");
+      else { stat("duelWon"); stat(rnd() < 0.5 ? "tackle" : "interception"); }
+    } else {
+      if(kind === "aerial") stat("aerialLost"); else stat("duelLost");
+      if(bad && rnd() < 0.5){ stat("foul"); if(rnd() < 0.18) stat("yellow"); }
+      if(bad && rnd() < 0.14) stat("error");
+    }
+  }
+  else if(out === "save"){
+    if(gk){
+      if(ok){ stat("save"); if(grade === "great") stat("bigSave"); }
+      else { stat("goalConceded"); if(bad && rnd() < 0.30) stat("error"); }
+    } else {
+      if(ok){ stat("block"); if(rnd() < 0.5) stat("clearance"); }
+      else { stat("duelLost"); if(bad && rnd() < 0.35) stat("error"); }
+    }
+  }
+  else if(out === "keep"){
+    if(ok){ stat("passes"); stat("passCompleted"); if(rnd() < 0.5) stat("recovery"); if(rnd() < 0.3) stat("fouled"); }
+    else { stat("passes"); stat("passFailed"); stat("possessionLost"); }
+  }
+  else {                       /* off-ball work, leadership, image — rarely a box-score line */
+    if(grade === "great") stat("recovery");
+    else if(bad) stat("possessionLost");
+  }
+
+  if(kind === "carry" && out !== "keep"){ if(ok) stat("dribbleWon"); else { stat("dribbleLost"); stat("possessionLost"); } }
+  if(kind === "setpiece" && ok && out !== "goal" && rnd() < 0.35) stat("fouled");
+}
+
+function resolveMoment(choice, grade, silent, kind){
   var txt, cls, pts;
   var out  = choice ? (choice.out || "none") : "none";
   var risky = choice ? choice.risk < 2 : false;
+  if(kind === undefined) kind = (MO && MO.sit) ? MO.sit.k : "";
 
   if(grade==="great"){ pts = risky ? 1.9 : 1.2; cls="great"; txt="ביצוע נקי. יצא בדיוק כפי שהתכוונת."; }
   else if(grade==="good" || grade==="ok"){ pts = risky ? 1.0 : 0.8; cls="good"; txt="יצא, אבל לא מושלם. עכשיו זה תלוי גם בחבר ליד וביריב."; }
@@ -3410,15 +3591,19 @@ function resolveMoment(choice, grade, silent){
   var landed = (grade === "great") || (grade === "good" && rnd() < 0.38);
   var outcome = "";
 
-  if(landed && out === "goal" && rnd() < (hasTrait("finisher") ? 0.72 : 0.6)){
+  var made = false;
+
+  if(landed && out === "goal" && rnd() < (hasTrait("finisher") ? 0.44 : 0.34)){
+    made = true;
     if(M.me===M.home) M.hg++; else M.ag++;
-    S.goals++; S.careerGoals++; M.gAdded++; M.score += 1.2;
+    S.goals++; S.careerGoals++; M.gAdded++; M.score += 1.2; stat("goals");
     outcome = " שער!";
     if(!silent){ addEv(M.min, "⚽ שער שלך! "+M.home.ab+" "+M.hg+"–"+M.ag+" "+M.away.ab, "goal"); goalFlash(true); }
   }
-  else if(landed && out === "assist" && rnd() < 0.55){
+  else if(landed && out === "assist" && rnd() < 0.34){
+    made = true;
     if(M.me===M.home) M.hg++; else M.ag++;
-    S.assists++; S.careerAssists++; M.aAdded++; M.score += 0.9;
+    S.assists++; S.careerAssists++; M.aAdded++; M.score += 0.9; stat("assists");
     outcome = " בישול!";
     if(!silent){ addEv(M.min, "🅰 בישול שלך — הכדור מגיע ומסתיים ברשת.", "goal"); goalFlash(true); }
   }
@@ -3442,10 +3627,12 @@ function resolveMoment(choice, grade, silent){
     addEv(M.min, "✔ פעולה נקייה שלך.", "you");
   }
 
-  var hg = document.getElementById("mHG"), ag = document.getElementById("mAG");
-  if(hg) hg.textContent = M.hg; if(ag) ag.textContent = M.ag;
+  momentStats(kind, out, grade, made);
 
   if(silent) return;
+
+  var hg = document.getElementById("mHG"), ag = document.getElementById("mAG");
+  if(hg) hg.textContent = M.hg; if(ag) ag.textContent = M.ag;
 
   var r = document.getElementById("moRes");
   r.className = "res " + cls;
@@ -3459,48 +3646,245 @@ function resolveMoment(choice, grade, silent){
   nx.onclick = closeMoment;
 }
 
-/* A football rating, not a running total. Most games land 6.0-7.2; 7.5 is a
-   strong performance; 8.5+ should be rare and memorable. */
+/* ══════════════════════════════════════════════════════════════════
+   MATCH RATING — event-weighted, in the style of the public analytics
+   providers. Every player starts at 6.0 and moves on what they actually
+   did. Weights sit in one table so they can be tuned in one place.
+
+   Positional multipliers reflect how NOTABLE an action is for that role:
+   a centre-back's clearance is routine (x1.0) while his assist is
+   exceptional (x1.5); a striker's tackle is unusual (x1.4) while his
+   shot is his job (x1.0). Volume does the rest — defenders accumulate
+   many defensive actions, attackers accumulate many attacking ones.
+   A striker with no goal but two assists therefore rates well.
+   ════════════════════════════════════════════════════════════════ */
+var RW = {
+  /* the headline events — these are what a rating is actually made of */
+  goals:1.00, assists:0.80, bigChanceCreated:0.26, keyPass:0.13,
+  shotOnTarget:0.07, shotOffTarget:-0.030, bigChanceMissed:-0.30,
+  penaltyWon:0.42, penaltyMissed:-0.55, ownGoal:-1.10,
+  /* carrying and contesting */
+  dribbleWon:0.070, dribbleLost:-0.055, duelWon:0.030, duelLost:-0.035,
+  aerialWon:0.050, aerialLost:-0.035,
+  /* defending — small per action, meaningful in volume */
+  tackle:0.060, interception:0.060, clearance:0.025, block:0.060, recovery:0.018,
+  /* the run of play */
+  passCompleted:0.004, passFailed:-0.014, possessionLost:-0.018,
+  foul:-0.040, fouled:0.015, yellow:-0.22, red:-1.30,
+  /* the goal itself */
+  save:0.13, bigSave:0.26, goalConceded:-0.18, cleanSheet:0.38, error:-0.70
+};
+
+var RW_GROUP = {
+  goals:"att", assists:"att", bigChanceCreated:"att", keyPass:"att",
+  shotOnTarget:"att", shotOffTarget:"att", bigChanceMissed:"att",
+  dribbleWon:"att", dribbleLost:"att", penaltyWon:"att", penaltyMissed:"att",
+  duelWon:"neu", duelLost:"neu", recovery:"neu", passCompleted:"neu",
+  passFailed:"neu", possessionLost:"neu", foul:"neu", fouled:"neu",
+  yellow:"neu", red:"neu", error:"neu", ownGoal:"neu",
+  aerialWon:"def", aerialLost:"def", tackle:"def", interception:"def",
+  clearance:"def", block:"def",
+  save:"gk", bigSave:"gk", goalConceded:"gk", cleanSheet:"gk"
+};
+
+/* att = attacking actions, def = defensive actions, gk = goalkeeping */
+var RATE_POS = {
+  GK :{att:1.3, def:1.0, gk:1.00, neu:1.0, par:0.55},
+  CB :{att:1.5, def:1.00, gk:0, neu:1.0, par:1.51},
+  LB :{att:1.3, def:1.05, gk:0, neu:1.0, par:1.33},
+  RB :{att:1.3, def:1.05, gk:0, neu:1.0, par:1.33},
+  LWB:{att:1.2, def:1.05, gk:0, neu:1.0, par:1.47},
+  RWB:{att:1.2, def:1.05, gk:0, neu:1.0, par:1.47},
+  CDM:{att:1.3, def:1.05, gk:0, neu:1.0, par:1.35},
+  CM :{att:1.1, def:1.15, gk:0, neu:1.0, par:1.48},
+  CAM:{att:1.0, def:1.30, gk:0, neu:1.0, par:1.39},
+  LM :{att:1.05,def:1.20, gk:0, neu:1.0, par:1.63},
+  RM :{att:1.05,def:1.20, gk:0, neu:1.0, par:1.63},
+  LW :{att:1.0, def:1.40, gk:0, neu:1.0, par:1.65},
+  RW :{att:1.0, def:1.40, gk:0, neu:1.0, par:1.65},
+  CF :{att:1.0, def:1.40, gk:0, neu:1.0, par:1.42},
+  ST :{att:1.0, def:1.45, gk:0, neu:1.0, par:1.35}
+};
+
+function blankStats(){
+  return {
+    goals:0, assists:0, shots:0, shotOnTarget:0, shotOffTarget:0,
+    bigChanceCreated:0, bigChanceMissed:0, keyPass:0,
+    passes:0, passCompleted:0, passFailed:0,
+    dribbleWon:0, dribbleLost:0, duelWon:0, duelLost:0,
+    aerialWon:0, aerialLost:0,
+    tackle:0, interception:0, clearance:0, block:0, recovery:0,
+    possessionLost:0, foul:0, fouled:0, yellow:0, red:0, error:0,
+    save:0, bigSave:0, goalConceded:0, cleanSheet:0,
+    penaltyWon:0, penaltyMissed:0, ownGoal:0
+  };
+}
+function stat(k, n){
+  if(!M || !M.st) return;
+  M.st[k] = (M.st[k]||0) + (n===undefined ? 1 : n);
+}
+
+function ratingFrom(st, mins, pos, teamGoals, oppGoals, oppRep){
+  var mult = RATE_POS[pos] || RATE_POS.CM;
+  var r = 6.0, contrib = 0;
+
+  for(var k in RW){
+    var n = st[k] || 0;
+    if(!n) continue;
+    var g = RW_GROUP[k] || "neu";
+    var m = g === "gk" ? (mult.gk || 0) : (mult[g] === undefined ? 1 : mult[g]);
+    if(RW[k] < 0 && g !== "gk") m = 1;   /* the bonus is for the rare deed, not the rare mistake */
+    contrib += RW[k] * n * m;
+  }
+  /* PAR — what a competent player in this role accumulates in a normal
+     ninety minutes. Subtracting it is what makes 6.0 mean "average" and
+     not "showed up": a goalkeeper makes saves every week, so saves alone
+     are not a good game; a striker's par is low, so a goal really moves
+     the needle. Scaled by minutes, because a substitute cannot be
+     expected to reach a full match's par. */
+  /* Expectation rises with ability. A 6.8 for a 48-rated teenager and a 6.8
+     for an 85-rated international are not the same afternoon, and it is the
+     same scale for both — so par grows as you do, and it saturates, because
+     the ceiling on how much football one player can do is not infinite.
+     Without this term, improving would quietly inflate every rating you
+     ever get again: exactly how you end up "above 7.0 for 25 straight". */
+  var par = (mult.par || 0) + 1.35 * (1 - Math.exp(-Math.max(0, ovr()-47)/16));
+  par *= clamp(mins/90, 0.15, 1);
+  r += contrib - par;
+
+  /* being anonymous is its own penalty — no shots, no key passes, no
+     defensive actions in a full match is a 5.9, whatever your position */
+  var involvement = (st.shots||0) + (st.keyPass||0) + (st.tackle||0) + (st.interception||0)
+                  + (st.dribbleWon||0) + (st.aerialWon||0) + (st.save||0) + (st.clearance||0)
+                  + (st.goals||0)*3 + (st.assists||0)*3;
+  if(mins >= 60 && involvement <= 1) r -= 0.45;
+  else if(mins >= 60 && involvement <= 3) r -= 0.18;
+
+  /* keeping the ball out is part of the job in proportion to the job:
+     a clean sheet is worth a lot to a centre-back and almost nothing to
+     a winger, and conceding costs on the same scale. Keepers already got
+     paid for it through the gk weights above. */
+  if(pos !== "GK"){
+    var dw = (POS[pos] && POS[pos].w.DEF) || 0;
+    if(st.cleanSheet) r += 0.08 + dw*0.80;
+    else r -= clamp(oppGoals, 0, 4) * dw * 0.15;
+  }
+
+  /* team context, lightly */
+  r += teamGoals > oppGoals ? 0.18 : (teamGoals < oppGoals ? -0.14 : 0.02);
+  r += clamp((oppRep - club(S.club).rep)/60, -0.18, 0.22);
+
+  /* a cameo cannot swing to the extremes */
+  var w = clamp(mins/70, 0.34, 1);
+  r = 6.15 + (r - 6.15) * w;
+
+  /* Both ends of the scale are compressed, the way published ratings are:
+     a hat-trick is a 9, four goals is not a 12, and one bad afternoon is
+     a 4.9 rather than a 3.1. Tens exist — they are just very expensive. */
+  if(r > 7.6) r = 7.6 + (r - 7.6) * 0.70;
+  if(r > 8.4) r = 8.4 + (r - 8.4) * 0.55;
+  if(r < 5.6) r = 5.6 - (5.6 - r) * 0.70;
+
+  return clamp(r, 3.0, 10);
+}
+
+/* minutes YOU have played, which is not the same as the clock — a
+   substitute must be judged against a substitute's share of the match */
+function minutesPlayed(){
+  if(!M || !M.playing) return 0;
+  if(M.min >= 90) return M.mins;
+  return clamp(M.min - (M.entryMin || 0), 0, 90);
+}
+
 function liveRating(){
-  if(!M.playing) return 0;
-  var r = 6.15;
-
-  r += (M.gAdded||0) * 1.00;
-  r += (M.aAdded||0) * 0.62;
-  r += (M.chances||0) * 0.16;
-  r += (M.duels||0)  * 0.155;
-  r += (M.keeps||0)  * 0.05;
-  r -= (M.errors||0) * 0.42;
-
-  /* execution across the moments you actually played, normalised */
-  if(M.count) r += clamp(M.score / M.count, -1.2, 1.2) * 0.66;
-
-  /* result and opposition */
+  if(!M || !M.playing) return 0;
   var myG = M.me===M.home ? M.hg : M.ag;
   var opG = M.me===M.home ? M.ag : M.hg;
-  r += myG>opG ? 0.22 : (myG<opG ? -0.20 : 0.02);
-  r += clamp((M.opp.rep - club(S.club).rep)/55, -0.22, 0.26);
+  if(M.noise === undefined) M.noise = (rnd()-0.5) * 0.20;
+  return clamp(ratingFrom(M.st, Math.max(minutesPlayed(), 10), S.pos, myG, opG, M.opp.rep) + M.noise, 3.0, 10);
+}
 
-  /* what your position is expected to deliver */
-  var f = famOf(S.pos);
-  if(f === "ST" && (M.gAdded||0) === 0 && M.mins >= 70) r -= 0.26;
-  if(f === "GK" && opG >= 3) r -= 0.30;
-  if(f === "GK" && opG === 0 && M.mins >= 70) r += 0.34;
-  if(f === "CB" && opG === 0 && M.mins >= 70) r += 0.26;
-  if(f === "CB" && opG >= 3) r -= 0.24;
+/* the stat line, grouped the way a match report groups it */
+var STAT_GROUPS = [
+  {n:"התקפה", keys:[["goals","שערים"],["assists","בישולים"],["shots","בעיטות"],
+    ["shotOnTarget","למסגרת"],["bigChanceMissed","החמצות גדולות"],["penaltyWon","פנדלים שהושגו"]]},
+  {n:"יצירה", keys:[["keyPass","מסירות מפתח"],["bigChanceCreated","מצבים גדולים שנוצרו"],
+    ["passCompleted","מסירות שהגיעו"],["passFailed","מסירות שאבדו"]]},
+  {n:"נשיאת כדור", keys:[["dribbleWon","דריבלים מוצלחים"],["dribbleLost","דריבלים שנכשלו"],
+    ["fouled","עבירות שספגת"],["possessionLost","איבודי כדור"]]},
+  {n:"הגנה", keys:[["tackle","תיקולים"],["interception","יירוטים"],["clearance","הרחקות"],
+    ["block","חסימות"],["recovery","כדורים שנאספו"],["duelWon","דו־קרבות שנוצחו"],
+    ["duelLost","דו־קרבות שאבדו"],["aerialWon","ניצחונות אוויריים"],["aerialLost","הפסדים אוויריים"]]},
+  {n:"שוער", keys:[["save","הצלות"],["bigSave","הצלות גדולות"],["goalConceded","ספג"],["cleanSheet","שער נקי"]]},
+  {n:"משמעת", keys:[["foul","עבירות"],["yellow","צהובים"],["red","אדומים"],["error","טעויות שהובילו לשער"]]}
+];
 
-  /* a cameo regresses toward the middle — you cannot get a 9 in 12 minutes */
-  var wgt = clamp(M.mins/72, 0.30, 1);
-  r = 6.3 + (r - 6.3) * wgt;
+var STAT_NAME = (function(){
+  var m = {};
+  for(var i=0;i<STAT_GROUPS.length;i++)
+    for(var j=0;j<STAT_GROUPS[i].keys.length;j++)
+      m[STAT_GROUPS[i].keys[j][0]] = STAT_GROUPS[i].keys[j][1];
+  m.possessionLost = "איבודי כדור"; m.shotOffTarget = "בעיטות שהחטיאו";
+  m.ownGoal = "שער עצמי"; m.penaltyMissed = "פנדל שהוחמץ";
+  m.bigChanceCreated = "מצבים גדולים שנוצרו"; m.passes = "מסירות";
+  return m;
+})();
 
-  /* fatigue and condition show up in the rating too */
-  r -= clamp((S.load - 80)/180, 0, 0.14);
-  r += clamp((S.sharp - 55)/260, -0.14, 0.14);
+/* the same arithmetic the rating used, opened up so you can read it —
+   this is the part the published ratings never show you */
+function ratingBreakdown(st, pos){
+  var mult = RATE_POS[pos] || RATE_POS.CM, out = [];
+  for(var k in RW){
+    var n = st[k] || 0; if(!n) continue;
+    var g = RW_GROUP[k] || "neu";
+    var m = g === "gk" ? (mult.gk || 0) : (mult[g] === undefined ? 1 : mult[g]);
+    if(RW[k] < 0 && g !== "gk") m = 1;
+    var d = RW[k] * n * m;
+    if(Math.abs(d) < 0.03) continue;
+    out.push({k:k, n:n, d:d, name:(STAT_NAME[k] || k), boost:(m > 1.05)});
+  }
+  out.sort(function(a,b){ return Math.abs(b.d) - Math.abs(a.d); });
+  return out;
+}
 
-  if(M.noise === undefined) M.noise = (rnd()-0.5) * 0.42;
-  r += M.noise;
+function statLineHtml(st, pos){
+  var groups = STAT_GROUPS.map(function(g){
+    var rows = g.keys.filter(function(kk){ return (st[kk[0]]||0) !== 0; });
+    if(!rows.length) return "";
+    return '<div class="statgrp"><p class="lbl">'+g.n+'</p>'
+      + rows.map(function(kk){
+          return '<div class="kv"><span>'+kk[1]+'</span><b class="n">'+(st[kk[0]]||0)+'</b></div>';
+        }).join("")
+      + '</div>';
+  }).filter(Boolean).join("");
 
-  return clamp(r, 3.2, 9.7);
+  var pa = st.passes ? Math.round((st.passCompleted/st.passes)*100) : 0;
+  var head = '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px">'
+    + '<span class="tag">'+(st.passes||0)+' מסירות</span>'
+    + (st.passes ? '<span class="tag '+(pa>=85?"ok":(pa>=75?"":"w"))+'">'+pa+'% דיוק</span>' : '')
+    + '<span class="tag">'+((st.duelWon||0)+(st.duelLost||0))+' דו־קרבות · '+(st.duelWon||0)+' נוצחו</span>'
+    + (st.shots ? '<span class="tag">'+st.shots+' בעיטות</span>' : '')
+    + '</div>';
+
+  var bd = ratingBreakdown(st, pos);
+  var max = bd.length ? Math.abs(bd[0].d) : 1;
+  var bdHtml = bd.slice(0,9).map(function(b){
+    var w = clamp(Math.abs(b.d)/max*50, 3, 50);
+    var up = b.d > 0;
+    return '<div class="bdrow">'
+      + '<span class="bn">'+b.name+' <span class="muted">×'+b.n+'</span>'+(b.boost?' <span class="tag g" style="padding:1px 6px">נדיר בעמדה</span>':'')+'</span>'
+      + '<span class="bt"><i class="'+(up?"":"dn")+'" style="'+(up?"left:50%":"right:50%;left:auto")+';width:'+w+'%"></i><span class="bdmid"></span></span>'
+      + '<span class="bv '+(up?"up":"dn")+'">'+(up?"+":"−")+Math.abs(b.d).toFixed(2)+'</span>'
+      + '</div>';
+  }).join("");
+
+  return '<div class="p"><h3>גיליון הביצועים</h3><div class="pb">'
+    + head
+    + (groups ? '<div class="statwrap">'+groups+'</div>' : '<div class="empty">אין נתונים.</div>')
+    + '<p class="lbl" style="margin:16px 0 2px">מה הזיז את הציון</p>'
+    + '<p class="muted xs" style="margin:0 0 8px">בסיס 6.0 · כל פעולה נשקלת לפי סוגה ולפי כמה היא חריגה לעמדה שלך</p>'
+    + '<div class="bd">'+bdHtml+'</div>'
+    + '</div></div>';
 }
 
 function closeMoment(){
@@ -3515,6 +3899,12 @@ function finishMatch(){
   if(M.timer) clearTimeout(M.timer);
   stopPitch();
   M.running = false;
+
+  if(M.playing && M.st){
+    var conc = (M.me===M.home ? M.ag : M.hg);
+    if(S.pos === "GK") M.st.goalConceded = conc;
+    if(conc === 0 && M.mins >= 55) M.st.cleanSheet = 1;
+  }
 
   var rating = M.playing ? liveRating() : 0;
   var fx = M.fx;
@@ -3550,7 +3940,7 @@ function finishMatch(){
       s:S.season, w:S.week, opp:M.opp.ab, oppN:M.opp.n, home:M.fx.home,
       res:(M.me===M.home ? M.hg+"–"+M.ag : M.ag+"–"+M.hg),
       mins:M.mins, r:Number(rating.toFixed(1)), g:M.gAdded||0, a:M.aAdded||0,
-      comp:"ליגה"
+      st:M.st, comp:"ליגה"
     });
     if(S.matches.length > 60) S.matches.pop();
   }
@@ -3725,10 +4115,14 @@ function showPostMatch(rating, myG, opG, scoutHit, R){
           + '<div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap">'
           + '<span class="tag">'+M.mins+' דקות</span>'
           + '<span class="tag">'+M.count+' מגעי מפתח</span>'
+          + (M.st.goals ? '<span class="tag g">'+M.st.goals+' שערים</span>' : '')
+          + (M.st.assists ? '<span class="tag g">'+M.st.assists+' בישולים</span>' : '')
           + '<span class="tag '+(S.trust>=prevTrust?"ok":"b")+'">אמון '+(S.trust>=prevTrust?"▲":"▼")+' '+Math.round(S.trust)+'</span>'
           + '</div></div></div>'
         : '<div class="empty">לא היית בסגל. הצפייה מהיציע היא גם מידע — האמון ירד מעט.</div>')
     + '</div></div>'
+
+    + (M.playing ? statLineHtml(M.st, S.pos) : '')
 
     + '<div class="p rewards"><h3>התקדמות</h3><div class="pb">'
       + '<div class="xpbig">'
