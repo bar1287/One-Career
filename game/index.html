@@ -533,6 +533,57 @@ body{
 .p>h3 .r{margin-inline-start:auto;letter-spacing:0;text-transform:none;font-size:12px;color:var(--ink2);font-weight:700}
 .pb{padding:14px}
 .pb.tight{padding:8px}
+/* ── card artwork ──────────────────────────────────────────────────
+   FIFA's career hub tiles are pictures first: a photograph fills the
+   card, a dark gradient runs up from the bottom so type stays legible,
+   and the label sits inside the image rather than above it. We have no
+   photographs to ship — the game must stay one file — so ART draws the
+   same shapes procedurally in SVG, in the club's colours, and the CSS
+   below gives it the identical scrim-and-title treatment. */
+.artband{
+  position:relative;height:78px;overflow:hidden;flex:0 0 auto;
+  background:var(--sunken);
+}
+.artband>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.artband::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(6,12,9,0) 38%,rgba(6,12,9,.40) 68%,rgba(6,12,9,.80) 100%);
+}
+.p.hasart>h3{
+  margin-top:-31px;position:relative;z-index:2;
+  background:transparent;border-bottom:1px solid var(--line);
+  color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.85);
+}
+.p.hasart>h3 .r{color:rgba(255,255,255,.86)}
+.p.hasart>h3 .lbl{color:rgba(255,255,255,.86)}
+
+/* the matchday card carries the whole banner on top of the stadium */
+.p.hero.hasart>.artband{height:96px}
+.p.hero.hasart>.artband::after{
+  background:linear-gradient(180deg,rgba(6,12,9,.62) 0%,rgba(6,12,9,.44) 40%,rgba(6,12,9,.82) 100%);
+}
+.p.hero.hasart>.heroband{
+  margin-top:-96px;height:96px;align-items:end;padding-bottom:9px;
+  position:relative;z-index:2;
+  background:transparent;border-bottom:1px solid var(--line);
+}
+.p.hero.hasart>.heroband::before{display:none}
+.p.hero.hasart .hb b{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.p.hero.hasart .hb span,
+.p.hero.hasart .hvs b{color:rgba(255,255,255,.9);text-shadow:0 1px 4px rgba(0,0,0,.9)}
+/* the two little labels land mid-picture, so they carry their own ground */
+.p.hero.hasart .hvs span{
+  color:#fff;background:rgba(6,12,9,.55);padding:1px 7px;border-radius:99px;
+  backdrop-filter:blur(2px);
+}
+
+/* portraits */
+.artface{border-radius:50%;display:block;flex:0 0 auto;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)}
+.facerow{display:flex;align-items:center;gap:9px;min-width:0}
+.facerow>div{min-width:0}
+.bigface{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.bigface .artface{width:74px;height:74px;box-shadow:0 2px 10px rgba(0,0,0,.16),inset 0 0 0 1px var(--line)}
+
 
 /* HUD chips */
 .ovrchip{
@@ -687,7 +738,10 @@ body{
 .fcovr b{font-size:44px;font-weight:900;letter-spacing:-.04em}
 .fcovr span{font-size:13px;font-weight:900;letter-spacing:.06em;margin-top:2px;opacity:.72}
 .fcradar{flex:0 0 auto;opacity:.95}
+.fcport{flex:0 0 auto;line-height:0}
+.fcport .artface{width:58px;height:58px;box-shadow:0 3px 10px rgba(0,0,0,.28),inset 0 0 0 2px rgba(255,255,255,.5)}
 @media (max-width:400px){.fcradar{display:none}}
+@media (max-width:330px){.fcport{display:none}}
 .fcbadges{display:flex;flex-direction:column;align-items:center;gap:6px}
 .fcclub{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:900}
 .fclvl{
@@ -802,6 +856,8 @@ body{
 .mate+.mate{border-top:1px solid var(--line)}
 .mateav{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
   background:var(--sunken);border:1px solid var(--line2);font-size:14px;font-weight:900;color:var(--ink2)}
+.mateav.facepic{padding:0;border:0;background:none;overflow:hidden}
+.mateav.facepic .artface{width:34px;height:34px;box-shadow:inset 0 0 0 1px var(--line2)}
 .mate b{display:block;font-size:13px;font-weight:800}
 .mate .mr{display:block;font-size:11px;color:var(--ink3)}
 .rel3{display:flex;gap:4px}
@@ -1104,6 +1160,8 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 .nemhead{display:flex;align-items:center;gap:10px;margin-bottom:11px}
 .nemside{flex:1;display:flex;flex-direction:column;gap:2px}
 .nemside.e{text-align:end}
+.nemside .artface{width:40px;height:40px;margin-bottom:3px}
+.nemside.e .artface{margin-inline-start:auto}
 .nemside b{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
 .nemside .xs{font-size:11px;color:var(--ink3)}
 .nemvs{
@@ -1223,6 +1281,8 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
   width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,.94);color:#1B1A17;
   display:grid;place-items:center;font-size:23px;font-weight:900;font-variant-numeric:tabular-nums
 }
+.pcface{flex:0 0 auto;line-height:0}
+.pcface .artface{width:54px;height:54px;box-shadow:0 3px 10px rgba(0,0,0,.3),inset 0 0 0 2px rgba(255,255,255,.55)}
 .pcid h3{margin:0;font-size:17px;font-weight:900}
 .pcid p{margin:3px 0 0;font-size:11.5px;font-weight:700;opacity:.88}
 .pcbody{padding:15px 16px 17px;background:var(--card);border-radius:0 0 18px 18px}
@@ -2213,6 +2273,373 @@ var stage = document.getElementById("stage");
 var rail  = document.getElementById("rail");
 
 /* ══════════════════════════════════════════════════════════════════
+   ART — the pictures on the cards.
+
+   FIFA's career hub is pictures first: a photograph fills the tile, a
+   dark gradient climbs from the bottom, and the label sits inside the
+   image. We cannot ship photographs — the game has to stay one file a
+   phone can open offline — so every scene here is drawn procedurally in
+   SVG, in the club's own colours, and paintArt gives it the same
+   scrim-and-title treatment.
+
+   Every scene takes the width of the band it has to fill. A panel in a
+   side column is about 300px wide and a full-width panel is nearly a
+   thousand; drawing both into one fixed frame and cropping would leave
+   the wide one showing a slice of somebody's shirt. So the caller
+   measures the card, the scene lays itself out across that width, and
+   nothing is ever cropped.
+   ════════════════════════════════════════════════════════════════ */
+var ART = (function(){
+  var H = 108;                       /* every scene is this tall in user units */
+
+  function esc(c){ return String(c || "#1F6F43"); }
+  function shade(hex, amt){
+    var h = String(hex).replace("#","");
+    if(h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var v = [h.substr(0,2), h.substr(2,2), h.substr(4,2)].map(function(t){
+      return Math.round(clamp(parseInt(t,16) + amt, 0, 255));
+    });
+    return "#" + v.map(function(n){ var t = n.toString(16); return t.length<2?"0"+t:t; }).join("");
+  }
+  /* Subtracting a constant fails on pale kits — white minus 46 is still
+     light grey and white type on it disappears. Multiplying toward black
+     keeps every club's band dark enough to carry a title. */
+  function mul(hex, f){
+    var h = String(hex || "#1F6F43").replace("#","");
+    if(h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var v = [h.substr(0,2), h.substr(2,2), h.substr(4,2)].map(function(t){
+      return Math.round(clamp(parseInt(t,16) * f, 0, 255));
+    });
+    if(v[0] === v[1] && v[1] === v[2]) v[1] = Math.min(255, v[1] + 9);
+    return "#" + v.map(function(n){ var t = n.toString(16); return t.length<2?"0"+t:t; }).join("");
+  }
+  var GA = "#1B6540", GB = "#24784B";
+
+  function head(W){
+    return '<svg class="artsvg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice" aria-hidden="true">';
+  }
+  function stripes(W, y, h, a, b){
+    var out = '', step = 42, n = Math.ceil(W/step);
+    for(var i=0;i<n;i++)
+      out += '<rect x="'+(i*step)+'" y="'+y+'" width="'+step+'" height="'+h+'" fill="'+(i%2?a:b)+'"/>';
+    return out;
+  }
+  function crowd(W, y, h, seedN){
+    var out = '', n = Math.round(W/4.2), r = streamFrom(seedN || 7);
+    for(var i=0;i<n;i++){
+      var col = ["#F7F5F1","#E8C766","#8FA3B8","#EB6834","#B9C4CE"][Math.floor(r()*5)];
+      out += '<circle cx="'+(r()*W).toFixed(0)+'" cy="'+(y + r()*h).toFixed(0)
+           + '" r="'+(1.1+r()*1.4).toFixed(1)+'" fill="'+col+'" opacity="'+(0.32+r()*0.42).toFixed(2)+'"/>';
+    }
+    return out;
+  }
+  /* a player seen from the front, drawn from the origin at his waist */
+  function figure(kit, skinN, scale){
+    var skin = ["#F0C27A","#E0A96D","#C68642","#8D5524"][skinN % 4];
+    return '<g transform="scale('+scale+')">'
+      + '<circle cy="-19" r="11" fill="'+skin+'"/>'
+      + '<path d="M-17,0 q17,-11 34,0 l4,40 h-42 z" fill="'+kit+'"/>'
+      + '<rect x="-14" y="40" width="10" height="20" fill="#2A2620"/>'
+      + '<rect x="4" y="40" width="10" height="20" fill="#2A2620"/>'
+      + '</g>';
+  }
+
+  var A = {};
+
+  /* THE NEXT MATCH — a stadium at night, floodlights on */
+  A.stadium = function(c, c2, W){
+    var k = esc(c);
+    return head(W) +
+      '<rect width="'+W+'" height="'+H+'" fill="#0B1524"/>' +
+      '<rect width="'+W+'" height="46" fill="#0E1B2E"/>' +
+      crowd(W, 2, 42, 11) +
+      '<g opacity=".26" fill="#FFF6D8">' +
+        '<polygon points="'+(W*0.12)+',6 '+(W*0.12-26)+','+H+' '+(W*0.12+42)+','+H+'"/>' +
+        '<polygon points="'+(W*0.88)+',6 '+(W*0.88-42)+','+H+' '+(W*0.88+26)+','+H+'"/>' +
+      '</g>' +
+      '<rect y="44" width="'+W+'" height="8" fill="'+mul(k,.8)+'"/>' +
+      '<circle cx="'+(W*0.12)+'" cy="6" r="7" fill="#FFF6D8"/>' +
+      '<circle cx="'+(W*0.88)+'" cy="6" r="7" fill="#FFF6D8"/>' +
+      stripes(W, 52, H-52, GA, GB) +
+      '<g stroke="#FFFFFF" stroke-opacity=".5" fill="none" stroke-width="2">' +
+        '<line x1="0" y1="98" x2="'+W+'" y2="98"/>' +
+        '<circle cx="'+(W*0.72)+'" cy="98" r="26"/>' +
+        '<rect x="'+(W*0.2-66)+'" y="52" width="132" height="24" rx="1"/>' +
+      '</g>' +
+      '<circle cx="'+(W*0.72)+'" cy="82" r="6" fill="#fff" stroke="#17150F" stroke-width="2"/>' +
+      '</svg>';
+  };
+
+  /* TRAINING — cones, an agility ladder and a runner */
+  A.training = function(c, c2, W){
+    var k = esc(c), out = head(W) + stripes(W, 0, H, GA, GB);
+    var n = Math.max(4, Math.round(W/62));
+    out += '<g>';
+    for(var i=0;i<n;i++){
+      var x = 26 + i*(W-52)/(n-1), y = 78 - (i%3)*4;
+      out += '<polygon points="'+x+','+(y-15)+' '+(x-9)+','+y+' '+(x+9)+','+y+'" fill="#EB6834"/>'
+           + '<ellipse cx="'+x+'" cy="'+y+'" rx="11" ry="3" fill="#C4552A"/>';
+    }
+    out += '</g>';
+    /* the ladder runs along the foot of the frame */
+    out += '<g stroke="#F7F5F1" stroke-opacity=".5" stroke-width="3" fill="none">'
+        +  '<line x1="10" y1="90" x2="'+(W-10)+'" y2="90"/>'
+        +  '<line x1="16" y1="104" x2="'+(W-4)+'" y2="104"/>';
+    for(var j=0;j<Math.ceil(W/26);j++)
+      out += '<line x1="'+(10+j*26)+'" y1="90" x2="'+(16+j*26)+'" y2="104"/>';
+    out += '</g>';
+    /* the runner, on the far side */
+    out += '<g transform="translate('+(W*0.36)+',34)">'
+        +  '<circle cx="0" cy="0" r="9" fill="#F0C27A"/>'
+        +  '<path d="M-2,9 L-2,32 L-13,48" stroke="'+k+'" stroke-width="9" fill="none" stroke-linecap="round"/>'
+        +  '<path d="M2,9 L6,32 L18,46" stroke="'+k+'" stroke-width="9" fill="none" stroke-linecap="round"/>'
+        +  '<path d="M-2,14 L-20,25" stroke="'+shade(k,34)+'" stroke-width="7" fill="none" stroke-linecap="round"/>'
+        +  '<path d="M2,14 L20,19" stroke="'+shade(k,34)+'" stroke-width="7" fill="none" stroke-linecap="round"/>'
+        +  '</g>';
+    return out + '</svg>';
+  };
+
+  /* OBJECTIVES — a clipboard and a target */
+  A.objectives = function(c, c2, W){
+    var k = esc(c);
+    return head(W) + stripes(W, 0, H, mul(k,.34), mul(k,.46)) +
+      '<g transform="translate('+(W*0.4)+',4) rotate(-5)">' +
+        '<rect width="112" height="96" rx="7" fill="#F7F5F1"/>' +
+        '<rect x="38" y="-6" width="36" height="13" rx="6" fill="#B9C4CE"/>' +
+        '<g stroke="#1baf7a" stroke-width="5" fill="none" stroke-linecap="round">' +
+          '<path d="M15,28 l6,6 l13,-14"/><path d="M15,54 l6,6 l13,-14"/></g>' +
+        '<g fill="#D8D2C6"><rect x="44" y="26" width="54" height="6" rx="3"/>' +
+        '<rect x="44" y="52" width="54" height="6" rx="3"/><rect x="44" y="78" width="38" height="6" rx="3"/></g>' +
+        '<circle cx="24" cy="81" r="8" fill="none" stroke="#B9C4CE" stroke-width="4"/>' +
+      '</g>' +
+      '<g transform="translate('+(W*0.16)+',46)"><circle r="30" fill="none" stroke="#F7F5F1" stroke-opacity=".45" stroke-width="6"/>' +
+      '<circle r="18" fill="none" stroke="#EB6834" stroke-width="6"/><circle r="6" fill="#EB6834"/></g>' +
+      '</svg>';
+  };
+
+  /* THE SQUAD — the team lined up before kick-off */
+  A.squad = function(c, c2, W){
+    var k = esc(c), out = head(W) + stripes(W, 0, H, GA, GB);
+    var n = Math.max(4, Math.round(W/96));
+    for(var i=0;i<n;i++){
+      var x = (W/n)*(i+0.5), y = 40 + (i%2?4:0);
+      out += '<g transform="translate('+x.toFixed(1)+','+y+')">'
+          +  figure(i%3===0 ? shade(k,28) : k, i, i%2 ? 0.92 : 0.84)
+          +  '</g>';
+    }
+    return out + '</svg>';
+  };
+
+  /* THE MARKET — a contract and a pen */
+  A.market = function(c, c2, W){
+    var k = esc(c);
+    return head(W) + stripes(W, 0, H, mul(k,.32), mul(k,.42)) + crowd(W, 0, 22, 3) +
+      '<g transform="translate('+(W*0.3-70)+',6) rotate(-4)">' +
+        '<rect width="140" height="96" rx="6" fill="#F7F5F1"/>' +
+        '<g fill="#C9C2B4"><rect x="16" y="16" width="108" height="7" rx="3"/>' +
+        '<rect x="16" y="33" width="86" height="7" rx="3"/><rect x="16" y="50" width="100" height="7" rx="3"/></g>' +
+        '<path d="M22,80 q20,-20 38,-2 q13,15 32,-8" stroke="'+k+'" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+        '<rect x="16" y="88" width="84" height="4" rx="2" fill="#D8D2C6"/>' +
+      '</g>' +
+      '<g transform="translate('+(W*0.3+96)+',12) rotate(24)">' +
+        '<rect width="13" height="76" rx="6.5" fill="#2A2620"/>' +
+        '<polygon points="0,76 13,76 6.5,92" fill="#E8C766"/>' +
+      '</g>' +
+      '</svg>';
+  };
+
+  /* BRAND — the boards around the pitch, and a flash going off */
+  A.brand = function(c, c2, W){
+    var k = esc(c);
+    var out = head(W) + '<rect width="'+W+'" height="'+H+'" fill="#0E1B2E"/>' + crowd(W, 0, 38, 21)
+      + '<rect y="38" width="'+W+'" height="30" fill="'+mul(k,.8)+'"/>';
+    var bw = [56, 82, 48, 100], x = 12, i = 0;
+    while(x < W-20){
+      var w = bw[i%4];
+      out += '<rect x="'+x+'" y="46" width="'+Math.min(w, W-20-x)+'" height="14" rx="3" fill="#F7F5F1" opacity=".82"/>';
+      x += w + 14; i++;
+    }
+    out += stripes(W, 68, H-68, GA, GB)
+      + '<g transform="translate('+(W*0.24)+',20)"><circle r="14" fill="#FFF6D8" opacity=".9"/>'
+      + '<g stroke="#FFF6D8" stroke-width="3" opacity=".65">'
+      + '<line x1="-24" y1="0" x2="-18" y2="0"/><line x1="18" y1="0" x2="24" y2="0"/>'
+      + '<line x1="0" y1="-24" x2="0" y2="-18"/><line x1="-17" y1="-17" x2="-12" y2="-12"/>'
+      + '<line x1="17" y1="-17" x2="12" y2="-12"/></g></g>';
+    return out + '</svg>';
+  };
+
+  /* THE TREATMENT ROOM */
+  A.medical = function(c, c2, W){
+    var bw = Math.min(W-80, 300), bx = Math.max(56, W*0.34 - bw/2);
+    return head(W) +
+      '<rect width="'+W+'" height="'+H+'" fill="#1B2A3A"/>' +
+      '<g opacity=".45" fill="#2A3B4E">' +
+        '<rect x="'+(bx-56)+'" y="6" width="42" height="52" rx="6"/>' +
+        '<rect x="'+(bx+bw+14)+'" y="6" width="42" height="52" rx="6"/></g>' +
+      '<rect x="'+bx+'" y="44" width="'+bw+'" height="22" rx="6" fill="#F7F5F1"/>' +
+      '<rect x="'+(bx+16)+'" y="38" width="'+(bw*0.4)+'" height="10" rx="5" fill="#D8D2C6"/>' +
+      '<rect x="'+(bx+14)+'" y="66" width="12" height="26" fill="#B9C4CE"/>' +
+      '<rect x="'+(bx+bw-26)+'" y="66" width="12" height="26" fill="#B9C4CE"/>' +
+      '<g transform="translate('+(bx+bw/2)+',20)"><rect x="-28" y="-8" width="56" height="16" rx="4" fill="#eb6834"/>' +
+      '<rect x="-8" y="-28" width="16" height="56" rx="4" fill="#eb6834"/></g>' +
+      '</svg>';
+  };
+
+  /* THE TROPHY CABINET */
+  A.trophy = function(c, c2, W){
+    var k = esc(c);
+    var out = head(W) + '<rect width="'+W+'" height="'+H+'" fill="'+mul(k,.3)+'"/>'
+      + '<rect y="76" width="'+W+'" height="32" fill="'+mul(k,.46)+'"/>'
+      + '<g opacity=".22" fill="#FFF6D8">';
+    for(var v=0; v<Math.ceil(W/150); v++) out += '<rect x="'+(60+v*150)+'" y="0" width="4" height="76"/>';
+    out += '</g><g fill="#E8C766">';
+    var spots = [[0.14,1],[0.34,0.74],[0.52,0.58]];
+    for(var i=0;i<3;i++){
+      var s = spots[i], x = W*s[0], sc = s[1];
+      out += '<g transform="translate('+x.toFixed(0)+','+(74 - 60*sc)+') scale('+sc+')">'
+          +  '<path d="M-22,0 h44 v18 a22,22 0 0 1 -44,0 z"/>'
+          +  '<path d="M-22,3 h-12 a12,12 0 0 0 12,12 z"/><path d="M22,3 h12 a12,12 0 0 1 -12,12 z"/>'
+          +  '<rect x="-6" y="38" width="12" height="14"/><rect x="-20" y="52" width="40" height="8" rx="2"/></g>';
+    }
+    return out + '</g></svg>';
+  };
+
+  /* THE RIVAL — two shirts facing each other */
+  A.rival = function(c, c2, W){
+    var k = esc(c), k2 = esc(c2 || "#B03030");
+    return head(W) + stripes(W, 0, H, GA, GB) +
+      '<g transform="translate('+(W*0.22)+',40)">' + figure(k, 0, 1.05) + '</g>' +
+      '<g transform="translate('+(W*0.5)+',40)">' + figure(k2, 2, 1.05) + '</g>' +
+      '<g transform="translate('+(W*0.36)+',48)" opacity=".9">' +
+      '<path d="M-13,-15 L0,0 L-13,15" stroke="#F7F5F1" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+      '<path d="M13,-15 L0,0 L13,15" stroke="#F7F5F1" stroke-width="5" fill="none" stroke-linecap="round"/></g>' +
+      '</svg>';
+  };
+
+  /* THE BOOT ROOM — a pair on the bench, seen from the side */
+  function boot(kit){
+    return '<g>'
+      + '<path d="M2,32 C-2,22 6,14 18,12 L62,3 C68,0 78,0 86,4 '
+        + 'C98,10 102,22 98,32 L96,36 L6,36 Z" fill="'+kit+'"/>'
+      + '<path d="M4,34 L98,34 q6,0 5,6 l-1,4 q-1,4 -7,4 L10,48 q-7,0 -7,-6 z" fill="#17150F"/>'
+      + '<g fill="#17150F"><circle cx="18" cy="52" r="3.4"/><circle cx="40" cy="52" r="3.4"/>'
+        + '<circle cx="64" cy="52" r="3.4"/><circle cx="88" cy="52" r="3.4"/></g>'
+      + '<g stroke="#F7F5F1" stroke-width="3" stroke-linecap="round" opacity=".9">'
+        + '<line x1="34" y1="24" x2="46" y2="15"/><line x1="46" y1="26" x2="58" y2="17"/>'
+        + '<line x1="58" y1="27" x2="70" y2="19"/></g>'
+      + '<path d="M14,20 q18,-8 40,-13" stroke="'+shade(kit,-34)+'" stroke-width="2.5" fill="none" opacity=".7"/>'
+      + '</g>';
+  }
+  A.boots = function(c, c2, W){
+    var k = esc(c);
+    return head(W) +
+      '<rect width="'+W+'" height="'+H+'" fill="#22303F"/>' +
+      '<rect y="64" width="'+W+'" height="44" fill="#2E3E50"/>' +
+      '<line x1="0" y1="64" x2="'+W+'" y2="64" stroke="#F7F5F1" stroke-opacity=".28" stroke-width="2"/>' +
+      '<g opacity=".22" fill="#F7F5F1"><rect x="0" y="20" width="'+W+'" height="2"/></g>' +
+      '<g transform="translate('+Math.max(14, W*0.16-52)+',12)">' + boot(k) + '</g>' +
+      '<g transform="translate('+(W*0.44)+',22) scale(.82)">' + boot(shade(k,40)) + '</g>' +
+      '</svg>';
+  };
+
+  /* THE PRESS */
+  A.media = function(c, c2, W){
+    return head(W) +
+      '<rect width="'+W+'" height="'+H+'" fill="#161E28"/>' + crowd(W, 0, 54, 5) +
+      '<g transform="translate('+(W*0.34)+',52)">' +
+        '<rect x="-48" y="-20" width="96" height="46" rx="8" fill="#2A3B4E"/>' +
+        '<circle cx="0" cy="4" r="15" fill="#0E1B2E" stroke="#8FA3B8" stroke-width="4"/>' +
+        '<rect x="32" y="-13" width="24" height="16" rx="4" fill="#8FA3B8"/>' +
+        '<rect x="-15" y="-31" width="30" height="13" rx="4" fill="#2A3B4E"/>' +
+      '</g>' +
+      '<g fill="#E8C766" opacity=".8"><circle cx="'+(W*0.18)+'" cy="34" r="5"/>' +
+      '<circle cx="'+(W*0.84)+'" cy="24" r="5"/><circle cx="'+(W*0.32)+'" cy="14" r="4"/>' +
+      '<circle cx="'+(W*0.72)+'" cy="48" r="4"/></g>' +
+      '</svg>';
+  };
+
+  /* A LEAGUE TABLE WANTS THE PITCH FROM ABOVE */
+  A.pitch = function(c, c2, W){
+    var k = esc(c);
+    return head(W) + stripes(W, 0, H, GA, GB) +
+      '<rect width="'+W+'" height="'+H+'" fill="'+mul(k,.85)+'" opacity=".26"/>' +
+      '<g stroke="#FFFFFF" stroke-opacity=".45" fill="none" stroke-width="2">' +
+      '<rect x="12" y="8" width="'+(W-24)+'" height="92" rx="2"/>' +
+      '<line x1="'+(W/2)+'" y1="8" x2="'+(W/2)+'" y2="100"/><circle cx="'+(W/2)+'" cy="54" r="24"/>' +
+      '<rect x="12" y="26" width="46" height="56"/><rect x="'+(W-58)+'" y="26" width="46" height="56"/>' +
+      '</g><circle cx="'+(W/2)+'" cy="54" r="4" fill="#fff" fill-opacity=".7"/>' +
+      '</svg>';
+  };
+
+  /* A FACE FOR A CARD — deterministic from the name, so the same player
+     wears the same face everywhere he appears in the game. */
+  A.face = function(name, kit, size){
+    var r = streamFrom(hashOf(String(name||"x")));
+    var skin = ["#F0C27A","#E0A96D","#C68642","#8D5524","#FFE0BD"][Math.floor(r()*5)];
+    var hair = ["#2A2620","#4A3323","#8C6239","#1B1B1B","#B08245","#5A5A5A"][Math.floor(r()*6)];
+    var s = size || 64, style = r();
+    return '<svg class="artface" viewBox="0 0 64 64" width="'+s+'" height="'+s+'" aria-hidden="true">'
+      + '<circle cx="32" cy="32" r="32" fill="'+(kit||"#1F6F43")+'" opacity=".18"/>'
+      + '<path d="M10,64 q6,-20 22,-20 q16,0 22,20 z" fill="'+(kit||"#1F6F43")+'"/>'
+      + '<circle cx="32" cy="28" r="15" fill="'+skin+'"/>'
+      + (style < 0.32
+          ? '<path d="M17,26 q3,-16 15,-16 q12,0 15,16 q-6,-8 -15,-8 q-9,0 -15,8 z" fill="'+hair+'"/>'
+          : style < 0.62
+            ? '<path d="M17,27 q0,-17 15,-17 q15,0 15,17 q-4,-4 -6,-9 q-9,5 -24,3 z" fill="'+hair+'"/>'
+            : style < 0.85
+              ? '<path d="M18,24 q4,-14 14,-14 q10,0 14,14 q-14,-6 -28,0 z" fill="'+hair+'"/>'
+              : '')
+      + '<circle cx="26" cy="30" r="1.9" fill="#2A2620"/><circle cx="38" cy="30" r="1.9" fill="#2A2620"/>'
+      + '<path d="M27,38 q5,4 10,0" stroke="#2A2620" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+      + '</svg>';
+  };
+
+  A.get = function(key, c, c2, W){
+    var f = A[key];
+    if(!f) return "";
+    return f(c, c2, clamp(Math.round(W || 400), 260, 1800));
+  };
+  return A;
+})();
+
+/* Paints the artwork band into every panel that asked for one. Panels
+   declare their picture with data-art="stadium" and nothing else — the
+   band, the scrim and the club colours are added here at render time so
+   the view functions stay pure string builders. */
+function paintArt(root){
+  if(!root || !window.ART) return;
+  var me = (typeof S !== "undefined" && S && S.club) ? club(S.club) : null;
+  var c1 = (me && me.c) || "#1F6F43";
+  var c2 = (me && me.t) || "#FFFFFF";
+  var list = root.querySelectorAll("[data-art]");
+  Array.prototype.forEach.call(list, function(el){
+    var band = el.firstChild;
+    if(!band || band.className !== "artband"){
+      band = document.createElement("div");
+      band.className = "artband";
+      el.insertBefore(band, el.firstChild);
+      el.classList.add("hasart");
+    }
+    /* the scene is drawn to the band it actually has to fill, so a
+       full-width card gets a wide scene rather than a cropped one — which
+       is why this runs after the packer has decided the column widths */
+    var w = band.clientWidth || el.clientWidth || 400;
+    var h = band.clientHeight || 78;
+    if(Math.abs(w - (+el.getAttribute("data-art-w") || 0)) < 8) return;
+    el.setAttribute("data-art-w", w);
+    var svg = "";
+    try {
+      svg = ART.get(el.getAttribute("data-art"),
+                    el.getAttribute("data-art-c")  || c1,
+                    el.getAttribute("data-art-c2") || c2,
+                    108 * w / h);
+    } catch(e){ svg = ""; }
+    if(!svg){ el.removeChild(band); el.classList.remove("hasart"); el.removeAttribute("data-art-w"); return; }
+    band.innerHTML = svg;
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
    NAVIGATION — the FIFA career shape: six categories across the top,
    the sections of the active category down the side, one focused board
    in the middle. Every panel in the game declares where it lives with
@@ -2442,7 +2869,7 @@ function viewHub(){
   var injBanner = "";
   if(isInjured()){
     var pc = Math.round(clamp(S.injury.rehab/S.injury.weeks, 0, 1)*100);
-    injBanner = '<div class="p injp" data-panel="home/today"><h3>🚑 '+S.injury.n+' ב'+S.injury.part+'</h3><div class="pb">'
+    injBanner = '<div data-art="medical" class="p injp" data-panel="home/today"><h3>🚑 '+S.injury.n+' ב'+S.injury.part+'</h3><div class="pb">'
       + '<div class="kv"><span>שבועות שנותרו</span><b class="n" style="color:var(--bad)">'+Math.ceil(S.injury.left)+'</b></div>'
       + '<div class="bar" style="margin:8px 0 4px"><i class="w" style="width:'+pc+'%"></i></div>'
       + '<p class="hint" style="margin:8px 0 0">בחר תוכנית שיקום לשבוע. "לדחוף את הקצב" מקצר את ההיעדרות אבל מגדיל את הסיכון להישנות מיד עם החזרה.</p>'
@@ -2487,7 +2914,7 @@ function viewHub(){
 
     + (function(){
         if(!S.objectives || !S.objectives.length) return "";
-        return '<div class="p" data-panel="home/objectives"><h3>יעדי העונה <span class="r">'
+        return '<div data-art="objectives" class="p" data-panel="home/objectives"><h3>יעדי העונה <span class="r">'
           + S.objectives.filter(function(o){return o.done}).length+'/'+S.objectives.length+'</span></h3><div class="pb">'
         + S.objectives.map(function(ob){
             var st = objState(ob), who = OBJ_WHO[ob.who];
@@ -2510,7 +2937,7 @@ function viewHub(){
         + 'העיתונות תשווה, בין שתרצה ובין שלא.</p></div></div>'
       : '')
 
-    + '<div class="p hero" data-panel="home/today">'
+    + '<div data-art="stadium" class="p hero" data-panel="home/today">'
       + '<div class="heroband">'
         + '<div class="hb"><div class="hbc" style="background:'+me.c+';color:'+me.t+'">'+me.ab+'</div>'
           + '<div><b>'+me.n+'</b><span>'+(fx.home?"בית":"חוץ")+'</span></div></div>'
@@ -2520,7 +2947,7 @@ function viewHub(){
       + '</div>'
       + '<div class="pb"><div class="days">'+dayHtml+'</div></div></div>'
 
-    + '<div class="p" data-panel="home/today"><h3>תוכנית שבועית'
+    + '<div data-art="training" class="p" data-panel="home/today"><h3>תוכנית שבועית'
       + '<span class="r" style="display:flex;align-items:center;gap:9px">'
       + '<span class="lbl">'+S.picked.length+'/'+S.slots+'</span><span class="slots">'+slotsHtml+'</span></span></h3>'
     + '<div class="pb"><div class="acts">'+actsHtml+'</div>'
@@ -2643,6 +3070,7 @@ function playerCard(){
     + '<span class="tierbadge">'+T.n+'</span>'
     + '<div class="fctop">'
       + '<div class="fcovr"><b class="n">'+o+'</b><span>'+S.pos+'</span></div>'
+      + '<div class="fcport">'+ART.face(S.name, c.c, 58)+'</div>'
       + '<div class="fcradar">'+radarSvg(vals, p.face, T.ink)+'</div>'
       + '<div class="fcbadges">'
         + '<div class="fcclub" style="background:'+c.c+';color:'+c.t+'">'+c.ab+'</div>'
@@ -2802,19 +3230,20 @@ function viewSquad(){
     + '<table><thead><tr><th>#</th><th>שחקן</th><th class="r">גיל</th><th class="r">OVR</th><th>מעמד</th></tr></thead><tbody>'
     + rivals.map(function(r,i){
         return '<tr'+(r.me?' class="me"':'')+'><td class="n">'+(i+1)+'</td>'
-          + '<td>'+r.n+(r.inj?' <span class="tag b">פצוע</span>':'')+'</td>'
+          + '<td><span class="facerow">'+ART.face(r.n, club(S.club).c, 26)
+            + '<div>'+r.n+(r.inj?' <span class="tag b">פצוע</span>':'')+'</div></span></td>'
           + '<td class="r">'+r.age+'</td><td class="r">'+r.ovr+'</td>'
           + '<td><span class="tag '+(i===0?"ok":(i===1?"w":""))+'">'+r.role+'</span></td></tr>';
       }).join("")
     + '</tbody></table></div></div>'
 
-    + '<div class="p" data-panel="club/room"><h3>חדר הלבשה <span class="r">אווירה '+dressingRoom()+'</span></h3><div class="pb">'
+    + '<div data-art="squad" class="p" data-panel="club/room"><h3>חדר הלבשה <span class="r">אווירה '+dressingRoom()+'</span></h3><div class="pb">'
       + S.squad.filter(function(pl){ return pl.role || (pl.rel.trust+pl.rel.personal)/2 > 58
             || (pl.rel.trust+pl.rel.personal)/2 < 34; }).slice(0,7).map(function(pl){
           var lab = relLabel((pl.rel.trust+pl.rel.respect+pl.rel.personal)/3);
           var roleN = {captain:"קפטן", mentor:"מנטור", rival:"מתחרה לעמדה"}[pl.role] || pl.pos;
           return '<div class="mate">'
-            + '<span class="mateav">'+pl.n.charAt(0)+'</span>'
+            + '<span class="mateav facepic">'+ART.face(pl.n, club(S.club).c, 34)+'</span>'
             + '<div><b>'+pl.n+'</b><span class="mr">'+roleN+' · OVR '+pl.ovr
               + (pl.mem.length ? ' · "'+pl.mem[0].t+'"' : '') + '</span></div>'
             + '<div style="text-align:end"><span class="tag '+lab.k+'">'+lab.t+'</span>'
@@ -2828,11 +3257,12 @@ function viewSquad(){
       + '<p class="hint" style="margin:10px 0 0">שלושת הפסים הם אמון · כבוד מקצועי · חיבור אישי. הם נעים בנפרד — אפשר לזכות בכבוד ולאבד חיבור באותו אירוע.</p>'
     + '</div></div>'
 
-    + '<div class="p" data-panel="club/squad"><h3>הסגל המלא <span class="r">ממוצע OVR '+avg+'</span></h3><div class="pb tight">'
+    + '<div data-art="squad" class="p" data-panel="club/squad"><h3>הסגל המלא <span class="r">ממוצע OVR '+avg+'</span></h3><div class="pb tight">'
     + '<table><thead><tr><th>עמדה</th><th>שחקן</th><th class="r">גיל</th><th class="r">OVR</th></tr></thead><tbody>'
     + full.map(function(pl){
         return '<tr><td><span class="tag">'+pl.pos+'</span></td>'
-          + '<td>'+pl.n+(pl.inj?' <span class="tag b">'+pl.inj+' שב׳</span>':'')+'</td>'
+          + '<td><span class="facerow">'+ART.face(pl.n, club(S.club).c, 26)
+            + '<div>'+pl.n+(pl.inj?' <span class="tag b">'+pl.inj+' שב׳</span>':'')+'</div></span></td>'
           + '<td class="r">'+pl.age+'</td><td class="r"><b>'+pl.ovr+'</b></td></tr>';
       }).join("")
     + '</tbody></table></div></div>'
@@ -2885,7 +3315,7 @@ function viewLeague(){
   var myGoals = (lid === S.league) ? S.goals : 0;
 
   var relLine = L.clubs.length - 2;
-  return '<div class="grid g2"><div class="p" data-panel="comp/table"><h3>'+L.flag+' '+L.n+' <span class="r">מחזור '+(S.week-1)+'</span></h3><div class="pb tight">'
+  return '<div class="grid g2"><div data-art="pitch" class="p" data-panel="comp/table"><h3>'+L.flag+' '+L.n+' <span class="r">מחזור '+(S.week-1)+'</span></h3><div class="pb tight">'
   + tabs
   + '<table><thead><tr><th>#</th><th>מועדון</th><th class="r">מש׳</th><th class="r">נצ׳</th><th class="r">תק׳</th><th class="r">הפ׳</th><th class="r">הפרש</th><th class="r">נק׳</th></tr></thead><tbody>'
   + rows.map(function(r,i){
@@ -2941,7 +3371,7 @@ function viewWorld(){
   /* the market: the part of a management game you can lose an hour in */
   var mkt = marketRows(24);
   var FAMS = [["all","הכל"],["GK","שוער"],["CB","בלם"],["FB","מגן"],["CM","קשר"],["WIDE","כנף"],["ST","חלוץ"]];
-  var mktHtml = '<div class="p" data-panel="market/search"><h3>שוק השחקנים <span class="r">היקרים בעולם</span></h3><div class="pb tight">'
+  var mktHtml = '<div data-art="market" class="p" data-panel="market/search"><h3>שוק השחקנים <span class="r">היקרים בעולם</span></h3><div class="pb tight">'
     + '<div class="mktbar">'
       + '<button class="sortb'+(MKT_LG==="all"?" on":"")+'" data-mkt="lg:all">כל הליגות</button>'
       + LG_IDS.map(function(id){
@@ -2957,7 +3387,8 @@ function viewWorld(){
     + '<th class="r">OVR</th><th class="r">שווי</th></tr></thead><tbody>'
     + (mkt.length ? mkt.map(function(pl,i){
         return '<tr class="clickrow" data-pc="'+pl.club+'#'+pl.i+'"><td class="n">'+(i+1)+'</td>'
-          + '<td><bdi>'+pl.n+'</bdi> <span class="muted xs">'+POS[pl.pos].short+'</span></td>'
+          + '<td><span class="facerow">'+ART.face(pl.n, club(pl.club).c, 26)
+            + '<div><bdi>'+pl.n+'</bdi> <span class="muted xs">'+POS[pl.pos].short+'</span></div></span></td>'
           + '<td><span class="sw" style="background:'+club(pl.club).c+'"></span>'+club(pl.club).ab+'</td>'
           + '<td class="r">'+pl.age+'</td><td class="r"><b>'+pl.ovr+'</b></td>'
           + '<td class="r">'+money(pl.val)+'</td></tr>';
@@ -2989,7 +3420,7 @@ function viewWorld(){
 
   return '<div class="grid g2">'
   + '<div style="display:flex;flex-direction:column;gap:14px">'
-  + '<div class="p" data-panel="home/news"><h3>חדשות העולם</h3><div class="pb" style="display:flex;flex-direction:column;gap:6px">'
+  + '<div data-art="media" class="p" data-panel="home/news"><h3>חדשות העולם</h3><div class="pb" style="display:flex;flex-direction:column;gap:6px">'
     + newsHtml + '</div></div>'
   + watchHtml + '</div>'
   + '<div style="display:flex;flex-direction:column;gap:14px">'
@@ -3023,7 +3454,7 @@ function brandPanel(){
   var open = SPONSORS.filter(function(sp){ return (S.brand||0) >= sp.need && (!cur || sp.id !== cur.id); });
   var shut = SPONSORS.filter(function(sp){ return (S.brand||0) < sp.need; });
 
-  return '<div class="p" data-panel="life/brand"><h3>מיתוג וספונסרים</h3><div class="pb">'
+  return '<div data-art="brand" class="p" data-panel="life/brand"><h3>מיתוג וספונסרים</h3><div class="pb">'
     + '<div class="rolehead"><div class="rolenum '+(b>=65?"":(b>=30?"w":"b"))+'">'+b+'</div>'
       + '<div><span class="lbl">'+t.i+' '+t.n+'</span>'
       + '<p style="margin:4px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink2)">'
@@ -3100,7 +3531,7 @@ function viewCareer(){
     + '<p class="hint" style="margin:9px 0 0">חוזה שנגמר מוריד את שווי השוק שלך ב-45%, אבל נותן כוח מיקוח מול מועדונים אחרים.</p>'
     + '</div></div>' : '';
 
-  var shopHtml = '<div class="p" data-panel="life/shop"><h3>חנות <span class="r">₪'+Math.round(S.money)+'k בבנק</span></h3><div class="pb">'
+  var shopHtml = '<div data-art="boots" class="p" data-panel="life/shop"><h3>חנות <span class="r">₪'+Math.round(S.money)+'k בבנק</span></h3><div class="pb">'
     + '<div class="shop">' + SHOP.map(function(it){
         var owned = it.once && S.shopUsed[it.id];
         var can = !owned && S.money >= it.cost;
@@ -3114,7 +3545,7 @@ function viewCareer(){
     + '</div></div>';
 
   var mhHtml = S.matches.length
-    ? '<div class="p" data-panel="player/matches"><h3>המשחקים שלך <span class="r">ציון ממוצע '+avgRating().toFixed(2)+'</span></h3><div class="pb tight">'
+    ? '<div data-art="pitch" class="p" data-panel="player/matches"><h3>המשחקים שלך <span class="r">ציון ממוצע '+avgRating().toFixed(2)+'</span></h3><div class="pb tight">'
       + '<table><thead><tr><th>מח׳</th><th>יריבה</th><th>תוצאה</th><th class="r">דק׳</th><th class="r">ש׳</th><th class="r">ב׳</th><th class="r">ציון</th></tr></thead><tbody>'
       + S.matches.slice(0,14).map(function(m){
           var cls = m.r>=7.5?"ok":(m.r>=6.5?"":(m.r>=5.8?"w":"b"));
@@ -3167,13 +3598,13 @@ function viewCareer(){
   + '<div class="p" data-panel="market/interest"><h3>עניין ממועדונים</h3><div class="pb">'+intHtml
   + '<p class="hint" style="margin:11px 0 0">מסדרונות ההעברות אמיתיים: קפיצה של עד ~14 נקודות מוניטין מעל ה-OVR שלך. הצעה ממשית מגיעה רק אחרי שסקאוט באמת ראה אותך.</p>'
   + '</div></div>'
-  + '<div class="p" data-panel="life/nat"><h3>נבחרת ישראל</h3><div class="pb">'
+  + '<div data-art="stadium" class="p" data-panel="life/nat"><h3>נבחרת ישראל</h3><div class="pb">'
     + '<div class="kv"><span>סטטוס</span><b>'+(S.natCalled?'<span class="tag ok">בסגל</span>':'<span class="tag">מחוץ לסגל</span>')+'</b></div>'
     + '<div class="kv"><span>הופעות</span><b class="n">'+S.natCaps+'</b></div>'
     + '<div class="kv"><span>שערים</span><b class="n">'+S.natGoals+'</b></div>'
     + '<p class="hint" style="margin:10px 0 0">הזימון נגזר מ-OVR, מהציון הממוצע ומדקות המשחק — והרף עולה מעונה לעונה.</p>'
   + '</div></div>'
-  + '<div class="p" data-panel="life/history"><h3>היסטוריית קריירה</h3><div class="pb">'+honHtml+'</div></div>'
+  + '<div data-art="trophy" class="p" data-panel="life/history"><h3>היסטוריית קריירה</h3><div class="pb">'+honHtml+'</div></div>'
   + '<div class="p" data-panel="market/contract"><h3>חוזה</h3><div class="pb">'
     + '<div class="kv"><span>מועדון</span><b>'+club(S.club).n+'</b></div>'
     + '<div class="kv"><span>שנים שנותרו</span><b class="n">'+S.contractYears+'</b></div>'
@@ -4280,6 +4711,7 @@ function layoutBoards(){
       if(pl.getBoundingClientRect().height > 4) shown++;
     });
     if(!shown) throw new Error("board packed to nothing (h=" + stage.clientHeight + ")");
+    paintArt(stage);
   } catch(err){
     stage.innerHTML = backup;
     stage.classList.add("nopack");
@@ -4673,12 +5105,14 @@ function nemesisCard(){
   var N = S.nemesis;
   if(!N) return "";
   var mine = S.goals*2 + S.assists, his = N.g*2 + N.a;
-  return '<div class="p" style="border-color:var(--accent)" data-panel="life/nemesis"><h3>היריב שלך <span class="r">'+POS[N.pos].short+'</span></h3><div class="pb">'
+  return '<div data-art="rival" data-art-c2="'+club(N.club).c+'" class="p" style="border-color:var(--accent)" data-panel="life/nemesis"><h3>היריב שלך <span class="r">'+POS[N.pos].short+'</span></h3><div class="pb">'
     + '<div class="nemhead">'
-      + '<div class="nemside"><span class="lbl">אתה</span><b class="n">'+ovr()+'</b>'
+      + '<div class="nemside">'+ART.face(S.name, club(S.club).c, 40)
+        + '<span class="lbl">אתה</span><b class="n">'+ovr()+'</b>'
         + '<span class="xs">'+S.goals+' שערים · '+S.assists+' בישולים</span></div>'
       + '<div class="nemvs '+(mine>=his?"up":"dn")+'">'+(mine>=his?"מוביל":"מפגר")+'</div>'
-      + '<div class="nemside e"><span class="lbl"><bdi>'+N.n+'</bdi></span><b class="n">'+N.ovr+'</b>'
+      + '<div class="nemside e">'+ART.face(N.n, club(N.club).c, 40)
+        + '<span class="lbl"><bdi>'+N.n+'</bdi></span><b class="n">'+N.ovr+'</b>'
         + '<span class="xs">'+N.g+' שערים · '+N.a+' בישולים</span></div>'
     + '</div>'
     + '<div class="kv"><span>מועדון</span><b><bdi>'+club(N.club).n+'</bdi></b></div>'
@@ -5259,7 +5693,8 @@ function paintClub(){
       + '</div>'
       + '<div class="p" style="margin:0"><h3>הספסל</h3><div class="pb tight"><table><tbody>'
       + sq.filter(function(p){ return !xi.some(function(x){ return x.p === p; }); }).slice(0,8).map(function(p){
-          return '<tr data-pl="'+p.i+'" class="clickrow"><td>'+POS[p.pos].short+'</td><td><bdi>'+p.n+'</bdi></td>'
+          return '<tr data-pl="'+p.i+'" class="clickrow"><td>'+POS[p.pos].short+'</td>'
+            + '<td><span class="facerow">'+ART.face(p.n, c.c, 26)+'<div><bdi>'+p.n+'</bdi></div></span></td>'
             + '<td class="r">'+p.age+'</td><td class="r"><b>'+p.ovr+'</b></td><td class="r muted">'+money(p.val)+'</td></tr>';
         }).join("")
       + '</tbody></table></div></div></div>';
@@ -5396,6 +5831,7 @@ function openPlayerCard(cid, idx){
   el.className = "moment pcard"; el.id = "pcardLayer";
   el.innerHTML = '<div class="pcbox">'
     + '<div class="pchead" style="background:'+c.c+';color:'+c.t+'">'
+      + '<div class="pcface">'+ART.face(p.n, c.c, 54)+'</div>'
       + '<div class="pcovr">'+p.ovr+'</div>'
       + '<div class="pcid"><h3><bdi>'+p.n+'</bdi></h3>'
         + '<p>'+POS[p.pos].n+' · בן '+p.age+' · <bdi>'+c.n+'</bdi></p></div>'
