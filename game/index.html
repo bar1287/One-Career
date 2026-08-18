@@ -202,6 +202,43 @@ th{font-size:9.5px !important}
 
 
 
+
+.mcard.playing .mbd{grid-template-columns:minmax(0,1fr)}
+/* the inline styles on those wrappers are generated, so this needs weight */
+.mcard.playing .mbd>div:first-child{display:none !important}
+.mcard.playing #moCh{display:none}
+.mcard.playing #moCh+span, .mcard.playing #moCh{margin:0}
+.mcard.playing .mbd>div:last-child>div:first-child{display:none !important}
+.mcard.playing #moExec>.lbl{
+  display:block;font-size:12px;letter-spacing:0;text-transform:none;
+  color:var(--ink);font-weight:850;margin-bottom:7px;text-align:center;
+}
+.mcard.playing{max-width:560px}
+
+/* ── the mini-games ────────────────────────────────────────────── */
+.mini{display:flex;flex-direction:column;gap:7px}
+.minicanvas{
+  position:relative;border-radius:11px;overflow:hidden;background:#1F6F43;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);line-height:0;
+}
+.minicanvas canvas{display:block;width:100% !important;height:auto !important;border-radius:11px}
+.minimsg{
+  position:absolute;left:0;right:0;top:34%;text-align:center;z-index:2;
+  font-size:21px;font-weight:900;color:#fff;line-height:1.2;
+  text-shadow:0 3px 12px rgba(0,0,0,.65);opacity:0;transform:scale(.86);
+  transition:opacity .16s, transform .16s;pointer-events:none;
+}
+.minimsg.on{opacity:1;transform:scale(1)}
+.minimsg.good{color:#8FE3B4} .minimsg.bad{color:#FFC9C0}
+.ministage{
+  display:block;text-align:center;font-size:12px;font-weight:850;color:var(--ink2);
+  min-height:16px;
+}
+.minibar{display:flex;flex-direction:column;gap:4px}
+.minibar.hide{display:none}
+.minisides{display:flex;gap:8px}
+.minisides .btn{flex:1}
+
 /* ══════════════════════════════════════════════════════════════════
    THE SHOT
    ════════════════════════════════════════════════════════════════ */
@@ -1341,6 +1378,7 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 </div>
 </div>
 
+<script src="vendor/phaser.min.js"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════
@@ -6358,7 +6396,7 @@ function momentHtml(){
     + '<div style="display:flex;flex-direction:column;gap:11px">'
       + '<div><span class="lbl">בחירת כוונה</span><div class="choices" id="moCh" style="margin-top:7px"></div></div>'
       + '<div id="moExec" style="display:none">'
-        + '<span class="lbl">עוצמה ותזמון</span>'
+        + '<span class="lbl"><span id="moPicked"></span></span>'
         + '<div class="moinfo" id="moInfo"></div>'
         + '<div class="power" style="margin-top:6px"><div class="zone" id="moZone"></div><div class="ndl" id="moNdl"></div>'
         + '<div class="ticks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>'
@@ -6448,7 +6486,15 @@ function pickChoice(i, btn){
   if(btn) btn.classList.add("on");
 
   var c = MO.choices[i];
+  var mg = miniFor(c, MO.sit ? MO.sit.k : "");
+  if(mg) return startMini(mg, c);
   if(isShotChoice(c)){ MO.shooting = true; return startShot(c); }
+  return startMeterFor(c);
+}
+
+/* the execution meter — for everything that is a decision rather than a
+   touch of the ball, and the fallback when the engine is not there */
+function startMeterFor(c){
   var at = S.a[c.at] || 45;
   /* Sweet-zone width is where your stats become difficulty you can feel.
      A 40-rated attribute gives a sliver; an 85 gives a comfortable window. */
@@ -6494,6 +6540,701 @@ function pickChoice(i, btn){
   })();
 }
 
+
+/* ══════════════════════════════════════════════════════════════════
+   THE PITCH ENGINE — Phaser
+   Everything with a ball in it is a Phaser scene now: the shot, the
+   pass, the dribble and the free kick. The menus stay in the DOM, where
+   Hebrew belongs; the canvas gets the part canvas is good at — motion,
+   physics, particles and input. All four mini-games share one WebGL
+   context: scenes are swapped, never re-created.
+
+   Every scene reports back the same way — a grade and a forced outcome —
+   so the rating engine, the box score and the storylets do not know or
+   care that the ball moved on a canvas.
+   ════════════════════════════════════════════════════════════════ */
+var MINI = (function(){
+  var game = null, mount = null, cb = null, cur = null;
+  var W = 430, H = 236;
+
+  function ok(){ return typeof Phaser !== "undefined" && !!Phaser.Game; }
+
+  /* ── shared helpers every scene uses ───────────────────────────── */
+  var Base = {
+    grass: function(sc, top){
+      var g = sc.add.graphics();
+      g.fillStyle(0x1F6F43, 1).fillRect(0, top||0, W, H-(top||0));
+      for(var i=0;i<8;i++){
+        g.fillStyle(i%2 ? 0x24784B : 0x1B6540, 1);
+        g.fillRect(0, (top||0) + i*((H-(top||0))/8), W, (H-(top||0))/8);
+      }
+      return g;
+    },
+    ball: function(sc, x, y, r){
+      var b = sc.add.circle(x, y, r||7, 0xffffff);
+      b.setStrokeStyle(2, 0x17150F, 0.85);
+      return b;
+    },
+    man: function(sc, x, y, colour, r){
+      var c = sc.add.container(x, y);
+      var body = sc.add.ellipse(0, 0, (r||9)*2, (r||9)*2.4, colour);
+      var head = sc.add.circle(0, -(r||9)*1.5, (r||9)*0.62, 0xF0C27A);
+      c.add([body, head]);
+      c.rad = r || 9;
+      return c;
+    },
+    puff: function(sc, x, y, colour, n){
+      for(var i=0;i<(n||10);i++){
+        var p = sc.add.circle(x, y, 2 + Math.random()*2, colour, 0.85);
+        sc.tweens.add({
+          targets:p, x: x + (Math.random()-0.5)*70, y: y + (Math.random()-0.5)*60,
+          alpha:0, duration: 320 + Math.random()*280, onComplete:function(){ p.destroy(); }
+        });
+      }
+    },
+    trail: function(sc, target, colour){
+      return sc.time.addEvent({delay:26, loop:true, callback:function(){
+        if(!target.active) return;
+        var d = sc.add.circle(target.x, target.y, 3.4, colour || 0xffffff, 0.5);
+        sc.tweens.add({targets:d, alpha:0, scale:0.3, duration:260, onComplete:function(){ d.destroy(); }});
+      }});
+    },
+    /* the moving marker every NSS input is built from */
+    sweeper: function(sc, from, to, speed){
+      return {v:from, dir:1, from:from, to:to, speed:speed,
+        step:function(dt){
+          this.v += this.dir * this.speed * dt;
+          if(this.v >= this.to){ this.v = this.to; this.dir = -1; }
+          if(this.v <= this.from){ this.v = this.from; this.dir = 1; }
+          return this.v;
+        }};
+    },
+    finish: function(sc, res){
+      if(cb){ var f = cb; cb = null; sc.time.delayedCall(560, function(){ f(res); }); }
+    }
+  };
+
+  /* ── 1. THE SHOT ───────────────────────────────────────────────── */
+  function ShotScene(){ Phaser.Scene.call(this, {key:"shot"}); }
+  ShotScene.prototype = Object.create(Phaser.Scene.prototype);
+  ShotScene.prototype.init = function(d){ this.cfg = d; };
+  ShotScene.prototype.create = function(){
+    var sc = this, c = this.cfg;
+    sc.cameras.main.setBackgroundColor(0x2C3E50);
+    /* crowd */
+    var cr = sc.add.graphics();
+    for(var i=0;i<150;i++){
+      cr.fillStyle([0xF7F5F1,0xE8C766,0x8FA3B8,0xEB6834][i%4], 0.5);
+      cr.fillCircle(Math.random()*W, Math.random()*62, 1.6);
+    }
+    Base.grass(sc, 66);
+
+    var gx = W*0.14, gw = W*0.72, gy = 58, gh = 104;
+    var net = sc.add.graphics();
+    net.fillStyle(0xffffff, 0.07).fillRect(gx, gy, gw, gh);
+    net.lineStyle(1, 0xffffff, 0.28);
+    for(var x=gx; x<=gx+gw; x+=11){ net.lineBetween(x, gy, x, gy+gh); }
+    for(var y=gy; y<=gy+gh; y+=11){ net.lineBetween(gx, y, gx+gw, y); }
+    var frame = sc.add.graphics();
+    frame.fillStyle(0xF7F5F1, 1);
+    frame.fillRoundedRect(gx-5, gy-5, 5, gh+5, 2);
+    frame.fillRoundedRect(gx+gw, gy-5, 5, gh+5, 2);
+    frame.fillRoundedRect(gx-5, gy-5, gw+10, 5, 2);
+
+    this.gx = gx; this.gw = gw; this.gy = gy; this.gh = gh;
+
+    this.keeper = Base.man(sc, gx+gw/2, gy+gh-14, 0x4A3AA7, 10);
+    this.keepX = 0.5; this.keepDir = Math.random()<0.5 ? -1 : 1;
+    this.keepSpeed = 0.00022 + c.gk*0.0000075;
+
+    this.ball = Base.ball(sc, W/2, H-18, 7);
+    this.aim = sc.add.graphics();
+    this.phase = "aim";
+    this.sw = Base.sweeper(sc, 0.02, 0.98, 0.00075 * c.aimSpeed);
+    this.pw = Base.sweeper(sc, 0, 1, 0.0016);
+    this.locked = null;
+
+    sc.input.on("pointerdown", function(){ sc.tap(); });
+    MINI.tapFn = function(){ sc.tap(); };
+  };
+  ShotScene.prototype.update = function(t, dt){
+    var c = this.cfg;
+    this.keepX += this.keepDir * this.keepSpeed * dt;
+    if(this.keepX > 0.76){ this.keepX = 0.76; this.keepDir = -1; }
+    if(this.keepX < 0.24){ this.keepX = 0.24; this.keepDir = 1; }
+    this.keeper.x = this.gx + this.gw*this.keepX;
+
+    this.aim.clear();
+    if(this.phase === "aim"){
+      var v = this.sw.step(dt);
+      this.aimV = v;
+      var ax = this.gx + this.gw*v;
+      this.aim.lineStyle(2, 0xffffff, 0.95);
+      this.aim.lineBetween(ax, this.gy-14, ax, this.gy+this.gh+8);
+      this.aim.strokeCircle(ax, this.gy-16, 7);
+    } else if(this.phase === "power"){
+      var ax2 = this.gx + this.gw*this.aimV;
+      this.aim.lineStyle(2, 0xE8C766, 1);
+      this.aim.lineBetween(ax2, this.gy-14, ax2, this.gy+this.gh+8);
+      this.aim.strokeCircle(ax2, this.gy-16, 7);
+      var p = this.pw.step(dt);
+      this.powV = p;
+      MINI.power(p, this.cfg.sweetC, this.cfg.sweetW);
+    }
+  };
+  ShotScene.prototype.tap = function(){
+    var sc = this;
+    if(this.phase === "aim"){ this.phase = "power"; MINI.stage("עוצמה — עצור בתוך הירוק", "בעט"); return; }
+    if(this.phase !== "power") return;
+    this.phase = "fly";
+    MINI.stage("", "");
+
+    var c = this.cfg;
+    var err = c.err * (Math.random()-0.5);
+    var aim = Phaser.Math.Clamp(this.aimV + err, -0.08, 1.08);
+    var power = this.powV;
+    var off = Math.abs(power - c.sweetC);
+    var powerOk = off <= c.sweetW/2, powerBad = off > c.sweetW;
+
+    var wide = aim < 0.04 || aim > 0.96;
+    var corner = (aim >= 0.04 && aim <= 0.18) || (aim >= 0.82 && aim <= 0.96);
+
+    var read = Math.random() < c.readChance;
+    if(read) this.keepX = Phaser.Math.Clamp(this.keepX + (aim - this.keepX)*(0.55+Math.random()*0.35), 0.12, 0.88);
+
+    var reach = (0.11 + c.gk*0.0017 + (powerOk?0:0.05) + (powerBad?0.05:0)) - (corner?0.04:0);
+    var beaten = Math.abs(aim - this.keepX) > reach;
+
+    var res = wide && !powerOk ? "wide"
+            : (powerBad && power > c.sweetC) ? "over"
+            : powerBad ? "weak"
+            : !beaten ? "save"
+            : wide ? "post" : "goal";
+
+    var tx = this.gx + this.gw*aim;
+    var ty = this.gy + this.gh - Phaser.Math.Clamp(power,0,1)*this.gh*0.82;
+    if(res === "over") ty = this.gy - 40;
+    if(res === "wide") tx = aim < 0.5 ? this.gx - 26 : this.gx + this.gw + 26;
+
+    var tr = Base.trail(sc, this.ball, 0xffffff);
+    sc.tweens.add({targets:this.ball, x:tx, y:ty, scale:0.62, duration:420, ease:"Quad.easeOut",
+      onComplete:function(){
+        tr.remove();
+        if(res === "goal"){
+          Base.puff(sc, tx, ty, 0x1baf7a, 20);
+          sc.cameras.main.shake(160, 0.012);
+          var flash = sc.add.rectangle(W/2, H/2, W, H, 0x1baf7a, 0.22);
+          sc.tweens.add({targets:flash, alpha:0, duration:420, onComplete:function(){ flash.destroy(); }});
+        } else if(res === "save"){
+          Base.puff(sc, tx, ty, 0x4A3AA7, 12);
+        } else if(res === "post"){
+          sc.cameras.main.shake(120, 0.010);
+        }
+      }});
+    sc.tweens.add({targets:this.keeper, x: this.gx + this.gw*this.keepX,
+      angle: aim < this.keepX ? -62 : 62, duration:300, ease:"Back.easeOut"});
+
+    MINI.msg({goal:"⚽ גול!", save:(read?"🧤 הוא קרא אותך":"🧤 השוער הדף"),
+      wide:"↗ החוצה", over:"⤴ מעל המסגרת", weak:"😐 חלש מדי", post:"🅾 העמוד!"}[res],
+      res === "goal");
+
+    var grade = res === "goal" ? (powerOk ? "great" : "good")
+              : res === "save" ? (powerOk ? "good" : "poor")
+              : res === "post" ? "poor" : "fail";
+    Base.finish(sc, {grade:grade, forced:{shot:res, goal:res==="goal",
+      onTarget:(res==="goal"||res==="save")}});
+  };
+
+  /* ── 2. THE PASS ───────────────────────────────────────────────── */
+  function PassScene(){ Phaser.Scene.call(this, {key:"pass"}); }
+  PassScene.prototype = Object.create(Phaser.Scene.prototype);
+  PassScene.prototype.init = function(d){ this.cfg = d; };
+  PassScene.prototype.create = function(){
+    var sc = this, c = this.cfg;
+    sc.cameras.main.setBackgroundColor(0x1F6F43);
+    Base.grass(sc, 0);
+    var lines = sc.add.graphics();
+    lines.lineStyle(2, 0xffffff, 0.28);
+    lines.strokeRect(8, 8, W-16, H-16);
+    lines.strokeRect(W*0.3, 8, W*0.4, 40);
+    lines.lineBetween(8, H*0.62, W-8, H*0.62);
+
+    this.me = Base.man(sc, W/2, H-26, c.myColour, 10);
+    this.ball = Base.ball(sc, W/2, H-38, 6);
+
+    /* two runners making different runs, and defenders in the lanes */
+    this.mates = [];
+    var n = c.mates || 2;
+    for(var i=0;i<n;i++){
+      var mx = W*(0.22 + 0.56*(i/(Math.max(1,n-1))));
+      var my = 40 + Math.random()*40;
+      var m = Base.man(sc, mx, my, c.myColour, 9);
+      m.vx = (Math.random()-0.5)*0.035;
+      m.big = (i === 0);
+      this.mates.push(m);
+    }
+    this.foes = [];
+    for(var k=0;k<(c.foes||2);k++){
+      var f = Base.man(sc, W*(0.28 + 0.44*Math.random()), H*0.42 + (Math.random()-0.5)*40, c.oppColour, 10);
+      f.vx = (Math.random()<0.5?-1:1) * (0.020 + Math.random()*0.030);
+      this.foes.push(f);
+    }
+
+    this.arrow = sc.add.graphics();
+    this.phase = "aim";
+    this.sw = Base.sweeper(sc, -0.85, 0.85, 0.0011 * c.aimSpeed);
+    this.pw = Base.sweeper(sc, 0, 1, 0.0018);
+    sc.input.on("pointerdown", function(){ sc.tap(); });
+    MINI.tapFn = function(){ sc.tap(); };
+  };
+  PassScene.prototype.update = function(t, dt){
+    var sc = this;
+    this.mates.forEach(function(m){
+      m.x += m.vx*dt; if(m.x < 30 || m.x > W-30) m.vx *= -1;
+    });
+    this.foes.forEach(function(f){
+      f.x += f.vx*dt; if(f.x < 24 || f.x > W-24) f.vx *= -1;
+    });
+    this.arrow.clear();
+    if(this.phase === "fly") return;
+    var ang = this.phase === "aim" ? this.sw.step(dt) : this.aimA;
+    this.aimA = ang;
+    var len = 52 + (this.phase === "power" ? this.pw.step(dt)*74 : 34);
+    if(this.phase === "power") MINI.power(this.pw.v, this.cfg.sweetC, this.cfg.sweetW);
+    var ex = this.ball.x + Math.sin(ang)*len, ey = this.ball.y - Math.cos(ang)*len;
+    this.arrow.lineStyle(3, this.phase === "power" ? 0xE8C766 : 0xffffff, 0.95);
+    this.arrow.lineBetween(this.ball.x, this.ball.y, ex, ey);
+    this.arrow.fillStyle(this.phase === "power" ? 0xE8C766 : 0xffffff, 0.95);
+    this.arrow.fillCircle(ex, ey, 5);
+  };
+  PassScene.prototype.tap = function(){
+    var sc = this, c = this.cfg;
+    if(this.phase === "aim"){ this.phase = "power"; MINI.stage("משקל המסירה", "מסור"); return; }
+    if(this.phase !== "power") return;
+    this.phase = "fly";
+    MINI.stage("", "");
+
+    var ang = this.aimA + (Math.random()-0.5)*c.err;
+    var power = this.pw.v;
+    var dist = 70 + power*230;
+    var tx = this.ball.x + Math.sin(ang)*dist, ty = this.ball.y - Math.cos(ang)*dist;
+
+    /* who is closest to where the ball is actually going */
+    var best = null, bestD = 1e9;
+    this.mates.forEach(function(m){
+      var d = Phaser.Math.Distance.Between(tx, ty, m.x, m.y);
+      if(d < bestD){ bestD = d; best = m; }
+    });
+    /* does anyone in the way get a foot to it */
+    var cut = null;
+    this.foes.forEach(function(f){
+      var d = Phaser.Math.Distance.Between(f.x, f.y,
+        sc.ball.x + (tx-sc.ball.x)*0.55, sc.ball.y + (ty-sc.ball.y)*0.55);
+      if(d < c.cutRadius) cut = f;
+    });
+
+    var tol = c.tolerance;
+    var res = cut ? "cut" : (bestD < tol*0.55 ? "perfect" : (bestD < tol ? "good" : "loose"));
+
+    var tr = Base.trail(sc, this.ball, 0xffffff);
+    sc.tweens.add({targets:this.ball, x:tx, y:ty, duration: 260 + dist*0.7, ease:"Quad.easeOut",
+      onComplete:function(){
+        tr.remove();
+        if(res === "cut"){ Base.puff(sc, cut.x, cut.y, 0xeb6834, 14); }
+        else if(res !== "loose"){
+          Base.puff(sc, best.x, best.y, 0x1baf7a, 14);
+          sc.tweens.add({targets:best, scale:1.2, yoyo:true, duration:180});
+        }
+      }});
+
+    MINI.msg({perfect:"🎯 בול לרגל!", good:"✔ הגיעה", loose:"↗ רחוק ממנו", cut:"⛔ נחתכה"}[res],
+      res === "perfect" || res === "good");
+    var grade = res === "perfect" ? "great" : res === "good" ? "good" : res === "loose" ? "poor" : "fail";
+    Base.finish(sc, {grade:grade, forced:{pass:res, made:(res === "perfect"),
+      onTarget:(res === "perfect" || res === "good")}});
+  };
+
+  /* ── 3. THE DRIBBLE ────────────────────────────────────────────── */
+  function DribbleScene(){ Phaser.Scene.call(this, {key:"dribble"}); }
+  DribbleScene.prototype = Object.create(Phaser.Scene.prototype);
+  DribbleScene.prototype.init = function(d){ this.cfg = d; };
+  DribbleScene.prototype.create = function(){
+    var sc = this, c = this.cfg;
+    sc.cameras.main.setBackgroundColor(0x1F6F43);
+    Base.grass(sc, 0);
+    var lines = sc.add.graphics();
+    lines.lineStyle(2, 0xffffff, 0.25);
+    lines.strokeRect(8, 8, W-16, H-16);
+
+    this.me = Base.man(sc, W/2, H-34, c.myColour, 11);
+    this.ball = Base.ball(sc, W/2 + 10, H-24, 6);
+    this.foe = Base.man(sc, W/2 + (Math.random()-0.5)*40, 46, c.oppColour, 11);
+    this.foe.vx = (Math.random()<0.5?-1:1) * 0.045;
+
+    /* he commits to a side at the last moment — you have to read it */
+    this.commit = null;
+    this.t = 0;
+    this.window = c.window;          /* ms of reaction time your attributes buy */
+    this.decided = false;
+
+    this.hint = sc.add.graphics();
+    sc.input.on("pointerdown", function(p){ sc.pick(p.x < W/2 ? -1 : 1); });
+    MINI.tapFn = function(dir){ sc.pick(dir || 1); };
+    MINI.sides(true);
+  };
+  DribbleScene.prototype.update = function(t, dt){
+    if(this.done) return;
+    this.t += dt;
+    var c = this.cfg;
+    /* he closes down */
+    var closing = Phaser.Math.Clamp(this.t / c.closeMs, 0, 1);
+    this.foe.y = 46 + closing*(H-108);
+    this.foe.x += this.foe.vx*dt;
+    if(this.foe.x < 40 || this.foe.x > W-40) this.foe.vx *= -1;
+
+    if(!this.commit && closing > 0.62){
+      /* he plants a foot — that flash is the tell you are reading */
+      this.commit = Math.random() < 0.5 ? -1 : 1;
+      this.commitAt = this.t;
+      var sc = this;
+      this.hint.clear();
+      this.hint.fillStyle(0xEB6834, 0.75);
+      this.hint.fillCircle(this.foe.x + this.commit*24, this.foe.y + 16, 15);
+      this.tweens.add({targets:this.foe, angle: this.commit*22, duration:140});
+      var ring = this.add.circle(this.foe.x + this.commit*24, this.foe.y + 16, 8, 0xEB6834, 0);
+      ring.setStrokeStyle(3, 0xEB6834, 0.9);
+      this.tweens.add({targets:ring, scale:2.6, alpha:0, duration:this.window,
+        onComplete:function(){ ring.destroy(); }});
+      MINI.stage("עכשיו — לצד השני!");
+    }
+    if(this.commit && this.t - this.commitAt > this.window){ this.pick(0); }
+    if(closing >= 1 && !this.done){ this.pick(0); }
+  };
+  DribbleScene.prototype.pick = function(dir){
+    if(this.done) return;
+    this.done = true;
+    var sc = this, c = this.cfg;
+    MINI.sides(false);
+    MINI.stage("", "");
+    var res;
+    if(!dir) res = "late";
+    else if(!this.commit) res = "early";
+    else if(dir !== this.commit) res = "beat";
+    else res = "blocked";
+
+    var dx = dir ? dir*90 : 0;
+    sc.tweens.add({targets:[this.me, this.ball], x:"+="+dx, y:"-=" + (res==="beat"?70:14),
+      duration:340, ease:"Quad.easeOut"});
+    if(res === "beat"){
+      Base.puff(sc, this.foe.x, this.foe.y, 0x1baf7a, 14);
+      sc.cameras.main.shake(90, 0.006);
+    } else {
+      Base.puff(sc, this.foe.x, this.foe.y, 0xeb6834, 12);
+    }
+    MINI.msg({beat:"⚡ עברת אותו!", blocked:"⛔ הוא היה שם", early:"⏱ מוקדם מדי",
+      late:"🐌 איחרת"}[res], res === "beat");
+    var grade = res === "beat" ? "great" : res === "blocked" ? "poor" : "fail";
+    Base.finish(sc, {grade:grade, forced:{dribble:res, made:(res === "beat")}});
+  };
+
+  /* ── 4. THE FREE KICK ──────────────────────────────────────────── */
+  function FreeKickScene(){ Phaser.Scene.call(this, {key:"freekick"}); }
+  FreeKickScene.prototype = Object.create(Phaser.Scene.prototype);
+  FreeKickScene.prototype.init = function(d){ this.cfg = d; };
+  FreeKickScene.prototype.create = function(){
+    var sc = this, c = this.cfg;
+    sc.cameras.main.setBackgroundColor(0x2C3E50);
+    var cr = sc.add.graphics();
+    for(var i=0;i<120;i++){
+      cr.fillStyle([0xF7F5F1,0xE8C766,0x8FA3B8][i%3], 0.45);
+      cr.fillCircle(Math.random()*W, Math.random()*46, 1.5);
+    }
+    Base.grass(sc, 50);
+
+    var gx = W*0.2, gw = W*0.6, gy = 46, gh = 76;
+    var net = sc.add.graphics();
+    net.fillStyle(0xffffff, 0.07).fillRect(gx, gy, gw, gh);
+    net.lineStyle(1, 0xffffff, 0.26);
+    for(var x=gx;x<=gx+gw;x+=10) net.lineBetween(x, gy, x, gy+gh);
+    for(var y=gy;y<=gy+gh;y+=10) net.lineBetween(gx, y, gx+gw, y);
+    var frame = sc.add.graphics();
+    frame.fillStyle(0xF7F5F1,1);
+    frame.fillRoundedRect(gx-4, gy-4, 4, gh+4, 2);
+    frame.fillRoundedRect(gx+gw, gy-4, 4, gh+4, 2);
+    frame.fillRoundedRect(gx-4, gy-4, gw+8, 4, 2);
+    this.gx=gx; this.gw=gw; this.gy=gy; this.gh=gh;
+
+    this.keeper = Base.man(sc, gx+gw*0.5, gy+gh-10, 0x4A3AA7, 9);
+
+    /* the wall — the whole point of a free kick */
+    this.wall = [];
+    var wx = W*0.5 + (Math.random()-0.5)*40;
+    for(var k=0;k<4;k++){
+      this.wall.push(Base.man(sc, wx - 27 + k*18, H*0.66, c.oppColour, 9));
+    }
+    this.wallX = wx;
+
+    this.ball = Base.ball(sc, W/2, H-16, 6);
+    this.aim = sc.add.graphics();
+    this.phase = "aim";
+    this.sw = Base.sweeper(sc, 0.02, 0.98, 0.00065*c.aimSpeed);
+    this.cw = Base.sweeper(sc, -1, 1, 0.0016);
+    this.pw = Base.sweeper(sc, 0, 1, 0.0018);
+    sc.input.on("pointerdown", function(){ sc.tap(); });
+    MINI.tapFn = function(){ sc.tap(); };
+  };
+  FreeKickScene.prototype.update = function(t, dt){
+    this.aim.clear();
+    if(this.phase === "fly") return;
+    if(this.phase === "aim"){ this.aimV = this.sw.step(dt); }
+    if(this.phase === "curve"){ this.curveV = this.cw.step(dt); MINI.power((this.cw.v+1)/2, 0.5, 0.9); }
+    if(this.phase === "power"){ this.powV = this.pw.step(dt); MINI.power(this.pw.v, this.cfg.sweetC, this.cfg.sweetW); }
+    var ax = this.gx + this.gw*(this.aimV || 0.5);
+    this.aim.lineStyle(2, this.phase === "aim" ? 0xffffff : 0xE8C766, 0.95);
+    this.aim.lineBetween(ax, this.gy-12, ax, this.gy+this.gh+6);
+    this.aim.strokeCircle(ax, this.gy-14, 6);
+    if(this.phase !== "aim"){
+      /* the flight preview bends with the curve you set */
+      var c1x = this.ball.x + (this.curveV||0)*80;
+      this.aim.lineStyle(2, 0xE8C766, 0.5);
+      var pts = [];
+      for(var i=0;i<=12;i++){
+        var s = i/12;
+        var px = (1-s)*(1-s)*this.ball.x + 2*(1-s)*s*c1x + s*s*ax;
+        var py = (1-s)*(1-s)*this.ball.y + 2*(1-s)*s*(H*0.42) + s*s*(this.gy+this.gh*0.5);
+        pts.push(px, py);
+      }
+      for(var j=0;j<pts.length-2;j+=2) this.aim.lineBetween(pts[j], pts[j+1], pts[j+2], pts[j+3]);
+    }
+  };
+  FreeKickScene.prototype.tap = function(){
+    var sc = this, c = this.cfg;
+    if(this.phase === "aim"){ this.phase = "curve"; MINI.stage("סיבוב — כמה להעקים", "קבע"); return; }
+    if(this.phase === "curve"){ this.phase = "power"; MINI.stage("עוצמה", "בעט"); return; }
+    if(this.phase !== "power") return;
+    this.phase = "fly";
+    MINI.stage("", "");
+
+    var aim = Phaser.Math.Clamp(this.aimV + (Math.random()-0.5)*c.err, -0.05, 1.05);
+    var curve = this.curveV || 0, power = this.powV;
+    var ax = this.gx + this.gw*aim;
+    var c1x = this.ball.x + curve*80;
+
+    /* clearing the wall needs either bend around it or height from power */
+    var midX = (this.ball.x + c1x*2 + ax)/4;
+    var hitsWall = Math.abs(midX - this.wallX) < 30 && power < 0.62;
+    var off = Math.abs(power - c.sweetC);
+    var powerOk = off <= c.sweetW/2, powerBad = off > c.sweetW;
+    var keepX = (this.keeper.x - this.gx)/this.gw;
+    var reach = 0.13 + c.gk*0.0016 + (powerOk?0:0.05) - (Math.abs(curve)>0.45 ? 0.05 : 0);
+    var beaten = Math.abs(aim - keepX) > reach;
+
+    var res = hitsWall ? "wall"
+            : (powerBad && power > c.sweetC) ? "over"
+            : (aim < 0.03 || aim > 0.97) ? "wide"
+            : !beaten ? "save" : "goal";
+
+    var ty = this.gy + this.gh*0.45;
+    if(res === "over") ty = this.gy - 34;
+    if(res === "wall"){ ax = this.wallX; ty = H*0.66; }
+
+    var tr = Base.trail(sc, this.ball, 0xE8C766);
+    var b = this.ball, steps = {t:0};
+    var sx = b.x, sy = b.y;
+    sc.tweens.add({targets:steps, t:1, duration:640, ease:"Sine.easeOut",
+      onUpdate:function(){
+        var s = steps.t;
+        b.x = (1-s)*(1-s)*sx + 2*(1-s)*s*c1x + s*s*ax;
+        b.y = (1-s)*(1-s)*sy + 2*(1-s)*s*(H*0.40) + s*s*ty;
+      },
+      onComplete:function(){
+        tr.remove();
+        if(res === "goal"){
+          Base.puff(sc, ax, ty, 0x1baf7a, 22);
+          sc.cameras.main.shake(180, 0.014);
+        } else Base.puff(sc, b.x, b.y, res==="wall" ? 0xeb6834 : 0x4A3AA7, 12);
+      }});
+    if(res !== "wall"){
+      sc.tweens.add({targets:this.keeper, x:this.gx+this.gw*Phaser.Math.Clamp(aim,0.1,0.9),
+        angle: aim < keepX ? -55 : 55, duration:340, delay:180, ease:"Back.easeOut"});
+    }
+
+    MINI.msg({goal:"⚽ ישירות מהבעיטה!", save:"🧤 השוער הגיע", wall:"🧱 בחומה",
+      over:"⤴ מעל", wide:"↗ החוצה"}[res], res === "goal");
+    var grade = res === "goal" ? "great" : res === "save" ? "good" : res === "wall" ? "poor" : "fail";
+    Base.finish(sc, {grade:grade, forced:{shot:res === "goal" ? "goal" : (res === "save" ? "save" : "wide"),
+      goal:res === "goal", onTarget:(res === "goal" || res === "save")}});
+  };
+
+  /* ── the host: one context, four scenes ────────────────────────── */
+  function boot(el){
+    if(game) return game;
+    game = new Phaser.Game({
+      type: Phaser.AUTO, parent: el, width: W, height: H,
+      transparent: false, banner: false, audio: {noAudio: true},
+      scale: {mode: Phaser.Scale.NONE, autoCenter: Phaser.Scale.NO_CENTER},
+      scene: [ShotScene, PassScene, DribbleScene, FreeKickScene],
+      render: {antialias:true, powerPreference:"low-power"},
+      physics: {default:"arcade"}
+    });
+    return game;
+  }
+
+  function play(key, cfg, done){
+    var el = document.getElementById("miniCanvas");
+    if(!el || !ok()) { done && done(null); return; }
+    cb = done; cur = key;
+    boot(el);
+    /* one WebGL context for the whole game: the canvas is moved into
+       whichever mini-game container is on screen, never re-created */
+    if(game && game.canvas && game.canvas.parentNode !== el) el.appendChild(game.canvas);
+    mount = el;
+    var go = function(){
+      if(game.canvas && game.canvas.parentNode !== el) el.appendChild(game.canvas);
+      ["shot","pass","dribble","freekick"].forEach(function(k){
+        if(game.scene.isActive(k) || game.scene.isPaused(k)) game.scene.stop(k);
+      });
+      game.scene.start(key, cfg);
+    };
+    if(game.isBooted) go(); else game.events.once("ready", go);
+  }
+
+  return {
+    ok: ok, play: play,
+    tapFn: null,
+    tap: function(dir){ if(MINI.tapFn) MINI.tapFn(dir); },
+    /* the DOM half of the mini-game speaks Hebrew; the canvas never does */
+    stage: function(txt, btn){
+      var s = document.getElementById("miniStage"), b = document.getElementById("miniFire");
+      if(s) s.textContent = txt || "";
+      if(b){ b.textContent = btn ? btn + " ▸" : ""; b.style.display = btn ? "" : "none"; }
+    },
+    power: function(v, c, w){
+      var f = document.getElementById("miniPow"), sw = document.getElementById("miniSweet");
+      if(f) f.style.width = (v*100) + "%";
+      if(sw && c !== undefined){ sw.style.display = ""; sw.style.left = ((c-w/2)*100) + "%"; sw.style.width = (w*100) + "%"; }
+    },
+    sides: function(on){
+      var el = document.getElementById("miniSides");
+      if(el) el.style.display = on ? "" : "none";
+    },
+    msg: function(txt, good){
+      var m = document.getElementById("miniMsg");
+      if(!m) return;
+      m.textContent = txt || "";
+      m.className = "minimsg on " + (good ? "good" : "bad");
+    },
+    destroy: function(){
+      cb = null; MINI.tapFn = null;
+      if(game){ try { game.destroy(true); } catch(e){} game = null; }
+    }
+  };
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════
+   WHICH MINI-GAME A CHOICE OPENS
+   New Star Soccer never resolved anything with a dice roll: shooting,
+   passing, dribbling and set pieces were all played. So are they here.
+   Anything with no natural mini-game — a leadership call, a tactical
+   decision, an off-ball run — still uses the execution meter, which is
+   also the fallback if the engine did not load.
+   ════════════════════════════════════════════════════════════════ */
+function miniFor(choice, kind){
+  if(!MINI.ok() || !choice) return null;
+  var out = choice.out || "none";
+  if(S.pos === "GK") return null;
+  if(out === "goal")   return (kind === "setpiece") ? "freekick" : "shot";
+  if(out === "assist" || out === "chance") return "pass";
+  if((kind === "carry" || kind === "receive") && (out === "keep" || out === "chance" || out === "win"))
+    return "dribble";
+  return null;
+}
+
+function miniHtml(type){
+  var TITLE = {shot:"כוון — לחץ כדי לנעול", pass:"בחר כיוון", dribble:"קרא לאן הוא הולך",
+               freekick:"כוון לשער"};
+  var BTN   = {shot:"כוון", pass:"כוון", dribble:"", freekick:"כוון"};
+  return '<div class="mini" id="miniBox">'
+    + '<div class="minicanvas" id="miniCanvas"><div class="minimsg" id="miniMsg"></div></div>'
+    + '<span class="ministage" id="miniStage">' + (TITLE[type]||"") + '</span>'
+    + '<div class="minibar' + (type === "dribble" ? " hide" : "") + '">'
+      + '<div class="pow"><i id="miniPow"></i><span class="sweet" id="miniSweet" style="display:none"></span></div>'
+    + '</div>'
+    + '<div class="minisides" id="miniSides" style="display:none">'
+      + '<button class="btn big" data-side="-1">◀ שמאלה</button>'
+      + '<button class="btn big" data-side="1">ימינה ▶</button>'
+    + '</div>'
+    + '<button class="btn pri big" id="miniFire"' + (BTN[type] ? "" : ' style="display:none"') + '>'
+      + (BTN[type] ? BTN[type] + " ▸" : "") + '</button>'
+  + '</div>';
+}
+
+/* the numbers each scene needs, all of them read off the player */
+function miniCfg(type, choice){
+  var me = club(S.club), opp = M ? M.opp : {rep:55, c:"#888"};
+  var at = S.a[choice.at] || 45;
+  var gk = clamp(38 + opp.rep*0.55, 35, 92);
+  var comp = S.a.cmp || 45;
+  var form = 1 + Math.max(0, S.load-45)*0.006 + Math.max(0, 70-S.fit)*0.005 - S.sharp*0.0015;
+
+  var aimSpeed = clamp(form * (1.5 - comp*0.0062 - (S.perkPsych?0.10:0)
+    + (choice.risk < 0 ? 0.16 : 0)), 0.45, 2.4);
+
+  var cfg = {
+    myColour: parseInt(me.c.replace("#",""), 16),
+    oppColour: parseInt((opp.c || "#8a8a8a").replace("#",""), 16),
+    gk: gk, aimSpeed: aimSpeed,
+    sweetC: clamp(0.5 + (Math.random()-0.5)*0.24, 0.24, 0.76),
+    sweetW: clamp(0.16 + at*0.0030 + (hasTrait("finisher")?0.05:0)
+                  + (S.perkBoots?0.04:0) - Math.max(0, S.load-55)*0.0010, 0.12, 0.48)
+  };
+
+  if(type === "shot" || type === "freekick"){
+    var fin = S.a[choice.at] || S.a.fin || 45, acc = S.a.acc || 45;
+    cfg.err = clamp((29 - fin*0.20 - acc*0.06)/100, 0.035, 0.22);
+    cfg.readChance = clamp(0.08 + gk*0.0050 - comp*0.0016, 0.05, 0.55);
+  }
+  if(type === "pass"){
+    var vis = S.a.vis || 45, spa = S.a.spa || 45;
+    cfg.err = clamp((26 - vis*0.16 - spa*0.10)/100, 0.02, 0.20);
+    cfg.tolerance = clamp(22 + vis*0.34 + spa*0.20, 24, 74);
+    cfg.cutRadius = clamp(38 - (S.a.cmp||45)*0.12 + opp.rep*0.16, 22, 52);
+    cfg.mates = 2; cfg.foes = M && M.opp.rep > 62 ? 3 : 2;
+  }
+  if(type === "dribble"){
+    var drb = S.a.drb || 45, agi = S.a.agi || 45;
+    cfg.window = clamp(240 + drb*4.2 + agi*2.6 - opp.rep*3.4, 150, 620);
+    cfg.closeMs = clamp(2600 - opp.rep*8, 1500, 2800);
+  }
+  return cfg;
+}
+
+function startMini(type, choice){
+  var card = document.querySelector("#momentLayer .mcard");
+  if(card) card.classList.add("playing");
+  var box = document.getElementById("moExec");
+  box.innerHTML = miniHtml(type);
+  box.style.display = "block";
+  MO.shooting = true;
+  var picked = document.getElementById("moPicked");
+  if(picked) picked.textContent = choice.b;
+
+  var cfg = miniCfg(type, choice);
+  var fire = document.getElementById("miniFire");
+  if(fire) fire.onclick = function(e){ e.stopPropagation(); MINI.tap(); };
+  Array.prototype.forEach.call(box.querySelectorAll("[data-side]"), function(b){
+    b.onclick = function(e){ e.stopPropagation(); MINI.tap(+b.getAttribute("data-side")); };
+  });
+  var info = document.getElementById("moInfo");
+  if(info) info.innerHTML = "";
+
+  MINI.play(type, cfg, function(res){
+    if(!res){ /* engine unavailable — fall back to the meter */ MO.shooting = false; return startMeterFor(choice); }
+    if(res.forced && res.forced.goal) { confetti(60, ["#1baf7a","#E8C766","#FFFFFF"]); shake(); }
+    resolveMoment(choice, res.grade, false, MO && MO.sit ? MO.sit.k : "", res.forced);
+  });
+}
 
 /* ══════════════════════════════════════════════════════════════════
    THE SHOT — New Star Soccer's contribution to this game
@@ -6723,7 +7464,14 @@ function momentStats(kind, out, grade, made, shot){
     else { stat("shotOffTarget"); if(bad && rnd() < 0.5) stat("bigChanceMissed"); }
   }
   else if(out === "assist"){
-    if(made){ stat("keyPass"); stat("bigChanceCreated"); }
+    if(shot && shot.pass){
+      stat("passes");
+      if(shot.pass === "cut"){ stat("passFailed"); stat("possessionLost"); }
+      else if(made){ stat("keyPass"); stat("bigChanceCreated"); }
+      else if(shot.onTarget){ stat("keyPass"); }
+      else stat("passCompleted");
+    }
+    else if(made){ stat("keyPass"); stat("bigChanceCreated"); }
     else if(ok){
       if(rnd() < 0.5){ stat("keyPass"); if(rnd() < 0.30) stat("bigChanceCreated"); }
       else { stat("passes"); stat("passCompleted"); }
@@ -6765,7 +7513,11 @@ function momentStats(kind, out, grade, made, shot){
     else if(bad) stat("possessionLost");
   }
 
-  if(kind === "carry" && out !== "keep"){ if(ok) stat("dribbleWon"); else { stat("dribbleLost"); stat("possessionLost"); } }
+  if(shot && shot.dribble){
+    if(shot.made) stat("dribbleWon");
+    else { stat("dribbleLost"); stat("possessionLost"); }
+  }
+  else if(kind === "carry" && out !== "keep"){ if(ok) stat("dribbleWon"); else { stat("dribbleLost"); stat("possessionLost"); } }
   if(kind === "setpiece" && ok && out !== "goal" && rnd() < 0.35) stat("fouled");
 }
 
@@ -6787,8 +7539,9 @@ function resolveMoment(choice, grade, silent, kind, forced){
      A centre-back who wins a header at a corner can score; a striker who
      slides a through ball gets the assist. */
   var landed = (grade === "great") || (grade === "good" && rnd() < 0.38);
-  /* a shot you aimed yourself is not re-rolled behind your back */
-  if(forced && forced.shot) landed = true;
+  /* anything you played yourself is not re-rolled behind your back */
+  if(forced && (forced.shot || forced.pass || forced.dribble)) landed = !!(
+    forced.goal || forced.made || forced.onTarget);
   var outcome = "";
 
   var made = false;
@@ -6801,7 +7554,7 @@ function resolveMoment(choice, grade, silent, kind, forced){
     outcome = " שער!";
     if(!silent){ addEv(M.min, "⚽ שער שלך! "+M.home.ab+" "+M.hg+"–"+M.ag+" "+M.away.ab, "goal"); goalFlash(true); }
   }
-  else if(landed && out === "assist" && rnd() < 0.34){
+  else if(landed && out === "assist" && (forced && forced.pass ? forced.made : rnd() < 0.34)){
     made = true;
     if(M.me===M.home) M.hg++; else M.ag++;
     S.assists++; S.careerAssists++; M.aAdded++; M.score += 0.9; stat("assists");
@@ -7112,6 +7865,7 @@ function statLineHtml(st, pos){
 function closeMoment(){
   if(SHOT && SHOT.raf) cancelAnimationFrame(SHOT.raf);
   SHOT = null;
+  MINI.tapFn = null;
   var el = document.getElementById("momentLayer");
   if(el) el.remove();
   MO = null;
