@@ -9249,305 +9249,446 @@ var MINI = (function(){
     }
   };
 
-  /* ══ 1. SHOT ═════════════════════════════════════════════════ */
-  function ShotScene(){ Phaser.Scene.call(this, {key:"shot"}); }
-  ShotScene.prototype = Object.create(Phaser.Scene.prototype);
-  ShotScene.prototype.init = function(d){ this.cfg = d || {}; this.locked = false; this.done = false; };
-  ShotScene.prototype.create = function(){
-    var sc = this, c = this.cfg;
-    sc.cameras.main.setBackgroundColor(0x2C3E50);
-    var cr = sc.add.graphics();
-    for(var i=0;i<170;i++){
-      cr.fillStyle([0xF7F5F1,0xE8C766,0x8FA3B8,0xEB6834][i%4], 0.5);
-      cr.fillCircle(Math.random()*W, Math.random()*58, 1.7);
-    }
-    Base.grass(sc, 62);
+  /* ══════════════════════════════════════════════════════════════════
+     THE PITCH — one scene for every action, played the way New Star
+     Soccer plays it.
 
-    var gx = W*0.13, gw = W*0.74, gy = 52, gh = 96;
-    this.gx=gx; this.gw=gw; this.gy=gy; this.gh=gh;
-    var net = sc.add.graphics();
-    net.fillStyle(0xffffff, 0.08).fillRect(gx, gy, gw, gh);
-    net.lineStyle(1, 0xffffff, 0.3);
-    for(var x=gx;x<=gx+gw;x+=11) net.lineBetween(x, gy, x, gy+gh);
-    for(var y=gy;y<=gy+gh;y+=11) net.lineBetween(gx, y, gx+gw, y);
-    var fr = sc.add.graphics();
-    fr.fillStyle(0xF7F5F1,1);
-    fr.fillRoundedRect(gx-5, gy-5, 5, gh+5, 2);
-    fr.fillRoundedRect(gx+gw, gy-5, 5, gh+5, 2);
-    fr.fillRoundedRect(gx-5, gy-5, gw+10, 5, 2);
+     Watching the game itself settled several things I had guessed wrong.
+     It is not a side-on view of a goalmouth: it is the pitch from above,
+     attacking up the screen, with both teams on it, everyone casting a
+     shadow, the man in possession ringed, and a teammate who wants the
+     ball showing a call bubble over his head. The score sits in two
+     stacked chips in the corner with a wind gauge beside it, and the
+     wind is real — it bends the flight.
 
-    this.keeper = Base.man(sc, gx+gw/2, gy+gh-12, 0x4A3AA7, 10);
-    this.keepX = 0.5; this.keepDir = Math.random()<0.5?-1:1;
-    this.keepSpeed = 0.00020 + c.gk*0.0000072;
-
-    this.ball = Base.ball(sc, W/2, H-26, 11);
-    Aim.attach(sc, this.ball, c, function(a){ sc.strike(a); });
-  };
-  ShotScene.prototype.update = function(t, dt){
-    if(this.locked) return;
-    this.keepX += this.keepDir*this.keepSpeed*dt;
-    if(this.keepX > 0.78){ this.keepX = 0.78; this.keepDir = -1; }
-    if(this.keepX < 0.22){ this.keepX = 0.22; this.keepDir = 1; }
-    this.keeper.x = this.gx + this.gw*this.keepX;
-  };
-  ShotScene.prototype.strike = function(a){
-    var sc = this, c = this.cfg;
-    /* the ball does not go exactly where you meant — skill shrinks that */
-    var sx = (Math.random()-0.5)*c.err*W, sy = (Math.random()-0.5)*c.err*H*0.5;
-    var tx = a.tx + sx, ty = a.ty + sy;
-    var pts = sc.aimPath(tx, ty, a.curve, 26);
-
-    /* where the flight crosses the goal line is what counts */
-    var cross = null;
-    for(var i=1;i<pts.length;i++){
-      if(pts[i-1].y > this.gy+this.gh*0.55 && pts[i].y <= this.gy+this.gh*0.55){ cross = pts[i]; break; }
-    }
-    if(!cross) cross = pts[pts.length-1];
-    var relX = (cross.x - this.gx)/this.gw;
-    var relY = (cross.y - this.gy)/this.gh;
-
-    var read = Math.random() < c.readChance;
-    if(read) this.keepX = Phaser.Math.Clamp(this.keepX + (relX - this.keepX)*(0.5+Math.random()*0.4), 0.1, 0.9);
-
-    var reach = 0.10 + c.gk*0.0016 - a.power*0.05 - (Math.abs(a.curve) > 0.4 ? 0.03 : 0);
-    var beaten = Math.abs(relX - this.keepX) > reach;
-    var inFrame = relX > 0.01 && relX < 0.99 && ty < this.gy + this.gh && ty > this.gy - 6;
-
-    var res = ty < this.gy - 6 ? "over"
-            : (relX <= 0.01 || relX >= 0.99) ? "wide"
-            : a.power < 0.22 ? "weak"
-            : !beaten ? "save" : "goal";
-
-    Base.fly(sc, this.ball, pts, 340 + (1-a.power)*260, function(){
-      if(res === "goal"){
-        Base.puff(sc, sc.ball.x, sc.ball.y, 0x1baf7a, 22);
-        sc.cameras.main.shake(170, 0.013);
-        var fl = sc.add.rectangle(W/2, H/2, W, H, 0x1baf7a, 0.2);
-        sc.tweens.add({targets:fl, alpha:0, duration:420, onComplete:function(){ fl.destroy(); }});
-      } else Base.puff(sc, sc.ball.x, sc.ball.y, res==="save"?0x4A3AA7:0xeb6834, 12);
-    });
-    sc.tweens.add({targets:this.keeper, x:this.gx+this.gw*Phaser.Math.Clamp(relX,0.08,0.92),
-      angle: relX < this.keepX ? -60 : 60, duration:300, delay:90, ease:"Back.easeOut"});
-
-    MINI.msg({goal:"⚽ גול!", save:(read?"🧤 הוא קרא אותך":"🧤 השוער הדף"),
-      wide:"↗ החוצה", over:"⤴ מעל המסגרת", weak:"😐 חלש מדי"}[res], res==="goal");
-    var grade = res==="goal" ? (a.power>0.5?"great":"good")
-              : res==="save" ? "good" : res==="weak" ? "poor" : "fail";
-    Base.finish(sc, {grade:grade, forced:{shot:res, goal:res==="goal",
-      onTarget:(res==="goal"||res==="save")}});
-  };
-
-  /* ══ 2. PASS ═════════════════════════════════════════════════ */
-  function PassScene(){ Phaser.Scene.call(this, {key:"pass"}); }
-  PassScene.prototype = Object.create(Phaser.Scene.prototype);
-  PassScene.prototype.init = function(d){ this.cfg = d || {}; this.locked = false; this.done = false; };
-  PassScene.prototype.create = function(){
-    var sc = this, c = this.cfg;
-    sc.cameras.main.setBackgroundColor(0x1F6F43);
-    Base.grass(sc, 0);
-    var ln = sc.add.graphics();
-    ln.lineStyle(2, 0xffffff, 0.26);
-    ln.strokeRect(8, 8, W-16, H-16);
-    ln.strokeRect(W*0.3, 8, W*0.4, 36);
-
-    this.me = Base.man(sc, W/2, H-30, c.myColour, 10);
-    this.ball = Base.ball(sc, W/2, H-42, 10);
-
-    this.mates = [];
-    for(var i=0;i<(c.mates||2);i++){
-      var m = Base.man(sc, W*(0.24+0.52*(i/Math.max(1,(c.mates||2)-1))), 44+Math.random()*44, c.myColour, 9);
-      m.vx = (Math.random()-0.5)*0.040;
-      this.mates.push(m);
-    }
-    this.foes = [];
-    for(var k=0;k<(c.foes||2);k++){
-      var f = Base.man(sc, W*(0.26+0.48*Math.random()), H*0.44+(Math.random()-0.5)*44, c.oppColour, 10);
-      f.vx = (Math.random()<0.5?-1:1)*(0.022+Math.random()*0.030);
-      this.foes.push(f);
-    }
-    Aim.attach(sc, this.ball, c, function(a){ sc.strike(a); });
-  };
-  PassScene.prototype.update = function(t, dt){
-    if(this.locked) return;
-    this.mates.forEach(function(m){ m.x += m.vx*dt; if(m.x<30||m.x>W-30) m.vx*=-1; });
-    this.foes.forEach(function(f){ f.x += f.vx*dt; if(f.x<24||f.x>W-24) f.vx*=-1; });
-  };
-  PassScene.prototype.strike = function(a){
-    var sc = this, c = this.cfg;
-    var tx = a.tx + (Math.random()-0.5)*c.err*W, ty = a.ty + (Math.random()-0.5)*c.err*H;
-    var pts = sc.aimPath(tx, ty, a.curve, 26);
-
-    var best = null, bestD = 1e9;
-    this.mates.forEach(function(m){
-      var d = Phaser.Math.Distance.Between(tx, ty, m.x, m.y);
-      if(d < bestD){ bestD = d; best = m; }
-    });
-    var cut = null;
-    this.foes.forEach(function(f){
-      for(var i=2;i<pts.length-2;i++){
-        if(Phaser.Math.Distance.Between(f.x, f.y, pts[i].x, pts[i].y) < c.cutRadius){ cut = f; return; }
+     And the strike is two moves, not one. First you drag from the ball
+     and a thick orange arrow grows out of it: direction and length are
+     aim and power. Release, and the game cuts to a close-up of the ball
+     against the crowd, where you tap the point you want to hit. A
+     starburst marks the contact. Low is lift, wide is curl. Then it cuts
+     back and the ball flies.
+     ════════════════════════════════════════════════════════════════ */
+  var PITCH = {
+    /* the attacking third, seen from above, goal at the top */
+    grass: function(sc){
+      var g = sc.add.graphics();
+      for(var i=0;i<10;i++){
+        g.fillStyle(i%2 ? 0x2E8B57 : 0x25794A, 1);
+        g.fillRect(0, i*(H/10), W, H/10);
       }
-    });
-    /* a firm pass is harder to read, a floated one is not */
-    if(cut && a.power > 0.72 && Math.random() < 0.45) cut = null;
-
-    var res = cut ? "cut" : (bestD < c.tolerance*0.55 ? "perfect"
-            : bestD < c.tolerance ? "good" : "loose");
-
-    Base.fly(sc, this.ball, pts, 300 + (1-a.power)*300, function(){
-      if(res==="cut") Base.puff(sc, cut.x, cut.y, 0xeb6834, 14);
-      else if(res!=="loose"){
-        Base.puff(sc, best.x, best.y, 0x1baf7a, 14);
-        sc.tweens.add({targets:best, scale:1.22, yoyo:true, duration:180});
+      return g;
+    },
+    lines: function(sc, night){
+      var g = sc.add.graphics();
+      var a = night ? 0.55 : 0.72;
+      g.lineStyle(2, 0xFFFFFF, a);
+      var gx = W/2, gy = 26;
+      g.lineBetween(0, gy, W, gy);                                  /* goal line */
+      g.strokeRect(gx-96, gy, 192, 74);                             /* penalty box */
+      g.strokeRect(gx-42, gy, 84, 30);                              /* six yard */
+      g.beginPath(); g.arc(gx, gy+74, 40, 0.18*Math.PI, 0.82*Math.PI); g.strokePath();
+      g.fillStyle(0xFFFFFF, a); g.fillCircle(gx, gy+56, 2.4);       /* penalty spot */
+      g.beginPath(); g.arc(gx, H+30, 62, Math.PI, 2*Math.PI); g.strokePath();
+      return g;
+    },
+    goal: function(sc){
+      var gx = W/2, gy = 26, hw = 56;
+      var g = sc.add.graphics();
+      g.fillStyle(0x000000, 0.16); g.fillRect(gx-hw, gy-22, hw*2, 22);
+      g.lineStyle(1, 0xFFFFFF, 0.55);
+      for(var x=-hw; x<=hw; x+=7) g.lineBetween(gx+x, gy-22, gx+x, gy);   /* net */
+      for(var y=0; y<=22; y+=5.5) g.lineBetween(gx-hw, gy-22+y, gx+hw, gy-22+y);
+      g.lineStyle(3.5, 0xFFFFFF, 0.96);
+      g.lineBetween(gx-hw, gy, gx-hw, gy-22);
+      g.lineBetween(gx+hw, gy, gx+hw, gy-22);
+      g.lineBetween(gx-hw, gy-22, gx+hw, gy-22);
+      return {x:gx, y:gy, hw:hw};
+    },
+    /* a player: shirt, shorts, head, and a shadow offset down and right */
+    man: function(sc, x, y, shirt, shorts){
+      var c = sc.add.container(x, y);
+      var sh = sc.add.ellipse(4, 7, 17, 7, 0x000000, 0.26);
+      var legL = sc.add.rectangle(-3, 6, 3.4, 7, shorts || 0x1B1B1B);
+      var legR = sc.add.rectangle(3, 6, 3.4, 7, shorts || 0x1B1B1B);
+      var body = sc.add.rectangle(0, 0, 11, 12, shirt);
+      var arms = sc.add.rectangle(0, -1, 15, 4, shirt);
+      var head = sc.add.circle(0, -9, 3.6, 0xE8B784);
+      c.add([sh, legL, legR, arms, body, head]);
+      return c;
+    },
+    keeper: function(sc, x, y, clash){
+      /* keepers wear yellow in New Star Soccer, but not when the outfield
+         kit in front of them is also yellow */
+      var c = PITCH.man(sc, x, y, clash ? 0x18A85C : 0xF2C500, 0x1B1B1B);
+      c.setScale(1.06);
+      return c;
+    },
+    /* the ring under whoever has the ball */
+    ring: function(sc, x, y){
+      var g = sc.add.graphics();
+      g.lineStyle(2, 0xFFFFFF, 0.85); g.strokeEllipse(0, 0, 30, 14);
+      g.fillStyle(0xFFFFFF, 0.12); g.fillEllipse(0, 0, 30, 14);
+      var c = sc.add.container(x, y+7, [g]);
+      sc.tweens.add({targets:g, alpha:{from:0.55, to:1}, duration:620, yoyo:true, repeat:-1});
+      return c;
+    },
+    /* a teammate asking for it */
+    call: function(sc, x, y){
+      var c = sc.add.container(x, y-19);
+      var b = sc.add.circle(0, 0, 6.5, 0xFFFFFF, 0.95);
+      var t = sc.add.text(0, 0, "!", {fontFamily:"sans-serif", fontSize:"9px",
+        color:"#17150F", fontStyle:"bold"}).setOrigin(0.5);
+      c.add([b, t]);
+      sc.tweens.add({targets:c, y:y-24, duration:520, yoyo:true, repeat:-1, ease:"Sine.easeInOut"});
+      return c;
+    },
+    ball: function(sc, x, y){
+      var c = sc.add.container(x, y);
+      var sh = sc.add.ellipse(2, 6, 11, 5, 0x000000, 0.3);
+      var b  = sc.add.circle(0, 0, 5.4, 0xFFFFFF);
+      b.setStrokeStyle(1.6, 0x17150F, 0.85);
+      c.add([sh, b]);
+      c.shadow = sh; c.orb = b;
+      return c;
+    },
+    /* the corner furniture: two score chips and the wind gauge */
+    hud: function(sc, home, away, hg, ag, wind){
+      var g = sc.add.graphics();
+      function chip(y, col, txt, score){
+        g.fillStyle(0x0E1B2E, 0.92); g.fillRoundedRect(6, y, 96, 17, 3);
+        g.fillStyle(col, 1); g.fillRoundedRect(6, y, 96, 17, 3);
+        g.lineStyle(1, 0xFFFFFF, 0.35); g.strokeRoundedRect(6, y, 96, 17, 3);
+        sc.add.text(12, y+4, txt, {fontFamily:"sans-serif", fontSize:"10px",
+          color:"#FFFFFF", fontStyle:"bold"});
+        sc.add.text(92, y+4, String(score), {fontFamily:"sans-serif", fontSize:"10px",
+          color:"#FFFFFF", fontStyle:"bold"}).setOrigin(1, 0);
       }
+      chip(6,  0x1B4F9C, home, hg);
+      chip(25, 0x9C1B1B, away, ag);
+      /* the wind gauge, with an arrow that points where it blows */
+      g.fillStyle(0x3A4550, 0.92); g.fillRoundedRect(106, 6, 74, 36, 3);
+      g.lineStyle(1, 0xFFFFFF, 0.28); g.strokeRoundedRect(106, 6, 74, 36, 3);
+      sc.add.text(143, 30, wind.s.toFixed(1) + " WIND", {fontFamily:"sans-serif",
+        fontSize:"8.5px", color:"#FFFFFF", fontStyle:"bold"}).setOrigin(0.5, 0);
+      var ar = sc.add.graphics();
+      ar.lineStyle(2.4, 0xFFFFFF, 0.92);
+      ar.lineBetween(0, 7, 0, -7);
+      ar.lineBetween(0, -7, -4, -2); ar.lineBetween(0, -7, 4, -2);
+      var arc = sc.add.container(160, 20, [ar]);
+      arc.rotation = wind.a;
+      return g;
+    }
+  };
+
+  /* ══ THE ACTION ══════════════════════════════════════════════════
+     Stage 1 aim on the pitch, stage 2 strike on the ball, stage 3 fly. */
+  function ActScene(){ Phaser.Scene.call(this, {key:"act"}); }
+  ActScene.prototype = Object.create(Phaser.Scene.prototype);
+  ActScene.prototype.init = function(d){
+    this.cfg = d || {}; this.locked = false; this.done = false; this.stage = "aim";
+  };
+  ActScene.prototype.create = function(){
+    var sc = this, c = sc.cfg;
+    var night = !!c.night;
+    sc.cameras.main.setBackgroundColor(night ? 0x1A5A38 : 0x2E8B57);
+
+    sc.world = sc.add.container(0, 0);
+    var bg = [PITCH.grass(sc), PITCH.lines(sc, night)];
+    sc.goalPos = PITCH.goal(sc);
+
+    /* the wind is the same wind the match is being played in */
+    sc.wind = c.wind || {s:0, a:0};
+
+    /* eleven shapes on a pitch: the keeper, a handful of each side, you */
+    var oppK = c.oppKit || 0xC0392B;
+    var clash = ((oppK >> 16) & 255) > 190 && ((oppK >> 8) & 255) > 160 && (oppK & 255) < 120;
+    sc.keeper = PITCH.keeper(sc, sc.goalPos.x + (c.keeperOff || 0), sc.goalPos.y + 8, clash);
+    sc.mates = []; sc.foes = [];
+    (c.mates || []).forEach(function(m){
+      var g = PITCH.man(sc, m.x, m.y, c.myKit || 0x1B4F9C, 0x0E2A55);
+      g.wants = !!m.call;
+      if(m.call) g.bubble = PITCH.call(sc, m.x, m.y);
+      sc.mates.push(g);
     });
-    MINI.msg({perfect:"🎯 בול לרגל!", good:"✔ הגיעה", loose:"↗ רחוק ממנו", cut:"⛔ נחתכה"}[res],
-      res==="perfect"||res==="good");
-    var grade = res==="perfect"?"great":res==="good"?"good":res==="loose"?"poor":"fail";
-    Base.finish(sc, {grade:grade, forced:{pass:res, made:(res==="perfect"),
-      onTarget:(res==="perfect"||res==="good")}});
-  };
-
-  /* ══ 3. DRIBBLE ══════════════════════════════════════════════ */
-  function DribbleScene(){ Phaser.Scene.call(this, {key:"dribble"}); }
-  DribbleScene.prototype = Object.create(Phaser.Scene.prototype);
-  DribbleScene.prototype.init = function(d){ this.cfg = d || {}; this.locked = false; this.done = false; };
-  DribbleScene.prototype.create = function(){
-    var sc = this, c = this.cfg;
-    sc.cameras.main.setBackgroundColor(0x1F6F43);
-    Base.grass(sc, 0);
-    var ln = sc.add.graphics();
-    ln.lineStyle(2, 0xffffff, 0.24); ln.strokeRect(8, 8, W-16, H-16);
-
-    this.me = Base.man(sc, W/2, H-38, c.myColour, 11);
-    this.ball = Base.ball(sc, W/2, H-52, 10);
-    this.foe = Base.man(sc, W/2+(Math.random()-0.5)*50, 44, c.oppColour, 11);
-    this.foe.vx = (Math.random()<0.5?-1:1)*0.045;
-    this.commit = null; this.t = 0;
-    this.hint = sc.add.graphics();
-    Aim.attach(sc, this.ball, c, function(a){ sc.strike(a); });
-  };
-  DribbleScene.prototype.update = function(t, dt){
-    if(this.locked || this.done) return;
-    this.t += dt;
-    var c = this.cfg;
-    var closing = Phaser.Math.Clamp(this.t/c.closeMs, 0, 1);
-    this.foe.y = 44 + closing*(H-120);
-    this.foe.x += this.foe.vx*dt;
-    if(this.foe.x<40||this.foe.x>W-40) this.foe.vx*=-1;
-
-    if(!this.commit && closing > 0.58){
-      this.commit = Math.random()<0.5 ? -1 : 1;
-      this.commitAt = this.t;
-      this.hint.clear();
-      this.hint.fillStyle(0xEB6834, 0.7);
-      this.hint.fillCircle(this.foe.x + this.commit*26, this.foe.y + 16, 15);
-      this.tweens.add({targets:this.foe, angle:this.commit*20, duration:130});
-      MINI.stage("הוא נשבר לצד — גרור לצד השני");
-    }
-    if(closing >= 1 && !this.done) this.strike(null);
-  };
-  DribbleScene.prototype.strike = function(a){
-    if(this.done) return;
-    this.done = true; this.locked = true;
-    var sc = this, c = this.cfg;
-    MINI.stage("");
-    var dir = a ? (a.tx < this.ball.x ? -1 : 1) : 0;
-    var res = !a ? "late"
-            : !this.commit ? "early"
-            : (this.t - this.commitAt > c.window) ? "late"
-            : (dir !== this.commit) ? "beat" : "blocked";
-
-    var tx = a ? Phaser.Math.Clamp(a.tx, 24, W-24) : this.ball.x;
-    var ty = a ? Phaser.Math.Clamp(a.ty, 20, H-20) : this.ball.y;
-    var pts = a ? sc.aimPath(tx, ty, a.curve, 20) : null;
-    if(pts) Base.fly(sc, this.ball, pts, 300);
-    sc.tweens.add({targets:this.me, x:tx, y: res==="beat" ? ty+20 : this.me.y-6,
-      duration:360, ease:"Quad.easeOut"});
-    if(res === "beat"){ Base.puff(sc, this.foe.x, this.foe.y, 0x1baf7a, 14); sc.cameras.main.shake(90, 0.006); }
-    else Base.puff(sc, this.foe.x, this.foe.y, 0xeb6834, 12);
-
-    MINI.msg({beat:"⚡ עברת אותו!", blocked:"⛔ הוא היה שם", early:"⏱ מוקדם מדי", late:"🐌 איחרת"}[res],
-      res==="beat");
-    var grade = res==="beat"?"great":res==="blocked"?"poor":"fail";
-    Base.finish(sc, {grade:grade, forced:{dribble:res, made:(res==="beat")}});
-  };
-
-  /* ══ 4. FREE KICK ════════════════════════════════════════════ */
-  function FreeKickScene(){ Phaser.Scene.call(this, {key:"freekick"}); }
-  FreeKickScene.prototype = Object.create(Phaser.Scene.prototype);
-  FreeKickScene.prototype.init = function(d){ this.cfg = d || {}; this.locked = false; this.done = false; };
-  FreeKickScene.prototype.create = function(){
-    var sc = this, c = this.cfg;
-    sc.cameras.main.setBackgroundColor(0x2C3E50);
-    var cr = sc.add.graphics();
-    for(var i=0;i<130;i++){
-      cr.fillStyle([0xF7F5F1,0xE8C766,0x8FA3B8][i%3], 0.45);
-      cr.fillCircle(Math.random()*W, Math.random()*44, 1.6);
-    }
-    Base.grass(sc, 48);
-    var gx=W*0.19, gw=W*0.62, gy=44, gh=72;
-    this.gx=gx; this.gw=gw; this.gy=gy; this.gh=gh;
-    var net = sc.add.graphics();
-    net.fillStyle(0xffffff,0.08).fillRect(gx,gy,gw,gh);
-    net.lineStyle(1,0xffffff,0.28);
-    for(var x=gx;x<=gx+gw;x+=10) net.lineBetween(x,gy,x,gy+gh);
-    for(var y=gy;y<=gy+gh;y+=10) net.lineBetween(gx,y,gx+gw,y);
-    var fr = sc.add.graphics();
-    fr.fillStyle(0xF7F5F1,1);
-    fr.fillRoundedRect(gx-4,gy-4,4,gh+4,2);
-    fr.fillRoundedRect(gx+gw,gy-4,4,gh+4,2);
-    fr.fillRoundedRect(gx-4,gy-4,gw+8,4,2);
-
-    this.keeper = Base.man(sc, gx+gw*0.5, gy+gh-10, 0x4A3AA7, 9);
-    this.wallX = W*0.5 + (Math.random()-0.5)*44;
-    this.wallY = H*0.60;
-    this.wall = [];
-    for(var k=0;k<4;k++) this.wall.push(Base.man(sc, this.wallX-27+k*18, this.wallY, c.oppColour, 9));
-
-    this.ball = Base.ball(sc, W/2, H-22, 10);
-    Aim.attach(sc, this.ball, c, function(a){ sc.strike(a); });
-  };
-  FreeKickScene.prototype.strike = function(a){
-    var sc = this, c = this.cfg;
-    var tx = a.tx + (Math.random()-0.5)*c.err*W, ty = a.ty + (Math.random()-0.5)*c.err*H*0.5;
-    var pts = sc.aimPath(tx, ty, a.curve, 30);
-
-    /* did the flight actually go through the wall */
-    var hitWall = false;
-    for(var i=0;i<pts.length;i++){
-      if(Math.abs(pts[i].y - this.wallY) < 12 && Math.abs(pts[i].x - this.wallX) < 34
-         && a.power < 0.80){ hitWall = true; break; }
-    }
-    var cross = null;
-    for(var j=1;j<pts.length;j++){
-      if(pts[j-1].y > this.gy+this.gh*0.55 && pts[j].y <= this.gy+this.gh*0.55){ cross = pts[j]; break; }
-    }
-    if(!cross) cross = pts[pts.length-1];
-    var relX = (cross.x - this.gx)/this.gw;
-    var keepX = (this.keeper.x - this.gx)/this.gw;
-    var reach = 0.12 + c.gk*0.0015 - (Math.abs(a.curve)>0.45 ? 0.05 : 0) - a.power*0.04;
-    var beaten = Math.abs(relX - keepX) > reach;
-
-    var res = hitWall ? "wall"
-            : ty < this.gy - 6 ? "over"
-            : (relX <= 0.02 || relX >= 0.98) ? "wide"
-            : !beaten ? "save" : "goal";
-
-    Base.fly(sc, this.ball, pts, 420 + (1-a.power)*300, function(){
-      if(res==="goal"){ Base.puff(sc, sc.ball.x, sc.ball.y, 0x1baf7a, 22); sc.cameras.main.shake(180, 0.014); }
-      else Base.puff(sc, sc.ball.x, sc.ball.y, res==="wall"?0xeb6834:0x4A3AA7, 12);
+    (c.foes || []).forEach(function(m){
+      sc.foes.push(PITCH.man(sc, m.x, m.y, c.oppKit || 0xC0392B, 0x6E1D14));
     });
-    if(!hitWall){
-      sc.tweens.add({targets:this.keeper, x:this.gx+this.gw*Phaser.Math.Clamp(relX,0.1,0.9),
-        angle: relX<keepX?-55:55, duration:340, delay:200, ease:"Back.easeOut"});
+
+    sc.me = PITCH.man(sc, c.bx, c.by + 11, c.myKit || 0x1B4F9C, 0x0E2A55);
+    sc.meRing = PITCH.ring(sc, c.bx, c.by + 11);
+    sc.ball = PITCH.ball(sc, c.bx, c.by);
+
+    PITCH.hud(sc, c.home || "בית", c.away || "חוץ", c.hg || 0, c.ag || 0, sc.wind);
+
+    /* stage 1: drag out of the ball */
+    sc.aimG = sc.add.graphics();
+    sc.aim = {live:false, tx:c.bx, ty:c.by - 60, power:0};
+
+    function begin(p){
+      if(sc.locked || sc.stage !== "aim") return;
+      sc.aim.live = true; sc.aim.tx = p.x; sc.aim.ty = p.y; drawAim();
     }
-    MINI.msg({goal:"⚽ ישירות מהבעיטה!", save:"🧤 השוער הגיע", wall:"🧱 בחומה",
-      over:"⤴ מעל", wide:"↗ החוצה"}[res], res==="goal");
-    var grade = res==="goal"?"great":res==="save"?"good":res==="wall"?"poor":"fail";
-    Base.finish(sc, {grade:grade, forced:{shot:res==="goal"?"goal":(res==="save"?"save":"wide"),
-      goal:res==="goal", onTarget:(res==="goal"||res==="save")}});
+    function move(p){
+      if(!sc.aim.live) return;
+      sc.aim.tx = p.x; sc.aim.ty = p.y;
+      sc.aim.power = Phaser.Math.Clamp(
+        Phaser.Math.Distance.Between(sc.ball.x, sc.ball.y, p.x, p.y) / (c.maxDrag || 150), 0, 1);
+      drawAim();
+    }
+    function end(){
+      if(!sc.aim.live) return;
+      sc.aim.live = false;
+      if(sc.aim.power < 0.10){
+        sc.aimG.clear();
+        MINI.stage("גרור מהכדור לכיוון שאתה רוצה — ככל שרחוק יותר, חזק יותר");
+        return;
+      }
+      sc.locked = true;
+      openStrike();
+    }
+    /* the arrow: thick, orange, growing out of the ball */
+    function drawAim(){
+      var g = sc.aimG; g.clear();
+      var dx = sc.aim.tx - sc.ball.x, dy = sc.aim.ty - sc.ball.y;
+      var len = Math.sqrt(dx*dx + dy*dy) || 1;
+      var ux = dx/len, uy = dy/len;
+      var reach = Math.min(len, c.maxDrag || 150);
+      var ex = sc.ball.x + ux*reach, ey = sc.ball.y + uy*reach;
+      var col = sc.aim.power > 0.85 ? 0xFF3B1F : (sc.aim.power > 0.5 ? 0xEB6834 : 0xF0A03C);
+      g.lineStyle(4 + sc.aim.power*5, col, 0.94);
+      g.lineBetween(sc.ball.x, sc.ball.y, ex, ey);
+      var hx = ex + ux*2, hy = ey + uy*2, s = 8 + sc.aim.power*7;
+      g.fillStyle(col, 0.96);
+      g.fillTriangle(hx + ux*s, hy + uy*s,
+                     hx - uy*s*0.62 - ux*2, hy + ux*s*0.62 - uy*2,
+                     hx + uy*s*0.62 - ux*2, hy - ux*s*0.62 - uy*2);
+      MINI.stage("שחרר כדי לבחור את נקודת המגע · עוצמה " + Math.round(sc.aim.power*100) + "%");
+    }
+    sc.input.on("pointerdown", begin);
+    sc.input.on("pointermove", move);
+    sc.input.on("pointerup", end);
+    sc.input.on("pointerupoutside", end);
+
+    /* stage 2: the ball, filling the screen, against the crowd */
+    function openStrike(){
+      sc.stage = "strike";
+      sc.aimG.clear();
+      var lay = sc.add.container(0, 0).setDepth(50);
+      var g = sc.add.graphics();
+      /* sky, stand, crowd, hoarding, grass — the NSS strike backdrop */
+      g.fillStyle(night ? 0x0B1430 : 0x8FC7E8, 1); g.fillRect(0, 0, W, 64);
+      if(night){
+        for(var f=0; f<3; f++){
+          var fx2 = W*(0.2 + f*0.3);
+          g.fillStyle(0xFFF6D8, 0.95); g.fillCircle(fx2, 22, 6);
+          g.fillStyle(0xFFF6D8, 0.16);
+          g.fillTriangle(fx2, 22, fx2-40, 150, fx2+40, 150);
+        }
+      } else {
+        g.fillStyle(0xFFFFFF, 0.85);
+        g.fillCircle(70, 26, 11); g.fillCircle(84, 24, 14); g.fillCircle(98, 27, 10);
+        g.fillCircle(300, 20, 12); g.fillCircle(316, 18, 15);
+      }
+      g.fillStyle(0xD8D2C6, 1); g.fillRect(0, 58, W, 10);
+      /* the stand itself is solid — without it the pitch shows through the
+         gaps between the seats and the illusion dies */
+      g.fillStyle(night ? 0x2A2F3A : 0x5A6270, 1); g.fillRect(0, 68, W, 99);
+      var seed = 7, r = function(){ seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed/0x7fffffff; };
+      var cols = [0xE4002B,0xFFDD00,0x1B4F9C,0x0E8A45,0xF7F5F1,0xEB6834,0x7A4FB5,0x2A2620];
+      for(var row=0; row<9; row++){
+        var yy = 69 + row*11;
+        for(var col2=0; col2<Math.ceil(W/9); col2++){
+          g.fillStyle(cols[Math.floor(r()*cols.length)], night ? 0.82 : 1);
+          g.fillRect(col2*9 + 1, yy, 7, 9);
+        }
+        g.fillStyle(0x17150F, 0.30); g.fillRect(0, yy+9, W, 2);
+      }
+      g.fillStyle(0xF7F5F1, 1); g.fillRect(0, 167, W, 20);
+      lay.add(g);
+      lay.add(sc.add.text(W/2, 177, "NEW  ★  CAREER", {fontFamily:"sans-serif",
+        fontSize:"11px", color:"#C0392B", fontStyle:"bold"}).setOrigin(0.5));
+      var gg = sc.add.graphics();
+      for(var i2=0;i2<6;i2++){
+        gg.fillStyle(i2%2 ? 0x2E8B57 : 0x25794A, 1);
+        gg.fillRect(0, 187 + i2*((H-187)/6), W, (H-187)/6);
+      }
+      lay.add(gg);
+
+      /* the ball itself, big, with a shadow on the grass */
+      var BR = 42, BX = W/2, BY = 196;
+      var bs = sc.add.ellipse(BX + 3, BY + 34, 88, 18, 0x000000, 0.26);
+      var big = sc.add.circle(BX, BY, BR, 0xFFFFFF);
+      big.setStrokeStyle(2, 0x17150F, 0.30);
+      /* a football is pentagons, not dots */
+      var pan = sc.add.graphics();
+      pan.fillStyle(0x1B1B1B, 1);
+      function pent(cx, cy, r, rot){
+        var pts = [];
+        for(var k=0;k<5;k++){
+          var a2 = rot + k*(2*Math.PI/5);
+          pts.push(new Phaser.Geom.Point(cx + Math.cos(a2)*r, cy + Math.sin(a2)*r));
+        }
+        pan.fillPoints(pts, true);
+      }
+      pent(BX, BY, BR*0.30, -Math.PI/2);
+      for(var q=0;q<5;q++){
+        var ang = -Math.PI/2 + q*(2*Math.PI/5);
+        pent(BX + Math.cos(ang)*BR*0.66, BY + Math.sin(ang)*BR*0.66, BR*0.21, ang + Math.PI/5);
+      }
+      /* a little shading so it reads as a sphere */
+      var shade = sc.add.graphics();
+      shade.fillStyle(0x000000, 0.13);
+      shade.fillCircle(BX + 9, BY + 10, BR - 4);
+      shade.setMask(new Phaser.Display.Masks.GeometryMask(sc,
+        sc.make.graphics().fillCircle(BX, BY, BR).fillStyle(0xffffff)));
+      lay.add([bs, big, pan]);
+      sc.strikeBall = {x:BX, y:BY, r:BR};
+      var plate = sc.add.graphics();
+      plate.fillStyle(0x0B1018, 0.82); plate.fillRoundedRect(W/2-104, 84, 208, 26, 13);
+      var lbl = sc.add.text(W/2, 90, "היכן לפגוע בכדור?", {fontFamily:"sans-serif",
+        fontSize:"15px", color:"#FFFFFF", fontStyle:"bold"}).setOrigin(0.5, 0);
+      lay.add([plate, lbl]);
+      MINI.stage("נגיעה נמוכה מרימה · נגיעה בצד מסובבת");
+
+      var tapped = false;
+      sc.input.once("pointerdown", function(p){
+        if(tapped) return; tapped = true;
+        /* where on the ball, in -1..1 across and down */
+        var B = sc.strikeBall;
+        var sx = Phaser.Math.Clamp((p.x - B.x) / B.r, -1, 1);
+        var sy = Phaser.Math.Clamp((p.y - B.y) / B.r, -1, 1);
+        var burst = sc.add.graphics();
+        var bxp = B.x + sx*(B.r-6), byp = B.y + sy*(B.r-6);
+        for(var k=0;k<10;k++){
+          var an = k*Math.PI/5, rr = k%2 ? 6 : 15;
+          burst.fillStyle(k%2 ? 0xF2C500 : 0xEB6834, 1);
+          burst.fillTriangle(bxp, byp,
+            bxp + Math.cos(an)*rr, byp + Math.sin(an)*rr,
+            bxp + Math.cos(an+0.62)*rr, byp + Math.sin(an+0.62)*rr);
+        }
+        lay.add(burst);
+        sc.tweens.add({targets:burst, scale:{from:0.2, to:1.25}, duration:180, ease:"Back.easeOut"});
+        setTimeout(function(){
+          sc.tweens.add({targets:lay, alpha:0, duration:220,
+            onComplete:function(){ lay.destroy(); fly(sx, sy); }});
+        }, 420);
+      });
+    }
+
+    /* stage 3: the flight, bent by the strike point and by the wind */
+    function fly(sx, sy){
+      sc.stage = "fly";
+      MINI.stage("");
+      var dx = sc.aim.tx - sc.ball.x, dy = sc.aim.ty - sc.ball.y;
+      var len = Math.sqrt(dx*dx + dy*dy) || 1;
+      var reach = (c.travel || 210) * (0.55 + sc.aim.power*0.75);
+      var tx = sc.ball.x + (dx/len)*reach;
+      var ty = sc.ball.y + (dy/len)*reach;
+
+      /* side contact curls; the wind pushes the whole flight */
+      var curve = -sx * (c.curveGain || 42) * (0.6 + (c.skill || 0.5));
+      var wpx = Math.sin(sc.wind.a) * sc.wind.s * 3.2;
+      var wpy = -Math.cos(sc.wind.a) * sc.wind.s * 3.2;
+      tx += wpx; ty += wpy;
+      /* low contact lifts it: the ball rides higher and drops late */
+      var lift = Math.max(0, -sy);
+
+      var mx = (sc.ball.x + tx)/2, my = (sc.ball.y + ty)/2;
+      var nx = -(ty - sc.ball.y)/len, ny = (tx - sc.ball.x)/len;
+      var cxp = mx + nx*curve, cyp = my + ny*curve;
+      var pts = [];
+      for(var i=0;i<=40;i++){
+        var s2 = i/40;
+        pts.push({
+          x:(1-s2)*(1-s2)*sc.ball.x + 2*(1-s2)*s2*cxp + s2*s2*tx,
+          y:(1-s2)*(1-s2)*sc.ball.y + 2*(1-s2)*s2*cyp + s2*s2*ty,
+          h: Math.sin(s2*Math.PI) * lift * 16
+        });
+      }
+      sc.flightEnd = {x:tx, y:ty, lift:lift, curve:curve, sx:sx, sy:sy};
+
+      var t = {i:0};
+      sc.tweens.add({targets:t, i:pts.length-1, duration:620 + (1-sc.aim.power)*260,
+        ease:"Sine.easeOut",
+        onUpdate:function(){
+          var p = pts[Math.round(t.i)];
+          if(!p) return;
+          sc.ball.x = p.x; sc.ball.y = p.y - p.h;
+          sc.ball.orb.setScale(1 + p.h/70);
+          sc.ball.shadow.y = 6 + p.h;
+          sc.ball.shadow.setAlpha(0.3 - p.h/160);
+          var d = sc.add.circle(p.x, p.y - p.h, 2.6, 0xFFFFFF, 0.4);
+          sc.tweens.add({targets:d, alpha:0, duration:240, onComplete:function(){ d.destroy(); }});
+        },
+        onComplete:function(){ judge(); }});
+
+      /* the keeper commits, and gets it wrong as often as he gets it right */
+      if(c.keeper !== false){
+        var guess = tx + (Math.random()-0.5) * 150 * (1.25 - (c.skill||0.5));
+        sc.tweens.add({targets:sc.keeper, x:Phaser.Math.Clamp(guess, sc.goalPos.x-58, sc.goalPos.x+58),
+          y:sc.goalPos.y + 12, duration:420, delay:120, ease:"Quad.easeOut"});
+        sc.time.delayedCall(360, function(){
+          var b2 = sc.add.graphics().setDepth(9);
+          b2.fillStyle(0xEB6834, 0.9);
+          b2.fillTriangle(sc.keeper.x-9, sc.keeper.y-4, sc.keeper.x+9, sc.keeper.y-4, sc.keeper.x, sc.keeper.y+8);
+          sc.tweens.add({targets:b2, alpha:0, duration:420, onComplete:function(){ b2.destroy(); }});
+        });
+      }
+    }
+
+    function judge(){
+      if(sc.done) return;
+      sc.done = true;
+      var f = sc.flightEnd, G = sc.goalPos;
+      var forced, grade;
+      if(c.mode === "pass"){
+        var best = null, bd = 1e9;
+        sc.mates.forEach(function(m){
+          var d = Phaser.Math.Distance.Between(f.x, f.y, m.x, m.y);
+          if(d < bd){ bd = d; best = m; }
+        });
+        /* the man who was calling is easier to find than the one who was not */
+        var reach = 30 + (best && best.wants ? 14 : 0) + (c.skill||0.5)*16;
+        var made = bd < reach;
+        var near = !made && bd < reach + 24;
+        forced = {pass: made ? "hit" : (near ? "near" : "cut"),
+                  made:made, onTarget:made || near};
+        grade = made ? "great" : (near ? "good" : "fail");
+        PITCH_flash(sc, made ? 0x1baf7a : (near ? 0xE8C766 : 0xC0392B));
+        MINI.msg(made ? "מסירה מדויקת!" : (near ? "כמעט — הוא נאלץ להתאמץ" : "נחתך"), made);
+      } else if(c.mode === "dribble"){
+        var caught = sc.foes.some(function(m){
+          return Phaser.Math.Distance.Between(f.x, f.y, m.x, m.y) < 24 - (c.skill||0.5)*8;
+        });
+        forced = {dribble:true, made:!caught, onTarget:!caught};
+        grade = caught ? "fail" : "great";
+        PITCH_flash(sc, caught ? 0xC0392B : 0x1baf7a);
+        MINI.msg(caught ? "הוא לקח לך אותו" : "עברת אותו!", !caught);
+      } else {
+        var wide = Math.abs(f.x - G.x) > G.hw - 4;
+        var high = f.lift > 0.74;
+        var inGoal = !wide && !high && f.y < G.y + 14;
+        var saved = inGoal && Math.abs(f.x - sc.keeper.x) < 24 + (1-(c.skill||0.5))*14
+                    && Math.random() < 0.66;
+        var goal = inGoal && !saved;
+        forced = {shot:true, goal:goal, onTarget:inGoal, made:goal};
+        grade = goal ? "great" : (saved ? "good" : (inGoal ? "good" : "fail"));
+        PITCH_flash(sc, goal ? 0xF2C500 : (saved ? 0xE8C766 : 0xC0392B));
+        MINI.msg(goal ? "שער!!!" : (saved ? "הצלה של השוער"
+                 : (high ? "מעל המשקוף" : "לצד השער")), goal);
+        if(goal){
+          var n = sc.add.graphics().setDepth(20);
+          n.fillStyle(0xFFFFFF, 0.4); n.fillRect(G.x-G.hw, G.y-22, G.hw*2, 22);
+          sc.tweens.add({targets:n, alpha:0, duration:700});
+        }
+      }
+      Base.finish(sc, {grade:grade, forced:forced, power:sc.aim.power});
+    }
   };
+  function PITCH_flash(sc, colour){
+    var f = sc.add.rectangle(W/2, H/2, W, H, colour, 0.30).setDepth(60);
+    sc.tweens.add({targets:f, alpha:0, duration:420, onComplete:function(){ f.destroy(); }});
+  }
 
   function host(){ return document.getElementById("miniHost"); }
 
@@ -9583,10 +9724,7 @@ var MINI = (function(){
       scene: [],
       render:{antialias:true, powerPreference:"low-power"}
     });
-    game.scene.add("shot", ShotScene, false);
-    game.scene.add("pass", PassScene, false);
-    game.scene.add("dribble", DribbleScene, false);
-    game.scene.add("freekick", FreeKickScene, false);
+    game.scene.add("act", ActScene, false);
     return game;
   }
 
@@ -9595,7 +9733,7 @@ var MINI = (function(){
     if(!h || !ok()){ done && done(null); return; }
     cb = done;
     boot(h);
-    curKey = key;
+    curKey = "act";
     var go = function(){
       var fit = function(){
         placeHost();
@@ -9605,11 +9743,10 @@ var MINI = (function(){
         try { game.scale.refresh(); } catch(e){}
       };
       fit(); setTimeout(fit, 50); setTimeout(fit, 220);
-      /* stop every scene unconditionally: a sleeping one still owns input */
-      ["shot","pass","dribble","freekick"].forEach(function(k){
-        try { game.scene.stop(k); } catch(e){}
-      });
-      game.scene.start(key, cfg);
+      /* one scene serves every action; stop it first — a sleeping scene
+         still owns the pointer */
+      try { game.scene.stop("act"); } catch(e){}
+      game.scene.start("act", cfg);
     };
     if(game.isBooted) go(); else game.events.once("ready", go);
   }
@@ -9661,10 +9798,10 @@ function miniFor(choice, kind){
 
 function miniHtml(type){
   var TIP = {
-    shot:     "לחץ על הכדור, גרור לאן שאתה רוצה שילך, ושחרר. מרחק = עוצמה · צד הכדור = סיבוב",
-    pass:     "גרור מהכדור אל הרץ. ככל שתגרור רחוק יותר, המסירה חזקה יותר",
-    dribble:  "חכה שהוא יישבר לצד — ואז גרור לצד השני",
-    freekick: "גרור מעל החומה או סביבה. פגיעה בצד הכדור מעקמת אותו"
+    shot:     "גרור מהכדור לכיוון השער — ואז בחר איפה לפגוע בו",
+    pass:     "גרור מהכדור אל מי שקורא לך",
+    dribble:  "גרור לצד שאליו אתה רוצה לפרוץ",
+    freekick: "גרור מעל החומה או סביבה — ואז תן לו סיבוב"
   };
   return '<div class="mini" id="miniBox">'
     + '<span class="ministage" id="miniStage">' + (TIP[type]||"") + '</span>'
@@ -9673,45 +9810,84 @@ function miniHtml(type){
 }
 
 /* the numbers each scene needs, all of them read off the player */
+/* The same pitch every time; only where the ball starts, who is standing
+   around it and what counts as success change. That is how New Star
+   Soccer does it too — one view, four questions. */
 function miniCfg(type, choice){
-  var me = club(S.club), opp = M ? M.opp : {rep:55, c:"#888"};
+  var me = club(S.club), opp = M ? M.opp : {rep:55, c:"#8a8a8a", ab:"OPP"};
+  var W = 430, H = 250;
   var at = S.a[choice.at] || 45;
-  var gk = clamp(38 + opp.rep*0.55, 35, 92);
-  var comp = S.a.cmp || 45, acc = S.a.acc || 45;
-  var form = 1 + Math.max(0, S.load-45)*0.006 + Math.max(0, 70-S.fit)*0.005 - S.sharp*0.0015;
+  var form = 1 - Math.max(0, S.load-45)*0.004 - Math.max(0, 70-S.fit)*0.003 + S.sharp*0.0012;
+  var skill = clamp((at/100)*0.7 + ((S.a.cmp||45)/100)*0.3, 0.1, 1) * clamp(form, 0.6, 1.25);
+
+  function hex(c){ return parseInt(String(c || "#8a8a8a").replace("#",""), 16); }
+  function spread(n, y0, y1, xpad){
+    var out = [], r = streamFrom(hashOf((M ? M.min : 0) + type + n));
+    for(var i=0;i<n;i++)
+      out.push({x: xpad + r()*(W - xpad*2), y: y0 + r()*(y1-y0)});
+    return out;
+  }
+
+  /* the wind the match is being played in, as a speed and a bearing */
+  var wx = M && M.wx ? M.wx : {id:"clear"};
+  var wr = streamFrom(hashOf((M ? M.fx.opp : "x") + S.week));
+  var wspeed = wx.id === "wind" ? 3 + wr()*4.5 : (wx.id === "rain" ? 1 + wr()*2 : wr()*1.6);
 
   var cfg = {
-    myColour: parseInt(me.c.replace("#",""), 16),
-    oppColour: parseInt((opp.c || "#8a8a8a").replace("#",""), 16),
-    gk: gk,
-    /* the drag itself: how big the ball's hit area is, how far a full-power
-       pull is, and how hard the strike point bends the flight */
-    ballR: 11, grab: 34, maxDrag: 210,
-    curveGain: clamp(0.55 + at*0.0075 + (hasTrait("finisher") ? 0.10 : 0), 0.4, 1.35),
-    bendPx: 78
+    mode: (type === "pass" ? "pass" : (type === "dribble" ? "dribble" : "shot")),
+    myKit: hex(me.c), oppKit: hex(opp.c),
+    home: me.ab, away: opp.ab,
+    hg: M ? M.hg : 0, ag: M ? M.ag : 0,
+    night: !!(M && M.wx && (M.wx.id === "cloud" || M.wx.id === "rain")),
+    wind: {s: wspeed, a: wr()*Math.PI*2},
+    skill: skill,
+    maxDrag: 150,
+    curveGain: clamp(30 + at*0.34 + (hasTrait("finisher") ? 8 : 0), 24, 68),
+    travel: 210
   };
 
-  if(type === "shot" || type === "freekick"){
-    var fin = S.a[choice.at] || S.a.fin || 45;
-    cfg.err = clamp((0.13 - fin*0.00090 - acc*0.00030) * form, 0.012, 0.13);
-    cfg.readChance = clamp(0.08 + gk*0.0050 - comp*0.0016, 0.05, 0.55);
-    cfg.curveGain *= 1 + (S.a.crs||45)*0.0035;
-  }
-  if(type === "pass"){
-    var vis = S.a.vis || 45, spa = S.a.spa || 45;
-    cfg.err = clamp((0.11 - vis*0.00075 - spa*0.00045) * form, 0.010, 0.11);
-    cfg.tolerance = clamp(22 + vis*0.34 + spa*0.20, 24, 74);
-    cfg.cutRadius = clamp(20 - comp*0.06 + opp.rep*0.14, 12, 30);
-    cfg.mates = 2; cfg.foes = (M && M.opp.rep > 62) ? 3 : 2;
-  }
-  if(type === "dribble"){
-    var drb = S.a.drb || 45, agi = S.a.agi || 45;
-    cfg.err = 0.02;
-    cfg.window = clamp(260 + drb*4.4 + agi*2.8 - opp.rep*3.4, 170, 680);
-    cfg.closeMs = clamp(2700 - opp.rep*8, 1600, 2900);
+  if(type === "shot"){
+    cfg.bx = W/2 + (Math.random()-0.5)*150;
+    cfg.by = 150 + Math.random()*46;
+    cfg.travel = clamp(cfg.by - 20, 120, 240);
+    cfg.mates = spread(2, 60, 130, 60);
+    cfg.foes  = spread(3, 55, 140, 40).concat([{x:cfg.bx + (Math.random()-0.5)*40, y:cfg.by - 30}]);
+    cfg.keeperOff = (Math.random()-0.5)*30;
+  } else if(type === "freekick"){
+    cfg.bx = W/2 + (Math.random()-0.5)*110;
+    cfg.by = 175 + Math.random()*30;
+    cfg.travel = clamp(cfg.by - 18, 140, 250);
+    /* a wall, standing where a wall stands */
+    var wall = [];
+    for(var i=0;i<4;i++) wall.push({x: W/2 - 24 + i*16 + (cfg.bx - W/2)*0.35, y: cfg.by - 62});
+    cfg.foes = wall.concat(spread(2, 60, 120, 50));
+    cfg.mates = spread(2, 70, 130, 70);
+    cfg.keeperOff = (Math.random()-0.5)*18;
+    cfg.curveGain *= 1.25;
+  } else if(type === "pass"){
+    cfg.bx = W/2 + (Math.random()-0.5)*180;
+    cfg.by = 165 + Math.random()*50;
+    cfg.travel = 190;
+    /* two teammates in space, one of them calling for it */
+    var m1 = {x: 60 + Math.random()*110, y: 70 + Math.random()*60, call:true};
+    var m2 = {x: W - 60 - Math.random()*110, y: 80 + Math.random()*60, call:Math.random()<0.4};
+    cfg.mates = [m1, m2];
+    cfg.foes = spread((M && M.opp.rep > 62) ? 4 : 3, 70, 150, 40);
+    cfg.keeperOff = 0;
+    cfg.keeper = false;
+  } else {
+    cfg.bx = W/2 + (Math.random()-0.5)*160;
+    cfg.by = 190 + Math.random()*30;
+    cfg.travel = 150;
+    /* the man in front of you, and cover behind him */
+    cfg.foes = [{x: cfg.bx + (Math.random()-0.5)*36, y: cfg.by - 54}]
+      .concat(spread(2, 80, 140, 50));
+    cfg.mates = spread(2, 90, 150, 70);
+    cfg.keeper = false;
   }
   return cfg;
 }
+
 
 function startMini(type, choice){
   var card = document.querySelector("#momentLayer .mcard");
