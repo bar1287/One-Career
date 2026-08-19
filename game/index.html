@@ -486,6 +486,9 @@ body{
 /* ── boards and the pager: no scrolling anywhere ──────────────── */
 .stage.nopack{overflow-y:auto;-webkit-overflow-scrolling:touch}
 .stage.nopack>*{height:auto}
+/* Central is a fixed grid that fills the stage — no scrolling, ever */
+.stage.full{overflow:hidden}
+.stage.full>.bento{height:100%}
 #errbar{
   position:absolute;inset-inline:0;bottom:0;z-index:120;background:var(--bad);color:#fff;
   font-size:11px;font-weight:800;padding:6px 12px;cursor:pointer;text-align:center;
@@ -1484,6 +1487,126 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 }
 @keyframes tin{from{opacity:0;transform:translateX(50%) translateY(10px)}to{opacity:1}}
 
+/* ══════════════════════════════════════════════════════════════════
+   CENTRAL — the tile grid
+
+   This is the part of FIFA I had wrong. Career mode's home screen is not
+   a column of identical cards; it is a bento of tiles at three different
+   sizes, and one of them — PLAY MATCH — is twice the size of the others
+   and painted in the accent colour, so the thing you are meant to do
+   next is impossible to miss. Every other tile is a door: a headline, a
+   number or two, and a press takes you to the screen behind it.
+   ════════════════════════════════════════════════════════════════ */
+.bento{
+  display:grid;height:100%;min-height:0;gap:9px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-rows:1.22fr 1fr;
+}
+.tile{
+  position:relative;overflow:hidden;min-width:0;min-height:0;cursor:pointer;
+  border:1px solid var(--line2);border-radius:12px;background:var(--surface);
+  padding:10px 13px;display:flex;flex-direction:column;gap:5px;text-align:start;
+  box-shadow:var(--sh);transition:transform .16s cubic-bezier(.2,0,.1,1),border-color .16s,box-shadow .16s;
+  font:inherit;color:inherit;
+}
+.tile:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:var(--sh2)}
+.tile:active{transform:translateY(0)}
+.tile>h4{
+  margin:0;font-size:15px;font-weight:900;letter-spacing:.02em;line-height:1.05;
+  display:flex;align-items:center;gap:7px;
+}
+.tile>h4 em{font-style:normal;font-size:15px;opacity:.75}
+.tile .sub{font-size:10px;font-weight:800;color:var(--ink3);letter-spacing:.03em}
+.tile .fill{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
+.tile .tbadge2{
+  position:absolute;top:8px;inset-inline-end:10px;min-width:19px;height:19px;padding:0 5px;
+  border-radius:99px;background:var(--bad);color:#fff;font-size:10.5px;font-weight:900;
+  display:grid;place-items:center;z-index:2;
+}
+.tile .art{position:absolute;inset:0;z-index:0;opacity:.9}
+.tile .art>svg{width:100%;height:100%;display:block}
+.tile .art::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--surface) 34%,rgba(0,0,0,0) 88%)}
+/* the picture sits on the far side of the tile, behind nothing that matters */
+.tile.shot .art{inset-inline-start:auto;inset-inline-end:0;width:62%}
+.tile.shot .art::after{background:linear-gradient(90deg,rgba(0,0,0,0) 2%,var(--club) 96%)}
+.tile>*{position:relative;z-index:1}
+
+/* the one you are meant to press */
+.tile.primary{
+  border-color:transparent;color:#fff;
+  background:linear-gradient(135deg, var(--club) 0%, var(--club) 46%, rgba(0,0,0,.34) 100%), var(--club);
+}
+.tile.primary>h4{font-size:19px;letter-spacing:.01em}
+.tile.primary .sub{color:rgba(255,255,255,.82)}
+.tile.primary:hover{border-color:#fff}
+.tile.primary .art::after{background:linear-gradient(90deg,var(--club) 30%,rgba(0,0,0,0) 92%)}
+.tile.warn{border-color:var(--bad)}
+.tile.gold{border-color:var(--gold)}
+
+.t-play{grid-column:span 2;grid-row:1}
+.t-growth{grid-column:span 1;grid-row:1}
+.t-news{grid-column:span 1;grid-row:1}
+.t-advance{grid-column:span 2;grid-row:2}
+.t-train{grid-column:span 1;grid-row:2}
+.t-table{grid-column:span 1;grid-row:2}
+
+/* PLAY MATCH internals */
+.pmrow{display:flex;align-items:center;gap:11px;margin-top:2px}
+.pmcrest{
+  width:52px;height:52px;border-radius:13px;display:grid;place-items:center;flex:0 0 auto;
+  font-size:15px;font-weight:900;box-shadow:inset 0 -3px 0 rgba(0,0,0,.22);
+}
+.pmwho{min-width:0}
+.pmwho b{display:block;font-size:16px;font-weight:900;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmwho span{display:block;font-size:11px;font-weight:800;opacity:.82;margin-top:2px}
+.pmgo{
+  margin-top:auto;display:inline-flex;align-items:center;gap:6px;align-self:flex-start;
+  background:rgba(255,255,255,.94);color:#17150F;border-radius:99px;padding:5px 14px;
+  font-size:12px;font-weight:900;
+}
+
+/* PLAYER GROWTH internals — FIFA's POS | OVR | AGE header, then the six */
+.pgtop{display:flex;align-items:stretch;gap:0;border-bottom:1px solid var(--line);padding-bottom:6px}
+.pgcell{flex:1;text-align:center;border-inline-end:1px solid var(--line)}
+.pgcell:last-child{border-inline-end:0}
+.pgcell span{display:block;font-size:8.5px;font-weight:900;letter-spacing:.12em;color:var(--ink3)}
+.pgcell b{display:block;font-size:17px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.pggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px 6px;margin-top:6px}
+.pgv{display:flex;align-items:baseline;gap:4px;justify-content:center}
+.pgv b{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
+.pgv span{font-size:8.5px;font-weight:900;color:var(--ink3);letter-spacing:.06em}
+
+/* ADVANCE — the five-day strip */
+.advrow{display:grid;grid-template-columns:repeat(7,1fr);gap:0;flex:1;min-height:0;margin-top:4px}
+.advday{
+  border-inline-end:1px solid var(--line);padding:5px 2px;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;
+}
+.advday:last-child{border-inline-end:0}
+.advday .dn{font-size:9px;font-weight:900;color:var(--ink3);letter-spacing:.06em}
+.advday .di{font-size:17px;line-height:1}
+.advday .dl{font-size:8.5px;font-weight:800;color:var(--ink3);text-align:center;line-height:1.15}
+.advday.gameday{background:var(--accent-soft);border-radius:8px}
+.advday.gameday .dl{color:var(--accent-ink);font-weight:900}
+.advday.rest{opacity:.55}
+.advday.empty2 .di{opacity:.3}
+
+/* the mini table on Central */
+.minitab{width:100%;font-size:11px;border-collapse:collapse}
+.minitab td{padding:2.5px 3px;border-bottom:1px solid var(--line)}
+.minitab thead td{border-bottom:1px solid var(--line2);font-size:8.5px;font-weight:900;
+  letter-spacing:.08em;color:var(--ink3);padding-bottom:3px}
+.minitab tr:last-child td{border-bottom:0}
+.minitab .me td{font-weight:900;background:var(--accent-soft)}
+.minitab .r{text-align:end;font-variant-numeric:tabular-nums}
+
+/* the news tile */
+.newsline{font-size:11.5px;line-height:1.4;font-weight:700;color:var(--ink2)}
+.newsline b{font-weight:900;color:var(--ink)}
+.newsdots{display:flex;gap:4px;margin-top:auto}
+.newsdots i{width:5px;height:5px;border-radius:50%;background:var(--line2)}
+.newsdots i.on{background:var(--accent)}
+
 /* the social feed */
 .post{border-bottom:1px solid var(--line);padding:9px 0}
 .post:last-child{border-bottom:0}
@@ -2031,7 +2154,7 @@ function newState(name, pos, startId){
     coach:null, coachWeeks:0,
     slCd:{}, slPending:null, slEchoes:[], promises:[], board:null, euroRep:0,
     watch:[], watchClubs:[], seasonSt:blankStats(), roleScores:[],
-    nav:{sec:"home", sub:"today"},
+    nav:{sec:"home", sub:"central"},
     moves:[], sigCount:0,
     injury:null, injHistory:[], knock:0, comeback:null,
     objectives:[], brand:6, sponsor:null, assets:[], nemesis:null,
@@ -4236,9 +4359,189 @@ function importSave(){
   };
 }
 
+
+/* ══════════════════════════════════════════════════════════════════
+   CENTRAL — the hub, built the way FIFA builds it
+
+   One tile is the thing to do next and it is twice the size of the rest
+   and painted in the club's colour. The others are doors: a headline, a
+   number or two, and a press opens the screen behind them. Nothing on
+   this screen is a wall of text, and nothing here scrolls.
+   ════════════════════════════════════════════════════════════════ */
+function tile(cls, go, badge, head, body){
+  return '<button class="tile ' + cls + '" data-go="' + go + '"'
+    + (badge ? '><i class="tbadge2">' + badge + '</i>' : '>')
+    + '<h4>' + head + '</h4>' + body + '</button>';
+}
+
+function viewCentral(){
+  var fx  = S.fixtures[S.week-1] || S.fixtures[S.fixtures.length-1];
+  var opp = fx ? club(fx.opp) : null;
+  var me  = club(S.club);
+  var exp = expectedMinutes();
+  var p   = POS[S.pos];
+
+  /* ── PLAY MATCH ── the one tile that is twice the size of the others */
+  var playHead, playBody, playCls = "t-play primary", playGo = "home/training";
+  if(isInjured()){
+    playCls = "t-play primary warn";
+    playHead = '<em>🚑</em>שבוע שיקום';
+    playBody = '<div class="sub">' + S.injury.n + ' ב' + S.injury.part + '</div>'
+      + '<div class="pmrow"><div class="pmcrest" style="background:rgba(255,255,255,.9);color:var(--bad)">'
+      + Math.ceil(S.injury.left) + '</div>'
+      + '<div class="pmwho"><b>עוד ' + Math.ceil(S.injury.left) + ' שבועות</b>'
+      + '<span>בחר תוכנית שיקום לשבוע</span></div></div>'
+      + '<span class="pmgo">לשיקום ◂</span>';
+  } else if(S.susp > 0){
+    playCls = "t-play primary warn";
+    playHead = '<em>🟥</em>מורחק';
+    playBody = '<div class="sub">' + suspText() + '</div>'
+      + '<div class="pmrow"><div class="pmcrest" style="background:rgba(255,255,255,.9);color:var(--bad)">'
+      + S.susp + '</div><div class="pmwho"><b>לא בסגל</b>'
+      + '<span>המחזור ירוץ בלעדיך</span></div></div>'
+      + '<span class="pmgo">להמשיך ◂</span>';
+  } else if(!opp){
+    playHead = 'סוף העונה';
+    playBody = '<div class="sub">אין עוד מחזורים</div><span class="pmgo">לסיכום ◂</span>';
+  } else {
+    playHead = 'שחק את המחזור';
+    playBody = '<div class="art">' + ART.get("stadium", me.c, me.t, 340) + '</div>'
+      + '<div class="sub">מחזור ' + S.week + ' · ' + LEAGUES[S.league].flag + ' '
+        + LEAGUES[S.league].n + ' · ' + (fx.home ? "בית" : "חוץ") + '</div>'
+      + '<div class="pmrow">'
+        + '<div class="pmcrest" style="background:' + opp.c + ';color:' + opp.t + '">' + opp.ab + '</div>'
+        + '<div class="pmwho"><b>' + (fx.home ? "מול " : "אצל ") + opp.n + '</b>'
+        + '<span>מקום ' + oppPlace(opp.id) + ' בטבלה · צפי ' + exp.label + '</span></div>'
+      + '</div>'
+      + '<span class="pmgo">' + (S.picked.length ? "לשחק ◂" : "לבחור אימונים ◂") + '</span>';
+    playCls += " shot";
+  }
+
+  /* ── PLAYER GROWTH ── FIFA's POS | OVR | AGE header and the six groups */
+  var vals = p.face.map(grpVal);
+  var pgGrid = p.face.map(function(g, i){
+    return '<span class="pgv"><b>' + vals[i] + '</b><span>' + g + '</span></span>';
+  }).join("");
+  var growthBody = '<div class="fill">'
+    + '<div class="pgtop">'
+      + '<span class="pgcell"><span>POS</span><b>' + S.pos + '</b></span>'
+      + '<span class="pgcell"><span>OVR</span><b>' + ovr() + '</b></span>'
+      + '<span class="pgcell"><span>גיל</span><b>' + S.age + '</b></span>'
+    + '</div>'
+    + '<div class="pggrid">' + pgGrid + '</div></div>'
+    + '<div class="sub">' + (S.sp ? S.sp + ' נקודות כישור זמינות' : 'רמה ' + S.level) + '</div>';
+
+  /* ── NEWS ── */
+  var head3 = (S.news || []).slice(0, 3);
+  var newsBody = '<div class="fill">'
+    + (head3.length
+      ? head3.map(function(n, i){
+          return '<div class="newsline" style="' + (i ? "margin-top:6px;opacity:.62" : "") + '">'
+            + String(n.t).replace(/<[^>]+>/g, "") + '</div>';
+        }).join("")
+      : '<div class="newsline" style="opacity:.6">העולם עוד לא התחיל לזוז. שחק מחזור.</div>')
+    + '</div>'
+    + '<div class="newsdots"><i class="on"></i><i></i><i></i></div>';
+
+  /* ── ADVANCE ── the week ahead, as a strip of days */
+  var dayN = ["ב׳","ג׳","ד׳","ה׳","ו׳","ש׳","א׳"];
+  var pool = availableActions();
+  var advBody = '<div class="advrow">' + dayN.map(function(d, i){
+    if(i === 5){
+      return '<div class="advday gameday"><span class="dn">' + d + '</span>'
+        + '<span class="di">' + (isInjured() || S.susp > 0 ? "—" : "⚽") + '</span>'
+        + '<span class="dl">' + (isInjured() ? "פצוע" : (S.susp > 0 ? "מורחק" : (opp ? opp.ab : "—"))) + '</span></div>';
+    }
+    if(i === 6) return '<div class="advday rest"><span class="dn">' + d + '</span>'
+      + '<span class="di">☾</span><span class="dl">מנוחה</span></div>';
+    var pick = S.picked[i] !== undefined
+      ? pool.filter(function(x){ return x.id === S.picked[i]; })[0] : null;
+    return '<div class="advday' + (pick ? "" : " empty2") + '"><span class="dn">' + d + '</span>'
+      + '<span class="di">' + (pick ? pick.i : "＋") + '</span>'
+      + '<span class="dl">' + (pick ? pick.t : "פנוי") + '</span></div>';
+  }).join("") + '</div>';
+
+  /* ── TRAINING ── */
+  var left = Math.max(0, S.slots - S.picked.length);
+  var trainBody = '<div class="fill">'
+    + '<div class="sub" style="font-size:11px;color:var(--ink2);line-height:1.45">'
+    + 'צבור XP והעלה את ציון המאמן.</div>'
+    + '<div class="kv" style="padding:3px 0"><span>אימונים פנויים</span><b class="n">' + left + '/' + S.slots + '</b></div>'
+    + '<div class="kv" style="padding:3px 0"><span>עומס</span><b class="n">' + Math.round(S.load) + '%</b></div>'
+    + '<div class="kv" style="padding:3px 0"><span>כשירות</span><b class="n">' + Math.round(S.fit) + '%</b></div>'
+    + '</div>';
+
+  /* ── STANDINGS ── */
+  var T = S.tables[S.league] || {};
+  var rows = LEAGUES[S.league].clubs.map(function(c){ return {c:c, t:T[c.id] || {p:0, pts:0, gf:0, ga:0}}; })
+    .sort(function(a, b){ return b.t.pts - a.t.pts || (b.t.gf - b.t.ga) - (a.t.gf - a.t.ga); })
+    .slice(0, 5);
+  var tableBody = '<div class="fill"><table class="minitab">'
+    + '<thead><tr><td></td><td></td><td class="r">מש׳</td><td class="r">נק׳</td></tr></thead><tbody>'
+    + rows.map(function(r, i){
+        return '<tr' + (r.c.id === S.club ? ' class="me"' : '') + '>'
+          + '<td style="width:14px">' + (i + 1) + '</td>'
+          + '<td><span class="sw" style="background:' + r.c.c + '"></span>' + r.c.ab + '</td>'
+          + '<td class="r">' + r.t.p + '</td><td class="r">' + r.t.pts + '</td></tr>';
+      }).join("")
+    + '</tbody></table></div>';
+
+  var objLeft = (S.objectives || []).filter(function(o){ return !o.done; }).length;
+  var inboxN  = Math.max(0, S.inbox.length - S.seen);
+
+  return '<div class="bento" data-panel="home/central">'
+    + tile(playCls,    playGo,             0,       playHead,  playBody)
+    + tile("t-growth", "player/skills",    S.sp,    'פיתוח שחקן', growthBody)
+    + tile("t-news",   "home/news",        inboxN,  'חדשות',     newsBody)
+    + tile("t-advance","home/training",    0,       'השבוע',     advBody)
+    + tile("t-train",  "home/training",    left,    'אימונים',   trainBody)
+    + tile("t-table",  "comp/table",       objLeft, LEAGUES[S.league].n, tableBody)
+    + '</div>';
+}
+
+/* the weekly plan, on its own screen — the tile on Central opens it */
+function viewTraining(){
+  var pool = availableActions();
+  var exp  = expectedMinutes();
+  var actsHtml = pool.map(function(a){
+    var on = S.picked.indexOf(a.id) >= 0, idx = S.picked.indexOf(a.id);
+    var full = S.picked.length >= S.slots && !on;
+    return '<button class="act' + (on ? " on" : "") + '" data-act="' + a.id + '"' + (full ? " disabled" : "") + '>'
+      + (on ? '<span class="n">' + (idx + 1) + '</span>' : '')
+      + '<span class="t"><em>' + a.i + '</em>' + a.t + '</span>'
+      + '<span class="d">' + a.d + '</span>'
+      + '<span class="fx">' + a.fx.map(function(f){ return "<span>" + f + "</span>"; }).join("") + '</span>'
+      + '</button>';
+  }).join("");
+  var slotsHtml = "";
+  for(var i=0;i<S.slots;i++) slotsHtml += '<div class="slot' + (i < S.picked.length ? " f" : "") + '"></div>';
+
+  var loadCls = S.load > 72 ? "b" : (S.load > 52 ? "w" : "");
+
+  return '<div data-art="training" class="p" data-panel="home/training"><h3>תוכנית שבועית'
+      + '<span class="r" style="display:flex;align-items:center;gap:9px">'
+      + '<span class="lbl">' + S.picked.length + '/' + S.slots + '</span>'
+      + '<span class="slots">' + slotsHtml + '</span></span></h3>'
+      + '<div class="pb"><div class="acts">' + actsHtml + '</div>'
+      + '<div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap">'
+        + '<button class="btn" id="clear">נקה בחירה</button>'
+        + '<span class="hint">צפי דקות: <b>' + exp.label + '</b></span>'
+      + '</div></div></div>'
+
+    + '<div class="p" data-panel="home/training"><h3>מצב גוף</h3>'
+      + '<div class="pb" style="display:flex;flex-direction:column;gap:12px">'
+      + meter("כשירות", S.fit, S.fit < 60 ? "b" : (S.fit < 75 ? "w" : ""))
+      + meter("חדות", S.sharp, S.sharp < 45 ? "w" : "")
+      + meter("עומס מצטבר", S.load, loadCls)
+      + meter("מורל", S.morale, S.morale < 40 ? "w" : "")
+      + (S.load > 72 ? '<div class="tag b">▲ סיכון פציעה מוגבר — שקול התאוששות</div>' : '')
+      + '</div></div>';
+}
+
 var SECTIONS = [
-  {id:"home", n:"בית", i:"⌂", subs:[
-    {id:"today",      n:"היום"},
+  {id:"home", n:"מרכז", i:"⌂", subs:[
+    {id:"central",    n:"מרכז"},
+    {id:"training",   n:"אימונים"},
     {id:"objectives", n:"יעדי העונה"},
     {id:"inbox",      n:"הודעות"},
     {id:"news",       n:"חדשות"},
@@ -4294,7 +4597,7 @@ var SECTIONS = [
 
 function secDef(id){ for(var i=0;i<SECTIONS.length;i++) if(SECTIONS[i].id===id) return SECTIONS[i]; return SECTIONS[0]; }
 function navNow(){
-  if(!S.nav || !S.nav.sec) S.nav = {sec:"home", sub:"today"};
+  if(!S.nav || !S.nav.sec) S.nav = {sec:"home", sub:"central"};
   var sec = secDef(S.nav.sec);
   var ok = sec.subs.some(function(x){ return x.id === S.nav.sub; });
   if(!ok) S.nav.sub = sec.subs[0].id;
@@ -4514,6 +4817,9 @@ function cycleSub(dir){
 /* Screens whose panels need room. The packer spreads panels over three
    columns by default; a grid of six skill trees inside a 330px column is
    unreadable, so those screens ask for fewer, wider columns. */
+/* Central lays itself out; the packer would take the bento apart and
+   stack the tiles in a column. */
+var SEC_FULL = {"home/central": 1};
 var SEC_COLS = {
   "player/skills": 2,
   "player/pers":   2,
@@ -4525,7 +4831,7 @@ var SEC_COLS = {
   "market/search": 1
 };
 var SEC_SOURCES = {
-  home:   ["hub", "world"],
+  home:   ["central", "training", "hub", "world"],
   player: ["player", "career", "growth", "pers", "stats"],
   club:   ["squad", "tactics", "board"],
   comp:   ["league", "world", "calendar"],
@@ -4533,7 +4839,7 @@ var SEC_SOURCES = {
   life:   ["career", "world", "media", "records", "settings"]
 };
 function sourceHtmlFor(sec){
-  var VIEWS = {hub:viewHub, player:viewPlayer, squad:viewSquad,
+  var VIEWS = {central:viewCentral, training:viewTraining, hub:viewHub, player:viewPlayer, squad:viewSquad,
                league:viewLeague, world:viewWorld, career:viewCareer,
                growth:viewGrowth, pers:viewPersonality, media:viewMedia,
                tactics:viewTactics, board:viewBoard, agent:viewAgent, loans:viewLoans,
@@ -4601,49 +4907,26 @@ function viewHub(){
   var loadCls = S.load>72 ? "b" : (S.load>52 ? "w" : "");
   var expect = expectedMinutes();
 
-  var days = ["ב׳","ג׳","ד׳","ה׳","ו׳","ש׳","א׳"];
-  var pool = availableActions();
-  var dayHtml = days.map(function(d,i){
-    if(i===5) return '<div class="day f"><b>'+d+'</b>'+(isInjured()?"—":opp.ab)+'</div>';
-    if(i===6) return '<div class="day d"><b>'+d+'</b>מנוחה</div>';
-    var a = S.picked[i]!==undefined ? pool.filter(function(x){return x.id===S.picked[i]})[0] : null;
-    return '<div class="day'+(a?"":" d")+'"><b>'+d+'</b>'+(a?a.i:"—")+'</div>';
-  }).join("");
 
   var injBanner = "";
   if(isInjured()){
     var pc = Math.round(clamp(S.injury.rehab/S.injury.weeks, 0, 1)*100);
-    injBanner = '<div data-art="medical" class="p injp" data-panel="home/today"><h3>🚑 '+S.injury.n+' ב'+S.injury.part+'</h3><div class="pb">'
+    injBanner = '<div data-art="medical" class="p injp" data-panel="home/training"><h3>🚑 '+S.injury.n+' ב'+S.injury.part+'</h3><div class="pb">'
       + '<div class="kv"><span>שבועות שנותרו</span><b class="n" style="color:var(--bad)">'+Math.ceil(S.injury.left)+'</b></div>'
       + '<div class="bar" style="margin:8px 0 4px"><i class="w" style="width:'+pc+'%"></i></div>'
       + '<p class="hint" style="margin:8px 0 0">בחר תוכנית שיקום לשבוע. "לדחוף את הקצב" מקצר את ההיעדרות אבל מגדיל את הסיכון להישנות מיד עם החזרה.</p>'
       + (S.injHistory.length > 1 ? '<div class="kv" style="margin-top:8px"><span>פציעות בקריירה</span><b class="n">'+S.injHistory.length+'</b></div>' : '')
     + '</div></div>';
   } else if(S.comeback){
-    injBanner = '<div class="p" style="border-color:var(--warn)" data-panel="home/today"><h3>⚠ חלון חזרה</h3><div class="pb">'
+    injBanner = '<div class="p" style="border-color:var(--warn)" data-panel="home/training"><h3>⚠ חלון חזרה</h3><div class="pb">'
       + '<p style="margin:0;font-size:13.5px;line-height:1.55">חזרת לא מזמן. '+S.comeback.weeks+' שבועות של סיכון מוגבר להישנות ('
       + Math.round(S.comeback.risk)+'%). המאמן ייתן לך פחות דקות, וכל עומס נוסף נספר פעמיים.</p>'
     + '</div></div>';
   } else if(S.knock > 0){
-    injBanner = '<div class="p" style="border-color:var(--warn)" data-panel="home/today"><h3>🩹 אתה משחק עם חבטה</h3><div class="pb">'
+    injBanner = '<div class="p" style="border-color:var(--warn)" data-panel="home/training"><h3>🩹 אתה משחק עם חבטה</h3><div class="pb">'
       + '<p style="margin:0;font-size:13.5px;line-height:1.55">האזור המתוק מצטמצם ב-3.5 נקודות ועוד '+S.knock+' שבועות זה יעבור. "התאוששות ופיזיו" מקצר את זה.</p>'
     + '</div></div>';
   }
-
-  var actsHtml = pool.map(function(a){
-    var on = S.picked.indexOf(a.id)>=0;
-    var idx = S.picked.indexOf(a.id);
-    var full = S.picked.length>=S.slots && !on;
-    return '<button class="act'+(on?" on":"")+'" data-act="'+a.id+'"'+(full?" disabled":"")+'>'
-      + (on?'<span class="n">'+(idx+1)+'</span>':'')
-      + '<span class="t"><em>'+a.i+'</em>'+a.t+'</span>'
-      + '<span class="d">'+a.d+'</span>'
-      + '<span class="fx">'+a.fx.map(function(f){return "<span>"+f+"</span>"}).join("")+'</span>'
-      + '</button>';
-  }).join("");
-
-  var slotsHtml = "";
-  for(var i=0;i<S.slots;i++) slotsHtml += '<div class="slot'+(i<S.picked.length?" f":"")+'"></div>';
 
   var inboxHtml = S.inbox.length ? S.inbox.slice(0,6).map(function(m){
     return '<div class="kv"><span>'+m.t+'</span><span class="tag '+(m.k)+'">מ׳'+m.w+'</span></div>';
@@ -4674,43 +4957,16 @@ function viewHub(){
       })()
 
     + (S.nemesis && fx && fx.opp === S.nemesis.club && !isInjured()
-      ? '<div class="p" style="border-color:var(--accent)" data-panel="home/today"><h3>🔥 השבוע מול היריב שלך</h3><div class="pb">'
+      ? '<div class="p" style="border-color:var(--accent)" data-panel="home/training"><h3>🔥 השבוע מול היריב שלך</h3><div class="pb">'
         + '<p style="margin:0;font-size:13.5px;line-height:1.55"><b><bdi>'+S.nemesis.n+'</bdi></b> · '
         + POS[S.nemesis.pos].n+' · OVR '+S.nemesis.ovr+'. ראש בראש '
         + S.nemesis.h2h.w+'-'+S.nemesis.h2h.d+'-'+S.nemesis.h2h.l+'. '
         + 'העיתונות תשווה, בין שתרצה ובין שלא.</p></div></div>'
       : '')
 
-    + '<div data-art="stadium" class="p hero" data-panel="home/today">'
-      + '<div class="heroband">'
-        + '<div class="hb"><div class="hbc" style="background:'+me.c+';color:'+me.t+'">'+me.ab+'</div>'
-          + '<div><b>'+me.n+'</b><span>'+(fx.home?"בית":"חוץ")+'</span></div></div>'
-        + '<div class="hvs"><span class="lbl">מחזור '+S.week+'</span><b>VS</b><span class="lbl">'+LEAGUES[S.league].n+'</span></div>'
-        + '<div class="hb away"><div class="hbc" style="background:'+opp.c+';color:'+opp.t+'">'+opp.ab+'</div>'
-          + '<div><b>'+opp.n+'</b><span>מקום '+oppPlace(opp.id)+' בטבלה</span></div></div>'
-      + '</div>'
-      + '<div class="pb"><div class="days">'+dayHtml+'</div></div></div>'
-
-    + '<div data-art="training" class="p" data-panel="home/today"><h3>תוכנית שבועית'
-      + '<span class="r" style="display:flex;align-items:center;gap:9px">'
-      + '<span class="lbl">'+S.picked.length+'/'+S.slots+'</span><span class="slots">'+slotsHtml+'</span></span></h3>'
-    + '<div class="pb"><div class="acts">'+actsHtml+'</div>'
-    + '<div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap">'
-      + '<button class="btn" id="clear">נקה בחירה</button>'
-      + '<span class="hint">צפי דקות: <b>'+expect.label+'</b> · הכפתור לשחק נמצא בסרגל התחתון</span>'
-    + '</div></div></div>'
-
   + '</div>'
 
   + '<div style="display:flex;flex-direction:column;gap:14px">'
-
-    + '<div class="p" data-panel="home/today"><h3>מצב גוף</h3><div class="pb" style="display:flex;flex-direction:column;gap:12px">'
-      + meter("כשירות", S.fit, S.fit<60?"b":(S.fit<75?"w":""))
-      + meter("חדות", S.sharp, S.sharp<45?"w":"")
-      + meter("עומס מצטבר", S.load, loadCls)
-      + meter("מורל", S.morale, S.morale<40?"w":"")
-      + (S.load>72 ? '<div class="tag b">▲ סיכון פציעה מוגבר — שקול התאוששות</div>' : '')
-    + '</div></div>'
 
     + '<div class="p" data-panel="home/status"><h3>מעמד בסגל</h3><div class="pb">'
       + '<div class="kv"><span>מעמד</span><b>'+S.status+'</b></div>'
@@ -5437,6 +5693,17 @@ function bind(){
     wp.setAttribute("data-armed", "1");
     wp.textContent = "בטוח? לחץ שוב";
   };
+
+  Array.prototype.forEach.call(stage.querySelectorAll(".tile[data-go]"), function(b){
+    b.onclick = function(){
+      var t = b.getAttribute("data-go").split("/");
+      /* the primary tile plays the round when the week is already planned */
+      if(b.classList.contains("primary") && S.picked.length && !isInjured() && S.susp <= 0){
+        startWeek(); return;
+      }
+      goNav(t[0], t[1]);
+    };
+  });
 
   var pb2 = document.getElementById("pressBtn");
   if(pb2) pb2.onclick = openPress;
@@ -6638,7 +6905,17 @@ function layoutBoards(){
   if(!stage) return;
   var backup = stage.innerHTML;
   try {
-    BOARD = packBoards(stage, null, SEC_COLS[navNow().sec + "/" + navNow().sub] || 0, BOARD);
+    var key = navNow().sec + "/" + navNow().sub;
+    if(SEC_FULL[key]){
+      stage.classList.remove("nopack");
+      stage.classList.add("full");
+      paintArt(stage);
+      renderActionBar();
+      return;
+    }
+    stage.classList.remove("nopack");
+    stage.classList.remove("full");
+    BOARD = packBoards(stage, null, SEC_COLS[key] || 0, BOARD);
     var shown = 0;
     Array.prototype.forEach.call(stage.querySelectorAll(".p"), function(pl){
       if(pl.getBoundingClientRect().height > 4) shown++;
@@ -6720,7 +6997,7 @@ function renderActionBar(){
 
   var b = document.getElementById("abPlay");
   if(b) b.onclick = function(){
-    if(!S.picked.length){ goNav("home","today"); return; }
+    if(!S.picked.length){ goNav("home","training"); return; }
     startWeek();
   };
 }
@@ -6761,7 +7038,7 @@ function bindShell(){
     if(e.key === "e" || e.key === "E" || e.key === "'"){ cycleTab(1); return; }
     if(e.key === "ArrowLeft")  { cycleSub(1);  return; }
     if(e.key === "ArrowRight") { cycleSub(-1); return; }
-    if(e.key === "Escape"){ goNav("home", "today"); return; }
+    if(e.key === "Escape"){ goNav("home", "central"); return; }
     if(e.key === "Enter"){ var b = document.getElementById("abPlay"); if(b) b.click(); }
   });
 
@@ -7201,7 +7478,7 @@ function rehabWeek(){
   S.money += S.wage;
   runCoachMarket(); runStorylets(); saveGame();
   if(S.week > S.maxWeek) return endSeason();
-  goNav("home","today");
+  goNav("home","central");
   var got = addXp(xp);
   if(back) toast("🩹 חזרת לכושר. שבועות ראשונים — סיכון להישנות.");
   else toast("שבוע שיקום. עוד " + Math.ceil(S.injury.left) + " שבועות.");
@@ -10805,7 +11082,7 @@ function nextWeek(){
   saveGame();
 
   if(S.week > S.maxWeek) return endSeason();
-  goNav("home","today");
+  goNav("home","central");
   if(S.slPending) setTimeout(showStorylet, 260);
 }
 
@@ -11174,7 +11451,7 @@ function endSeason(){
     if(openTransferWindow()){
       goNav("market","offers");
       toast("חלון ההעברות נפתח — " + S.offers.length + " הצעות");
-    } else { goNav("home","today"); }
+    } else { goNav("home","central"); }
     saveGame();
   };
 }
@@ -11261,7 +11538,7 @@ function loadGame(){
     if(!s || !s.a || !s.pos) return false;
     /* forward-compat: fill anything a newer build expects */
     if(!s.traits) s.traits = [];
-    if(!s.nav || !s.nav.sec) s.nav = {sec:"home", sub:"today"};
+    if(!s.nav || !s.nav.sec || s.nav.sub === "today") s.nav = {sec:"home", sub:"central"};
     if(!s.slCd) s.slCd = {};
     if(!s.slEchoes) s.slEchoes = [];
     if(!s.promises) s.promises = [];
