@@ -9344,6 +9344,13 @@ var MINI = (function(){
       sc.tweens.add({targets:c, y:y-24, duration:520, yoyo:true, repeat:-1, ease:"Sine.easeInOut"});
       return c;
     },
+    dust: function(sc, x, y){
+      for(var i=0;i<8;i++){
+        var p = sc.add.circle(x, y+4, 1.6 + Math.random()*2, 0xFFFFFF, 0.5);
+        sc.tweens.add({targets:p, x:x + (Math.random()-0.5)*44, y:y + 6 + Math.random()*12,
+          alpha:0, duration:320 + Math.random()*220, onComplete:function(){ p.destroy(); }});
+      }
+    },
     ball: function(sc, x, y){
       var c = sc.add.container(x, y);
       var sh = sc.add.ellipse(2, 6, 11, 5, 0x000000, 0.3);
@@ -9422,6 +9429,8 @@ var MINI = (function(){
 
     PITCH.hud(sc, c.home || "בית", c.away || "חוץ", c.hg || 0, c.ag || 0, sc.wind);
 
+    if(c.mode === "dribble") return startDribble();
+
     /* stage 1: drag out of the ball */
     sc.aimG = sc.add.graphics();
     sc.aim = {live:false, tx:c.bx, ty:c.by - 60, power:0};
@@ -9471,6 +9480,82 @@ var MINI = (function(){
     sc.input.on("pointerup", end);
     sc.input.on("pointerupoutside", end);
 
+    /* ── taking a man on ────────────────────────────────────────────
+       Nothing is struck here, so nothing cuts to the ball. The defender
+       closes you down, and somewhere on his way in he commits his weight
+       to one side — he steps across, and a chevron shows it. Go the other
+       way and you are past him. Go early and it is a coin toss, because
+       he has not shown you anything yet. Go late and he has the ball.
+       Dribbling skill shows you the tell sooner and widens the window. */
+    function startDribble(){
+      sc.stage = "dribble";
+      var d = sc.foes[0];
+      if(!d){ Base.finish(sc, {grade:"good", forced:{dribble:true, made:true, onTarget:true}}); return; }
+      var skill = c.skill || 0.5;
+      var closeMs = 1500 + skill*900;
+      var tellAt  = 0.44 + (1 - skill)*0.22;      /* the better you are, the earlier you read it */
+      var side = Math.random() < 0.5 ? -1 : 1;    /* the way he commits */
+      var committed = false, swiped = false, arrived = false;
+      var chev = null;
+
+      MINI.stage("הוא בא — חכה שיישבר לצד, ואז גרור לצד השני");
+
+      var t = {p:0};
+      var startX = d.x, startY = d.y;
+      sc.tweens.add({targets:t, p:1, duration:closeMs, ease:"Sine.easeIn",
+        onUpdate:function(){
+          d.x = startX + (sc.ball.x - startX)*t.p*0.92;
+          d.y = startY + (sc.ball.y - 16 - startY)*t.p*0.92;
+          if(!committed && t.p >= tellAt){
+            committed = true;
+            /* he steps across, and the chevron says which way */
+            sc.tweens.add({targets:d, x:d.x + side*13, duration:220, ease:"Quad.easeOut"});
+            chev = sc.add.graphics().setDepth(12);
+            chev.lineStyle(3, 0xEB6834, 0.95);
+            var cxq = d.x + side*20, cyq = d.y;
+            chev.lineBetween(cxq - side*7, cyq - 7, cxq, cyq);
+            chev.lineBetween(cxq, cyq, cxq - side*7, cyq + 7);
+            sc.tweens.add({targets:chev, alpha:{from:0.3, to:1}, duration:200, yoyo:true, repeat:-1});
+          }
+        },
+        onComplete:function(){
+          arrived = true;
+          if(!swiped) settle(false, "איחרת — הוא לקח לך אותו");
+        }});
+
+      /* the swipe */
+      var sx0 = null;
+      sc.input.on("pointerdown", function(p){ sx0 = p.x; });
+      sc.input.on("pointerup", function(p){
+        if(swiped || arrived || sx0 === null) return;
+        var dx = p.x - sx0;
+        if(Math.abs(dx) < 16) return;             /* a tap is not a move */
+        swiped = true;
+        var went = dx > 0 ? 1 : -1;
+        var beat;
+        if(!committed) beat = Math.random() < 0.34 + skill*0.16;   /* guessing */
+        else           beat = (went !== side);
+        /* the burst of pace past him */
+        var toX = Phaser.Math.Clamp(sc.ball.x + went*70, 22, W-22);
+        sc.tweens.add({targets:[sc.ball, sc.me, sc.meRing], x:"+=" + (went*62),
+          y:"-=" + (beat ? 46 : 8), duration:beat ? 420 : 260, ease:"Quad.easeOut"});
+        if(beat) PITCH.dust(sc, sc.ball.x, sc.ball.y);
+        setTimeout(function(){
+          settle(beat, beat ? "עברת אותו!" : (committed ? "הוא קרא אותך" : "הוא לקח לך אותו"));
+        }, 380);
+      });
+
+      function settle(beat, msg){
+        if(sc.done) return;
+        sc.done = true;
+        if(chev) chev.destroy();
+        PITCH_flash(sc, beat ? 0x1baf7a : 0xC0392B);
+        MINI.msg(msg, beat);
+        Base.finish(sc, {grade: beat ? "great" : "fail",
+                         forced:{dribble:true, made:beat, onTarget:beat}});
+      }
+    }
+
     /* stage 2: the ball, filling the screen, against the crowd */
     function openStrike(){
       sc.stage = "strike";
@@ -9505,20 +9590,25 @@ var MINI = (function(){
         }
         g.fillStyle(0x17150F, 0.30); g.fillRect(0, yy+9, W, 2);
       }
-      g.fillStyle(0xF7F5F1, 1); g.fillRect(0, 167, W, 20);
+      g.fillStyle(0xF7F5F1, 1); g.fillRect(0, 167, W, 18);
       lay.add(g);
-      lay.add(sc.add.text(W/2, 177, "NEW  ★  CAREER", {fontFamily:"sans-serif",
+      lay.add(sc.add.text(96, 176, "NEW  ★  CAREER", {fontFamily:"sans-serif",
         fontSize:"11px", color:"#C0392B", fontStyle:"bold"}).setOrigin(0.5));
       var gg = sc.add.graphics();
-      for(var i2=0;i2<6;i2++){
+      for(var i2=0;i2<5;i2++){
         gg.fillStyle(i2%2 ? 0x2E8B57 : 0x25794A, 1);
-        gg.fillRect(0, 187 + i2*((H-187)/6), W, (H-187)/6);
+        gg.fillRect(0, 185 + i2*((H-185)/5), W, (H-185)/5);
       }
       lay.add(gg);
+      /* the right half is the read-out; the ball lives on the left */
+      var panel = sc.add.graphics();
+      panel.fillStyle(0x0B1018, 0.90); panel.fillRoundedRect(216, 8, W-228, H-16, 10);
+      panel.lineStyle(1, 0xFFFFFF, 0.16); panel.strokeRoundedRect(216, 8, W-228, H-16, 10);
+      lay.add(panel);
 
       /* the ball itself, big, with a shadow on the grass */
-      var BR = 42, BX = W/2, BY = 196;
-      var bs = sc.add.ellipse(BX + 3, BY + 34, 88, 18, 0x000000, 0.26);
+      var BR = 46, BX = 104, BY = 150;
+      var bs = sc.add.ellipse(BX + 4, BY + 40, 96, 19, 0x000000, 0.28);
       var big = sc.add.circle(BX, BY, BR, 0xFFFFFF);
       big.setStrokeStyle(2, 0x17150F, 0.30);
       /* a football is pentagons, not dots */
@@ -9545,36 +9635,93 @@ var MINI = (function(){
         sc.make.graphics().fillCircle(BX, BY, BR).fillStyle(0xffffff)));
       lay.add([bs, big, pan]);
       sc.strikeBall = {x:BX, y:BY, r:BR};
-      var plate = sc.add.graphics();
-      plate.fillStyle(0x0B1018, 0.82); plate.fillRoundedRect(W/2-104, 84, 208, 26, 13);
-      var lbl = sc.add.text(W/2, 90, "היכן לפגוע בכדור?", {fontFamily:"sans-serif",
-        fontSize:"15px", color:"#FFFFFF", fontStyle:"bold"}).setOrigin(0.5, 0);
-      lay.add([plate, lbl]);
-      MINI.stage("נגיעה נמוכה מרימה · נגיעה בצד מסובבת");
+      var lbl = sc.add.text(322, 20, "היכן לפגוע בכדור?", {fontFamily:"sans-serif",
+        fontSize:"13px", color:"#FFFFFF", fontStyle:"bold"}).setOrigin(0.5, 0);
+      lay.add(lbl);
+      MINI.stage("גרור על הכדור: נמוך מרים אותו · בצד מסובב אותו");
 
-      var tapped = false;
-      sc.input.once("pointerdown", function(p){
-        if(tapped) return; tapped = true;
-        /* where on the ball, in -1..1 across and down */
-        var B = sc.strikeBall;
-        var sx = Phaser.Math.Clamp((p.x - B.x) / B.r, -1, 1);
-        var sy = Phaser.Math.Clamp((p.y - B.y) / B.r, -1, 1);
-        var burst = sc.add.graphics();
+      /* Two gauges beside the ball. Dragging low on the ball lifts it —
+         that is the height, and it is a drag, not a tap. Dragging to the
+         side puts swerve on it. The marker and the ball both follow the
+         finger, exactly as they do in the game. */
+      var gauge = sc.add.graphics(); lay.add(gauge);
+      var mark  = sc.add.graphics(); lay.add(mark);
+      var hLbl = sc.add.text(252, 44, "גובה", {fontFamily:"sans-serif", fontSize:"9.5px",
+        color:"#FFFFFF", fontStyle:"bold"}).setOrigin(0.5, 0); lay.add(hLbl);
+      var cLbl = sc.add.text(348, 128, "סיבוב", {fontFamily:"sans-serif", fontSize:"9.5px",
+        color:"#FFFFFF", fontStyle:"bold"}).setOrigin(0.5, 0); lay.add(cLbl);
+      var hint = sc.add.text(322, 196, "", {fontFamily:"sans-serif", fontSize:"11px",
+        color:"#FFFFFF", fontStyle:"bold", align:"center"}).setOrigin(0.5); lay.add(hint);
+      var hNum = sc.add.text(252, 214, "0%", {fontFamily:"sans-serif", fontSize:"10px",
+        color:"#9FE8C4", fontStyle:"bold"}).setOrigin(0.5); lay.add(hNum);
+
+      var B = sc.strikeBall;
+      var live = false, done2 = false, sx = 0, sy = 0;
+
+      function bars(){
+        var lift = Math.max(0, sy), curl = Math.abs(sx);
+        gauge.clear();
+        /* height, rising up the panel */
+        gauge.fillStyle(0x1A2430, 0.95); gauge.fillRoundedRect(243, 60, 18, 148, 9);
+        gauge.fillStyle(0x3FB37F, 0.96);
+        gauge.fillRoundedRect(246, 205 - lift*142, 12, Math.max(5, lift*142), 6);
+        for(var t2=1;t2<4;t2++){
+          gauge.fillStyle(0xFFFFFF, 0.22);
+          gauge.fillRect(243, 60 + t2*37, 18, 1);
+        }
+        /* swerve, left and right of centre */
+        gauge.fillStyle(0x1A2430, 0.95); gauge.fillRoundedRect(286, 144, 124, 14, 7);
+        var cw = curl*58;
+        gauge.fillStyle(0xE8C766, 0.96);
+        if(sx < 0) gauge.fillRoundedRect(348 - cw, 147, cw, 8, 4);
+        else       gauge.fillRoundedRect(348, 147, cw, 8, 4);
+        gauge.fillStyle(0xFFFFFF, 0.7); gauge.fillRect(347, 142, 2, 18);
+        hNum.setText(Math.round(lift*100) + "%");
+      }
+      function marker(){
+        mark.clear();
+        var mx = B.x + sx*(B.r-7), my = B.y + sy*(B.r-7);
+        mark.lineStyle(2.5, 0xEB6834, 0.95); mark.strokeCircle(mx, my, 9);
+        mark.fillStyle(0xEB6834, 0.9); mark.fillCircle(mx, my, 3.2);
+        hint.setText((sy > 0.30 ? "בעיטה מורמת" : (sy > 0.08 ? "מורם קלות" : (sy < -0.25 ? "נמוך ונגוע" : "ישר")))
+          + "\n" + (Math.abs(sx) < 0.2 ? "בלי סיבוב" : (sx < 0 ? "מסתובב ימינה" : "מסתובב שמאלה")));
+      }
+      function set(p){
+        var dx = p.x - B.x, dy = p.y - B.y;
+        var d = Math.sqrt(dx*dx + dy*dy) || 1;
+        var k = Math.min(1, d / B.r);
+        sx = Phaser.Math.Clamp((dx/d)*k, -1, 1);
+        sy = Phaser.Math.Clamp((dy/d)*k, -1, 1);
+        /* the ball leans away from the point you are pressing */
+        big.x = B.x - sx*5; big.y = B.y - sy*3;
+        pan.x = -sx*5;      pan.y = -sy*3;
+        marker(); bars();
+      }
+      set({x:B.x, y:B.y + B.r*0.5});
+
+      sc.input.on("pointerdown", function(p){ if(!done2){ live = true; set(p); } });
+      sc.input.on("pointermove", function(p){ if(live && !done2) set(p); });
+      function release(){
+        if(!live || done2) return;
+        live = false; done2 = true;
         var bxp = B.x + sx*(B.r-6), byp = B.y + sy*(B.r-6);
+        var burst = sc.add.graphics();
         for(var k=0;k<10;k++){
-          var an = k*Math.PI/5, rr = k%2 ? 6 : 15;
+          var an = k*Math.PI/5, rr = k%2 ? 7 : 17;
           burst.fillStyle(k%2 ? 0xF2C500 : 0xEB6834, 1);
           burst.fillTriangle(bxp, byp,
             bxp + Math.cos(an)*rr, byp + Math.sin(an)*rr,
             bxp + Math.cos(an+0.62)*rr, byp + Math.sin(an+0.62)*rr);
         }
         lay.add(burst);
-        sc.tweens.add({targets:burst, scale:{from:0.2, to:1.25}, duration:180, ease:"Back.easeOut"});
+        sc.tweens.add({targets:burst, scale:{from:0.2, to:1.3}, duration:180, ease:"Back.easeOut"});
         setTimeout(function(){
           sc.tweens.add({targets:lay, alpha:0, duration:220,
             onComplete:function(){ lay.destroy(); fly(sx, sy); }});
         }, 420);
-      });
+      }
+      sc.input.on("pointerup", release);
+      sc.input.on("pointerupoutside", release);
     }
 
     /* stage 3: the flight, bent by the strike point and by the wind */
@@ -9592,8 +9739,8 @@ var MINI = (function(){
       var wpx = Math.sin(sc.wind.a) * sc.wind.s * 3.2;
       var wpy = -Math.cos(sc.wind.a) * sc.wind.s * 3.2;
       tx += wpx; ty += wpy;
-      /* low contact lifts it: the ball rides higher and drops late */
-      var lift = Math.max(0, -sy);
+      /* striking under the ball is what lifts it */
+      var lift = Math.max(0, sy);
 
       var mx = (sc.ball.x + tx)/2, my = (sc.ball.y + ty)/2;
       var nx = -(ty - sc.ball.y)/len, ny = (tx - sc.ball.x)/len;
