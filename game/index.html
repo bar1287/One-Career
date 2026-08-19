@@ -73,60 +73,10 @@ button{font:inherit;color:inherit}
 /* ── app shell ─────────────────────────────────────────────────── */
 #app{height:100vh;height:100dvh;display:flex;flex-direction:column}
 
-.hdr{
-  display:flex;align-items:center;gap:14px;padding:0 16px;height:58px;flex:0 0 58px;
-  background:var(--surface);border-bottom:1px solid var(--line2);position:relative;z-index:5;
-}
-.hdr::before{content:"";position:absolute;inset-inline:0;top:0;height:3px;background:var(--club)}
-.crest{
-  width:36px;height:36px;border-radius:8px;background:var(--club);color:#fff;
-  display:grid;place-items:center;font-weight:900;font-size:12px;letter-spacing:.02em;flex:0 0 auto;
-  box-shadow:inset 0 -2px 0 rgba(0,0,0,.18);
-}
-.hdr .who{line-height:1.15;min-width:0}
-.hdr .who b{display:block;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hdr .who span{font-size:11px;color:var(--ink3)}
-.hdr .pill{
-  display:flex;align-items:center;gap:7px;background:var(--sunken);border:1px solid var(--line);
-  border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;
-}
-.hdr .pill i{font-style:normal;color:var(--ink3);font-weight:800;font-size:10px;letter-spacing:.1em}
-.grow{flex:1 1 auto}
-.iconbtn{
-  background:var(--surface);border:1px solid var(--line2);border-radius:8px;
-  width:34px;height:34px;display:grid;place-items:center;cursor:pointer;font-size:15px;
-}
-.iconbtn:hover{background:var(--hover)}
-
 /* The stage is a known size, so its rows are given definite pixel heights
    rather than inferred through the flex chain — Safari has collapsed that
    chain before, and a collapsed chain means a blank board.
-   520 = 46 header + 38 level-1 tabs + 32 level-2 tabs + 404 main,
-   and 404 = 350 stage + 54 hint bar. */
-.main{flex:0 0 404px;display:flex;min-height:0;height:404px}
-
-.rail{
-  flex:0 0 84px;background:var(--surface);border-inline-end:1px solid var(--line2);
-  display:flex;flex-direction:column;padding:10px 8px;gap:4px;overflow-y:auto;
-}
-.rail button{
-  background:none;border:none;cursor:pointer;border-radius:10px;padding:9px 4px;
-  display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink3);
-  font-size:10.5px;font-weight:700;position:relative;transition:background .15s,color .15s;
-}
-.rail button em{font-style:normal;font-size:19px;line-height:1}
-.rail button:hover{background:var(--hover);color:var(--ink)}
-.rail button.on{background:var(--accent-soft);color:var(--accent-ink)}
-.rail button.on::before{
-  content:"";position:absolute;inset-inline-start:-8px;top:50%;transform:translateY(-50%);
-  width:3px;height:24px;border-radius:0 3px 3px 0;background:var(--club);
-}
-.rail .badge{
-  position:absolute;top:5px;inset-inline-end:9px;min-width:16px;height:16px;border-radius:9px;
-  background:var(--bad);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px;
-}
-
-
+   520 = 42 identity + 46 tabs + 396 stage + 36 hints. */
 
 /* ══════════════════════════════════════════════════════════════════
    GAME DRESS
@@ -138,37 +88,6 @@ button{font:inherit;color:inherit}
   content:"";position:absolute;inset:0;pointer-events:none;z-index:30;border-radius:14px;
   box-shadow:inset 0 0 0 1px rgba(23,21,15,.10), inset 0 0 44px rgba(23,21,15,.05);
 }
-.hdr{
-  height:46px;flex:0 0 46px;gap:9px;padding:0 12px;
-  background:linear-gradient(180deg, var(--surface), var(--sunken));
-  border-bottom:1px solid var(--line2);
-  box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 0 2px 8px rgba(23,21,15,.05);
-}
-.hdr::after{
-  content:"";position:absolute;inset-inline:0;bottom:-1px;height:2px;
-  background:linear-gradient(90deg, transparent, var(--accent), transparent);opacity:.5;
-}
-.crest{width:34px;height:34px;font-size:11px;border-radius:9px}
-.who b{font-size:12.5px} .who span{font-size:10px}
-.ovrchip{min-width:46px;height:34px}
-.ovrchip b{font-size:17px}
-.valchip{height:34px;padding:0 9px}
-.valchip b{font-size:12px} .valchip span{font-size:9px}
-.pill{height:26px;padding:0 9px;font-size:10.5px}
-.pill i{font-size:8.5px}
-.xpwrap{min-width:104px}
-.xptop{font-size:9.5px}
-.iconbtn{width:28px;height:28px;font-size:13px}
-
-.rail{display:none}
-.rail button{padding:6px 2px;border-radius:10px;gap:2px}
-.rail button em{font-size:16px}
-.rail button span{font-size:9px;letter-spacing:.02em}
-.rail button.on{
-  background:var(--accent-soft);color:var(--accent-ink);
-  box-shadow:inset 0 0 0 1px rgba(31,111,67,.28), 0 2px 6px rgba(31,111,67,.13);
-}
-
 .p{
   border-radius:11px;box-shadow:0 1px 2px rgba(23,21,15,.05), 0 3px 10px rgba(23,21,15,.045);
   position:relative;
@@ -315,117 +234,105 @@ th{font-size:9.5px !important}
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   THE MENU — FIFA's own anatomy.
+   THE SHELL — four rows, and nothing else
 
-   FIFA stacks two levels of tabs and nothing else. Level 1 runs across
-   the top and is cycled with the shoulder buttons; Back on any level-1
-   tab returns to Central. Level 2 is a horizontal strip directly under
-   it, preceded by a breadcrumb. There is no side rail — the board gets
-   the full width — and a persistent hint bar at the foot names the
-   buttons. A Switcher jumps straight to any screen, pinned ones first.
+   The rule this screen is built on comes straight out of console UI
+   practice: show only what is needed at the moment it is needed, and
+   keep anything critical within two or three presses. FIFA obeys it —
+   its career screen carries an identity strip, a row of tabs, the
+   content, and a line naming the buttons. Twelve elements of chrome.
+
+   The version before this one carried forty-one: a header of ten chips,
+   two levels of tabs, a breadcrumb, a switcher and an action bar with
+   its own chips and hints. Every one of them was defensible on its own
+   and together they buried the game. So: identity, tabs, content,
+   hints. Everything else moved inside the screen that needs it.
+
+   Navigation is two levels deep, no more. A tab shows a grid of tiles;
+   a tile opens one screen; back returns. Two presses to anything.
    ════════════════════════════════════════════════════════════════ */
-.l1bar{
-  flex:0 0 38px;height:38px;display:flex;align-items:stretch;
-  background:linear-gradient(180deg, var(--sunken), var(--surface));
-  border-bottom:1px solid var(--line2);position:relative;z-index:5;
+.idbar{
+  flex:0 0 42px;height:42px;display:flex;align-items:center;gap:10px;padding:0 13px;
+  background:var(--surface);border-bottom:1px solid var(--line2);position:relative;z-index:6;
 }
-.l1tabs{flex:1 1 auto;display:flex;align-items:stretch;position:relative;overflow:hidden}
-.l1cyc{
-  flex:0 0 auto;border:0;background:transparent;cursor:pointer;color:var(--ink3);
-  display:flex;align-items:center;gap:4px;padding:0 9px;
+.idcrest{
+  width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto;
+  font-size:10px;font-weight:900;box-shadow:inset 0 -2px 0 rgba(0,0,0,.2);
 }
-.l1cyc em{font-style:normal;font-size:17px;line-height:1;transform:scaleX(-1)}
-.l1cyc i{
-  font-style:normal;font-size:8.5px;font-weight:900;letter-spacing:.06em;
-  border:1px solid var(--line2);border-radius:4px;padding:1px 4px;opacity:.75;
+.idwho{min-width:0;display:flex;flex-direction:column;gap:1px}
+.idwho b{font-size:13px;font-weight:900;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.idwho span{font-size:9.5px;font-weight:700;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.idnum{display:flex;flex-direction:column;align-items:flex-end;gap:0;flex:0 0 auto}
+.idnum b{font-size:13px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.idnum span{font-size:8.5px;font-weight:800;letter-spacing:.1em;color:var(--ink3)}
+.idrate{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto;
+  min-width:44px;height:32px;border-radius:8px;background:var(--ink);color:var(--paper);
 }
-.l1cyc:hover{color:var(--ink);background:var(--hover)}
+.idrate b{font-size:16px;font-weight:900;line-height:1}
+.idrate span{font-size:7.5px;font-weight:800;letter-spacing:.14em;opacity:.7}
+.idbtn{
+  flex:0 0 auto;width:28px;height:28px;border-radius:8px;border:1px solid var(--line2);
+  background:var(--surface);cursor:pointer;display:grid;place-items:center;font-size:13px;color:var(--ink2);
+}
+.idbtn:hover{background:var(--hover)}
+@media (max-width:560px){.idnum{display:none}}
+
+/* the tabs: five, big, and the only navigation permanently on screen */
+.tabbar{
+  flex:0 0 46px;height:46px;display:flex;align-items:center;gap:6px;padding:0 12px;
+  background:var(--sunken);border-bottom:1px solid var(--line);position:relative;z-index:5;
+}
 .tab{
-  position:relative;border:0;background:transparent;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:6px;padding:0 16px;
-  font-size:12px;font-weight:900;color:var(--ink3);letter-spacing:.06em;
-  transition:color .16s;white-space:nowrap;
+  flex:1 1 0;min-width:0;height:32px;border-radius:99px;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--ink3);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:12.5px;font-weight:900;letter-spacing:.04em;white-space:nowrap;
+  transition:background .15s,color .15s,border-color .15s;
 }
-.tab em{font-style:normal;font-size:13px;line-height:1;opacity:.7}
-.tab:hover{color:var(--ink2)}
-.tab.on{color:var(--ink)}
-.tab.on em{opacity:1;color:var(--accent)}
-/* one underline for the whole bar, slid into place — FIFA animates the
-   indicator rather than repainting a border on each tab */
-.l1ink{
-  position:absolute;bottom:0;height:3px;border-radius:3px 3px 0 0;
-  background:var(--accent);box-shadow:0 -1px 9px rgba(31,111,67,.55);
-  transition:left .22s cubic-bezier(.2,0,.1,1), width .22s cubic-bezier(.2,0,.1,1);
-  pointer-events:none;
+.tab:hover{color:var(--ink2);background:var(--hover)}
+.tab.on{
+  background:var(--ink);color:var(--paper);border-color:var(--ink);
+  box-shadow:0 1px 4px rgba(23,21,15,.22);
 }
 .tab .tbadge{
-  font-style:normal;min-width:16px;height:16px;padding:0 4px;border-radius:99px;
+  min-width:17px;height:17px;padding:0 5px;border-radius:99px;
   background:var(--bad);color:#fff;font-size:9.5px;font-weight:900;
   display:grid;place-items:center;
 }
+.tab.on .tbadge{background:var(--paper);color:var(--ink)}
 
-.l2bar{
-  flex:0 0 32px;height:32px;display:flex;align-items:center;gap:8px;
-  padding:0 10px;background:var(--sunken);border-bottom:1px solid var(--line);
-  position:relative;z-index:4;
+/* the line that names the buttons */
+.hintbar{
+  flex:0 0 36px;height:36px;display:flex;align-items:center;gap:14px;padding:0 14px;
+  background:var(--surface);border-top:1px solid var(--line2);
 }
-.crumb{
-  flex:0 0 auto;font-size:9px;font-weight:900;letter-spacing:.16em;color:var(--ink3);
-  display:flex;align-items:center;gap:5px;white-space:nowrap;
-}
-.crumb b{color:var(--ink2);font-weight:900}
-.l2tabs{
-  flex:1 1 auto;display:flex;align-items:center;gap:4px;min-width:0;
-  overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
-}
-.l2tabs::-webkit-scrollbar{display:none}
-.snitem{
-  flex:0 0 auto;border:1px solid transparent;background:transparent;cursor:pointer;
-  padding:4px 11px;border-radius:99px;font-size:11.5px;font-weight:800;color:var(--ink3);
-  display:flex;align-items:center;gap:5px;white-space:nowrap;transition:background .14s,color .14s;
-}
-.snitem:hover{background:var(--hover);color:var(--ink)}
-.snitem.on{background:var(--surface);color:var(--ink);border-color:var(--line2);box-shadow:0 1px 3px rgba(23,21,15,.09)}
-.snitem .sb{
-  min-width:15px;height:15px;padding:0 4px;border-radius:99px;background:var(--bad);color:#fff;
-  font-size:9px;font-weight:900;display:grid;place-items:center;
-}
-.snitem .pin{font-size:9px;opacity:.6}
-.swbtn{
-  flex:0 0 auto;border:1px solid var(--line2);background:var(--surface);cursor:pointer;
-  border-radius:7px;padding:3px 9px;display:flex;align-items:center;gap:5px;
-  font-size:10.5px;font-weight:800;color:var(--ink2);
-}
-.swbtn em{font-style:normal;font-size:12px}
-.swbtn:hover{background:var(--hover);color:var(--ink)}
-@media (max-width:560px){.swbtn span{display:none}}
-
-/* the Switcher: every screen in the game, one press away */
-.swgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-.swcell{
-  border:1px solid var(--line2);background:var(--surface);border-radius:9px;cursor:pointer;
-  padding:8px 9px;text-align:start;display:flex;flex-direction:column;gap:2px;position:relative;
-}
-.swcell:hover{background:var(--hover);border-color:var(--accent)}
-.swcell b{font-size:11.5px;font-weight:850;color:var(--ink)}
-.swcell span{font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--ink3)}
-.swcell .star{
-  position:absolute;top:5px;inset-inline-end:6px;font-size:11px;opacity:.28;
-}
-.swcell.pinned .star{opacity:1;color:var(--gold)}
-.swcell.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-
-/* the hint bar names the buttons, the way a console UI always does */
-.hints{
-  display:flex;align-items:center;gap:9px;margin-inline-start:auto;flex:0 0 auto;
-}
-.hint1{display:flex;align-items:center;gap:4px;font-size:9.5px;font-weight:800;color:var(--ink3);white-space:nowrap}
+.hint1{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:800;color:var(--ink3);white-space:nowrap}
 .hint1 kbd{
   font-family:inherit;font-size:9px;font-weight:900;border:1px solid var(--line2);
   border-radius:4px;padding:1px 5px;background:var(--sunken);color:var(--ink2);
-  box-shadow:0 1px 0 var(--line2);
 }
-@media (max-width:820px){.hints{display:none}}
+.hintbar .grow{flex:1}
+.hintnote{font-size:10.5px;font-weight:800;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:640px){.hint1.opt{display:none}}
+
+/* a screen you opened from a tile: its own title and its own way back */
+.vhead{
+  flex:0 0 34px;height:34px;display:flex;align-items:center;gap:9px;
+  padding:0 2px 6px;border-bottom:1px solid var(--line);margin-bottom:8px;
+}
+.vback{
+  flex:0 0 auto;width:26px;height:26px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--line2);background:var(--surface);color:var(--ink2);
+  display:grid;place-items:center;font-size:15px;font-weight:900;transform:scaleX(-1);
+}
+.vback:hover{background:var(--hover);border-color:var(--accent);color:var(--accent-ink)}
+.vhead h2{margin:0;font-size:15px;font-weight:900;letter-spacing:.02em}
+.vhead .vmeta{
+  margin-inline-start:auto;font-size:10.5px;font-weight:800;color:var(--ink3);
+  display:flex;align-items:center;gap:8px;
+}
+.vbody{flex:1 1 auto;min-height:0;position:relative}
 
 /* ══════════════════════════════════════════════════════════════════
    THE GAME SHELL
@@ -488,40 +395,28 @@ body{
 .stage.nopack>*{height:auto}
 /* Central is a fixed grid that fills the stage — no scrolling, ever */
 .stage.full{overflow:hidden}
-.stage.full>.bento{height:100%}
+.stage.full>.bento{flex:1;min-height:0}
 #errbar{
   position:absolute;inset-inline:0;bottom:0;z-index:120;background:var(--bad);color:#fff;
   font-size:11px;font-weight:800;padding:6px 12px;cursor:pointer;text-align:center;
   left:0;right:0;
 }
 
-.board{
-  flex:1 1 auto;min-width:0;min-height:0;height:404px;
-  display:flex;flex-direction:column;overflow:hidden;
-}
 .stage{
-  flex:0 0 350px;height:350px;overflow:hidden;padding:9px 12px 3px;
+  flex:0 0 396px;height:396px;overflow:hidden;padding:11px 13px;
   min-width:0;min-height:0;position:relative;
+  display:flex;flex-direction:column;
 }
-/* the action bar is never inside a panel and never scrolls away */
-.actbar{
-  flex:0 0 54px;height:54px;display:flex;align-items:center;gap:10px;
-  padding:0 12px;border-top:1px solid var(--line2);
-  background:linear-gradient(180deg, var(--sunken), var(--surface));
-}
-.actbar .btn{flex:0 0 auto;min-width:190px}
-.actbar .abinfo{display:flex;flex-direction:column;gap:2px;min-width:0}
-.actbar .abinfo b{font-size:12px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.actbar .abinfo span{font-size:10px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.actbar .abchips{display:flex;gap:6px;margin-inline-start:auto;flex-wrap:nowrap;overflow:hidden}
-.stage>.boardpage{
-  position:absolute;inset:9px 12px 3px;
+.stage.view{padding:9px 13px 11px}
+/* the panels of an opened screen fill its body exactly */
+.vbody>.boardpage{
+  position:absolute;inset:0;
   display:grid;gap:9px;align-items:stretch;
   grid-template-columns:repeat(3,minmax(0,1fr));
   grid-template-rows:minmax(0,1fr);
 }
-.stage>.boardpage.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.stage>.boardpage.c1{grid-template-columns:minmax(0,1fr)}
+.vbody>.boardpage.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.vbody>.boardpage.c1{grid-template-columns:minmax(0,1fr)}
 .bcolwrap{position:relative;min-width:0;min-height:0;height:100%;overflow:hidden}
 .bfade{
   position:absolute;inset-inline:0;bottom:0;height:34px;pointer-events:none;opacity:0;
@@ -1606,6 +1501,11 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
 .newsdots{display:flex;gap:4px;margin-top:auto}
 .newsdots i{width:5px;height:5px;border-radius:50%;background:var(--line2)}
 .newsdots i.on{background:var(--accent)}
+.objmini{display:flex;align-items:baseline;gap:6px;font-size:11px;line-height:1.35;padding:2px 0}
+.objmini span{font-weight:900;color:var(--ink3);flex:0 0 10px}
+.objmini b{font-weight:800;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.objmini.done span{color:var(--accent)}
+.objmini.done b{color:var(--ink3);text-decoration:line-through}
 
 /* the social feed */
 .post{border-bottom:1px solid var(--line);padding:9px 0}
@@ -1727,44 +1627,22 @@ html[data-cb="trit"] {--accent:#1E7A56; --accent-ink:#13583C; --bad:#B02A5B; --b
 
 <div id="fit">
 <div id="app" dir="rtl" lang="he">
-  <header class="hdr">
-    <div class="crest" id="hCrest">—</div>
-    <div class="who">
-      <b id="hClub">—</b>
-      <span id="hMeta">—</span>
-    </div>
-    <div class="ovrchip"><b id="hOvr">50</b><span>OVR</span><u id="hOvrFrac"></u></div>
-    <div class="valchip"><b id="hVal">€0</b><span id="hValD"></span></div>
-    <div class="valchip"><b id="hMoney">₪0</b><span>בבנק</span></div>
-    <div class="xpwrap">
-      <div class="xptop"><span class="lvl" id="hLvl">רמה 1</span><span class="n" id="hXpTxt">0 / 0 XP</span></div>
-      <div class="xpbar"><i id="hXpFill" style="width:0%"></i></div>
-    </div>
+  <!-- Four rows and no more: who you are, where you are, what is there,
+       what the buttons do. Everything else lives inside a screen. -->
+  <header class="idbar">
+    <div class="idcrest" id="idCrest">—</div>
+    <div class="idwho"><b id="idName">—</b><span id="idSub">—</span></div>
     <div class="grow"></div>
-    <div class="pill n"><i>עונה</i><span id="hSeason">1</span></div>
-    <div class="pill n"><i>מחזור</i><span id="hWeek">1</span></div>
-    <div class="pill n"><i>גיל</i><span id="hAge">18</span></div>
-    <button class="iconbtn" id="hRead" title="זמן קריאה ברגעי משחק">⏱</button>
-    <button class="iconbtn" id="hTheme" title="ערכת נושא" aria-label="החלף ערכת נושא">◐</button>
+    <div class="idnum" id="idCtx"><b>—</b><span>—</span></div>
+    <div class="idrate"><b id="idOvr">50</b><span>OVR</span></div>
+    <button class="idbtn" id="hTheme" aria-label="החלף ערכת נושא">◐</button>
   </header>
 
-  <nav class="l1bar">
-    <button class="l1cyc" id="l1prev" aria-label="לשונית קודמת"><em>‹</em><i>L1</i></button>
-    <div class="l1tabs" id="tabs"></div>
-    <button class="l1cyc" id="l1next" aria-label="לשונית הבאה"><i>R1</i><em>›</em></button>
-  </nav>
-  <div class="l2bar">
-    <div class="crumb" id="crumb"></div>
-    <div class="l2tabs" id="subnav"></div>
-    <button class="swbtn" id="swOpen" title="מעבר מהיר (Tab)"><em>⌗</em><span>מעבר מהיר</span></button>
-  </div>
+  <nav class="tabbar" id="tabs"></nav>
 
-  <div class="main">
-    <div class="board" id="boardWrap">
-      <div class="stage" id="stage"></div>
-      <div class="actbar" id="actbar"></div>
-    </div>
-  </div>
+  <div class="stage" id="stage"></div>
+
+  <div class="hintbar" id="hints"></div>
   <div id="layers"></div>
   <div id="miniHost"><div class="minimsg" id="miniMsg"></div></div>
 </div>
@@ -4322,7 +4200,12 @@ function viewSettings(){
       + '<p class="hint" style="margin:0 0 6px">גודל טקסט</p><div class="archrow">' + sizes + '</div>'
       + '<p class="hint" style="margin:11px 0 6px">אנימציות</p><div class="archrow">' + motions + '</div>'
       + '<p class="hint" style="margin:11px 0 6px">ראיית צבע</p><div class="archrow">' + cbs + '</div>'
-      + '</div></div>'
+      + '<p class="hint" style="margin:11px 0 6px">זמן קריאה ברגעי משחק</p><div class="archrow">'
+      + Object.keys(READ_MODES).map(function(k){
+          return '<button class="archc ' + (S.readMode === k ? "on" : "off") + '" data-read="' + k + '">'
+            + '<b>' + READ_MODES[k] + '</b></button>';
+        }).join("")
+      + '</div></div></div>'
 
     + '<div class="p" data-panel="life/settings"><h3>שמירות</h3><div class="pb">'
       + '<div class="kv"><span>שמירה אוטומטית</span><b class="n">אחרי כל מחזור</b></div>'
@@ -4368,11 +4251,7 @@ function importSave(){
    number or two, and a press opens the screen behind them. Nothing on
    this screen is a wall of text, and nothing here scrolls.
    ════════════════════════════════════════════════════════════════ */
-function tile(cls, go, badge, head, body){
-  return '<button class="tile ' + cls + '" data-go="' + go + '"'
-    + (badge ? '><i class="tbadge2">' + badge + '</i>' : '>')
-    + '<h4>' + head + '</h4>' + body + '</button>';
-}
+
 
 function viewCentral(){
   var fx  = S.fixtures[S.week-1] || S.fixtures[S.fixtures.length-1];
@@ -4382,7 +4261,7 @@ function viewCentral(){
   var p   = POS[S.pos];
 
   /* ── PLAY MATCH ── the one tile that is twice the size of the others */
-  var playHead, playBody, playCls = "t-play primary", playGo = "home/training";
+  var playHead, playBody, playCls = "t-play primary", playGo = "training";
   if(isInjured()){
     playCls = "t-play primary warn";
     playHead = '<em>🚑</em>שבוע שיקום';
@@ -4431,17 +4310,28 @@ function viewCentral(){
     + '<div class="pggrid">' + pgGrid + '</div></div>'
     + '<div class="sub">' + (S.sp ? S.sp + ' נקודות כישור זמינות' : 'רמה ' + S.level) + '</div>';
 
-  /* ── NEWS ── */
-  var head3 = (S.news || []).slice(0, 3);
-  var newsBody = '<div class="fill">'
-    + (head3.length
-      ? head3.map(function(n, i){
-          return '<div class="newsline" style="' + (i ? "margin-top:6px;opacity:.62" : "") + '">'
-            + String(n.t).replace(/<[^>]+>/g, "") + '</div>';
+  /* ── OBJECTIVES ── the three the manager is actually counting */
+  var objs = (S.objectives || []).slice(0, 3);
+  var objBody = '<div class="fill">'
+    + (objs.length
+      ? objs.map(function(ob){
+          var st = objState(ob);
+          return '<div class="objmini' + (ob.done ? " done" : "") + '">'
+            + '<span>' + (ob.done ? "✔" : "·") + '</span><b>' + st.t + '</b></div>';
         }).join("")
-      : '<div class="newsline" style="opacity:.6">העולם עוד לא התחיל לזוז. שחק מחזור.</div>')
-    + '</div>'
-    + '<div class="newsdots"><i class="on"></i><i></i><i></i></div>';
+      : '<div class="newsline" style="opacity:.6">יעדים נקבעים בתחילת העונה.</div>')
+    + '</div>';
+
+  /* ── INBOX ── */
+  var msgs = (S.inbox || []).slice(0, 3);
+  var inboxBody = '<div class="fill">'
+    + (msgs.length
+      ? msgs.map(function(m, i){
+          return '<div class="newsline" style="' + (i ? "margin-top:5px;opacity:.6" : "") + '">'
+            + String(m.t).replace(/<[^>]+>/g, "").slice(0, 62) + '</div>';
+        }).join("")
+      : '<div class="newsline" style="opacity:.6">שקט. זה גם מצב.</div>')
+    + '</div>';
 
   /* ── ADVANCE ── the week ahead, as a strip of days */
   var dayN = ["ב׳","ג׳","ד׳","ה׳","ו׳","ש׳","א׳"];
@@ -4489,13 +4379,13 @@ function viewCentral(){
   var objLeft = (S.objectives || []).filter(function(o){ return !o.done; }).length;
   var inboxN  = Math.max(0, S.inbox.length - S.seen);
 
-  return '<div class="bento" data-panel="home/central">'
-    + tile(playCls,    playGo,             0,       playHead,  playBody)
-    + tile("t-growth", "player/skills",    S.sp,    'פיתוח שחקן', growthBody)
-    + tile("t-news",   "home/news",        inboxN,  'חדשות',     newsBody)
-    + tile("t-advance","home/training",    0,       'השבוע',     advBody)
-    + tile("t-train",  "home/training",    left,    'אימונים',   trainBody)
-    + tile("t-table",  "comp/table",       objLeft, LEAGUES[S.league].n, tableBody)
+  return '<div class="bento">'
+    + tileN(playCls,    playGo,        0,       playHead,  playBody)
+    + tileN("t-growth", "skills",      S.sp,    'פיתוח שחקן', growthBody)
+    + tileN("t-news",   "objectives",  objLeft, 'יעדי העונה', objBody)
+    + tileN("t-advance","training",    0,       'השבוע',     advBody)
+    + tileN("t-train",  "training",    left,    'אימונים',   trainBody)
+    + tileN("t-table",  "inbox",       inboxN,  'הודעות',    inboxBody)
     + '</div>';
 }
 
@@ -4538,360 +4428,384 @@ function viewTraining(){
       + '</div></div>';
 }
 
-var SECTIONS = [
-  {id:"home", n:"מרכז", i:"⌂", subs:[
-    {id:"central",    n:"מרכז"},
-    {id:"training",   n:"אימונים"},
-    {id:"objectives", n:"יעדי העונה"},
-    {id:"inbox",      n:"הודעות"},
-    {id:"news",       n:"חדשות"},
-    {id:"status",     n:"מעמד ומאמן"}
-  ]},
-  {id:"player", n:"השחקן", i:"◉", subs:[
-    {id:"card",    n:"כרטיס שחקן"},
-    {id:"attrs",   n:"פיתוח תכונות"},
-    {id:"skills",  n:"עצי כישורים"},
-    {id:"pers",    n:"אישיות"},
-    {id:"moves",   n:"מהלכי חתימה"},
-    {id:"kpi",     n:"דוח תפקיד"},
-    {id:"traits",  n:"תכונות והישגים"},
-    {id:"matches", n:"המשחקים שלך"},
-    {id:"stats",   n:"סטטיסטיקה"}
-  ]},
-  {id:"club", n:"המועדון", i:"▤", subs:[
-    {id:"depth",   n:"מעמד בסגל"},
-    {id:"tactics", n:"תפקיד והוראות"},
-    {id:"room",    n:"חדר הלבשה"},
-    {id:"squad",   n:"הסגל המלא"},
-    {id:"board",   n:"הנהלה ומתקנים"}
-  ]},
-  {id:"comp", n:"תחרויות", i:"≡", subs:[
-    {id:"table",    n:"טבלה"},
-    {id:"calendar", n:"לוח העונה"},
-    {id:"fixtures", n:"לוח משחקים"},
-    {id:"scorers",  n:"מלך השערים"},
-    {id:"talents",  n:"כישרונות"},
-    {id:"leaders",  n:"מובילות הליגות"}
-  ]},
-  {id:"market", n:"העברות", i:"⇄", subs:[
-    {id:"offers",   n:"הצעות ומו״מ"},
-    {id:"interest", n:"מי מתעניין"},
-    {id:"contract", n:"החוזה שלך"},
-    {id:"agent",    n:"הסוכן שלך"},
-    {id:"loan",     n:"השאלות"},
-    {id:"search",   n:"מסד השחקנים"},
-    {id:"watch",    n:"רשימת מעקב"}
-  ]},
-  {id:"life", n:"קריירה", i:"✦", subs:[
-    {id:"history", n:"היסטוריה"},
-    {id:"media",   n:"תקשורת ורשתות"},
-    {id:"brand",   n:"מיתוג וספונסרים"},
-    {id:"assets",  n:"נכסים"},
-    {id:"shop",    n:"חנות"},
-    {id:"records", n:"שיאים ופרסים"},
-    {id:"nemesis", n:"היריב שלך"},
-    {id:"nat",      n:"נבחרת"},
-    {id:"settings", n:"הגדרות"}
-  ]}
+/* ══════════════════════════════════════════════════════════════════
+   NAVIGATION — five tabs, a grid of tiles, one screen deep
+
+   Console UI practice says: keep anything critical inside two or three
+   presses, and never put more on screen than the moment needs. FIFA does
+   exactly that — a row of tabs, a grid of tiles, and pressing a tile
+   opens one screen with a way back. There is no second row of tabs, no
+   breadcrumb, no quick-jump menu, because with a grid you do not need
+   them: everything is already two presses away.
+
+   The screens themselves did not change. Each one is still built by the
+   same view function it always was; VIEWS just says which panels belong
+   to it and which tab it hangs under.
+   ════════════════════════════════════════════════════════════════ */
+var TABS = [
+  {id:"home",   n:"מרכז"},
+  {id:"player", n:"השחקן"},
+  {id:"club",   n:"המועדון"},
+  {id:"season", n:"העונה"},
+  {id:"career", n:"קריירה"}
 ];
 
-function secDef(id){ for(var i=0;i<SECTIONS.length;i++) if(SECTIONS[i].id===id) return SECTIONS[i]; return SECTIONS[0]; }
+/* id → {title, tab, panels it collects, sources that build them, columns} */
+var VIEWS = {
+  training:  {n:"תוכנית שבועית", tab:"home",   src:["training","hub"], keys:["home/training"], cols:2},
+  objectives:{n:"יעדי העונה",    tab:"home",   src:["hub"],            keys:["home/objectives"], cols:1},
+  inbox:     {n:"הודעות",        tab:"home",   src:["hub"],            keys:["home/inbox"], cols:1},
+  news:      {n:"חדשות העולם",   tab:"home",   src:["world"],          keys:["home/news"], cols:2},
+
+  card:      {n:"כרטיס השחקן",   tab:"player", src:["player","career"], keys:["player/card","player/matches"], cols:2},
+  attrs:     {n:"פיתוח תכונות",  tab:"player", src:["player"],         keys:["player/attrs"], cols:1},
+  skills:    {n:"עצי כישורים",   tab:"player", src:["growth"],         keys:["player/skills"], cols:2},
+  pers:      {n:"אישיות",        tab:"player", src:["pers"],           keys:["player/pers"], cols:2},
+  moves:     {n:"מהלכי חתימה",   tab:"player", src:["player"],         keys:["player/moves","player/traits"], cols:2},
+  kpi:       {n:"דוח תפקיד",     tab:"player", src:["player"],         keys:["player/kpi"], cols:1},
+  stats:     {n:"סטטיסטיקה",     tab:"player", src:["stats"],          keys:["player/stats"], cols:2},
+
+  squad:     {n:"הסגל",          tab:"club",   src:["squad"],          keys:["club/squad"], cols:1},
+  depth:     {n:"מעמד בסגל",     tab:"club",   src:["squad","hub"],    keys:["club/depth","home/status"], cols:2},
+  room:      {n:"חדר הלבשה",     tab:"club",   src:["squad"],          keys:["club/room"], cols:2},
+  tactics:   {n:"תפקיד והוראות", tab:"club",   src:["tactics"],        keys:["club/tactics"], cols:2},
+  board:     {n:"הנהלה ומתקנים", tab:"club",   src:["board"],          keys:["club/board"], cols:2},
+
+  calendar:  {n:"לוח העונה",     tab:"season", src:["calendar"],       keys:["comp/calendar"], cols:2},
+  table:     {n:"טבלת הליגה",    tab:"season", src:["league"],         keys:["comp/table"], cols:1},
+  fixtures:  {n:"לוח משחקים",    tab:"season", src:["league"],         keys:["comp/fixtures"], cols:2},
+  scorers:   {n:"מלך השערים",    tab:"season", src:["league"],         keys:["comp/scorers"], cols:2},
+  world:     {n:"העולם",         tab:"season", src:["world"],          keys:["comp/talents","comp/leaders"], cols:2},
+
+  contract:  {n:"חוזה והצעות",   tab:"career", src:["career","world"], keys:["market/offers","market/interest","market/contract"], cols:2},
+  agent:     {n:"הסוכן שלך",     tab:"career", src:["agent"],          keys:["market/agent"], cols:2},
+  market:    {n:"שוק השחקנים",   tab:"career", src:["world","loans"],  keys:["market/search","market/watch","market/loan"], cols:1},
+  media:     {n:"תקשורת ורשתות", tab:"career", src:["media"],          keys:["life/media"], cols:2},
+  brand:     {n:"מיתוג וכסף",    tab:"career", src:["career"],         keys:["life/brand","life/assets","life/shop"], cols:2},
+  history:   {n:"היסטוריה ושיאים", tab:"career", src:["career","records"], keys:["life/history","life/records"], cols:2},
+  nemesis:   {n:"היריב שלך",     tab:"career", src:["career"],         keys:["life/nemesis"], cols:2},
+  nat:       {n:"נבחרת",         tab:"career", src:["career"],         keys:["life/nat"], cols:2},
+  settings:  {n:"הגדרות",        tab:"career", src:["settings"],       keys:["life/settings"], cols:2}
+};
+
+var SOURCES = {
+  hub:viewHub, training:viewTraining, player:viewPlayer, squad:viewSquad,
+  league:viewLeague, world:viewWorld, career:viewCareer,
+  growth:viewGrowth, pers:viewPersonality, media:viewMedia,
+  tactics:viewTactics, board:viewBoard, agent:viewAgent, loans:viewLoans,
+  calendar:viewCalendar, records:viewRecords, stats:viewStats, settings:viewSettings
+};
+
+function tabDef(id){ for(var i=0;i<TABS.length;i++) if(TABS[i].id===id) return TABS[i]; return TABS[0]; }
 function navNow(){
-  if(!S.nav || !S.nav.sec) S.nav = {sec:"home", sub:"central"};
-  var sec = secDef(S.nav.sec);
-  var ok = sec.subs.some(function(x){ return x.id === S.nav.sub; });
-  if(!ok) S.nav.sub = sec.subs[0].id;
+  if(!S.nav || !S.nav.tab) S.nav = {tab:"home", view:null};
+  if(S.nav.view && !VIEWS[S.nav.view]) S.nav.view = null;
   return S.nav;
 }
-function goNav(sec, sub){
-  S.nav = {sec:sec, sub: sub || secDef(sec).subs[0].id};
-  /* a short memory of where you have been, for the Switcher */
-  if(!S.recent) S.recent = [];
-  var rk = S.nav.sec + "/" + S.nav.sub;
-  var ri2 = S.recent.indexOf(rk);
-  if(ri2 >= 0) S.recent.splice(ri2, 1);
-  S.recent.unshift(rk);
-  if(S.recent.length > 6) S.recent.pop();
-  if(sec === "home" && S.nav.sub === "inbox") S.seen = S.inbox.length;
-  S.screen = sec;
+function goTab(id){
+  if(!tabDef(id)) id = "home";
+  S.nav = {tab:id, view:null};
   render();
 }
-
-/* badge counts that appear on the tabs, the way FIFA flags an inbox */
-function navBadge(secId){
-  if(secId === "home")   return Math.max(0, S.inbox.length - S.seen);
-  if(secId === "player") return S.tp || 0;
-  if(secId === "market") return (S.offers ? S.offers.length : 0) + (S.pendingRenewal ? 1 : 0);
-  return 0;
+function openView(id){
+  var V = VIEWS[id];
+  if(!V) return goTab("home");
+  S.nav = {tab:V.tab, view:id};
+  if(id === "inbox") S.seen = S.inbox.length;
+  render();
+}
+function goBack(){
+  var nav = navNow();
+  if(nav.view){ S.nav = {tab:nav.tab, view:null}; render(); }
+  else if(nav.tab !== "home") goTab("home");
+}
+/* every old call site said goNav(section, sub); the sub is the view id */
+function goNav(a, b){
+  if(b && VIEWS[b]) return openView(b);
+  if(a === "home" && (!b || b === "central")) return goTab("home");
+  if(VIEWS[a]) return openView(a);
+  var map = {home:"home", player:"player", club:"club", comp:"season", market:"career", life:"career", season:"season", career:"career"};
+  return goTab(map[a] || "home");
 }
 
-var NAV = [
-  {id:"hub",    i:"◧", t:"היום"},
-  {id:"player", i:"◉", t:"השחקן"},
-  {id:"squad",  i:"▤", t:"הסגל"},
-  {id:"league", i:"≡", t:"ליגות"},
-  {id:"world",  i:"🌍", t:"עולם"},
-  {id:"career", i:"✦", t:"קריירה"}
-];
+/* ── the tiles ─────────────────────────────────────────────────────
+   Each tab is a grid. A tile is a title, one or two numbers, and a
+   door. Nothing on a tile needs reading twice. */
+function tileN(cls, view, badge, head, body){
+  return '<button class="tile ' + cls + '" data-view="' + view + '"'
+    + (badge ? '><i class="tbadge2">' + badge + '</i>' : '>')
+    + '<h4>' + head + '</h4>' + body + '</button>';
+}
+function kvline(a, b){
+  return '<div class="kv" style="padding:3px 0"><span>' + a + '</span><b class="n">' + b + '</b></div>';
+}
+function tileArt(key, c, c2){ return '<div class="art">' + ART.get(key, c, c2, 330) + '</div>'; }
 
-function renderShell(){
-  applyOpts();
+function bentoPlayer(){
+  var p = POS[S.pos], vals = p.face.map(grpVal);
+  var dom = persDom();
+  var grid = p.face.map(function(g,i){
+    return '<span class="pgv"><b>'+vals[i]+'</b><span>'+g+'</span></span>';
+  }).join("");
+  return '<div class="bento">'
+    + tileN("t-play primary shot", "card", 0, 'כרטיס השחקן',
+        tileArt("squad", club(S.club).c, club(S.club).t)
+        + '<div class="sub">' + p.n + ' · ' + club(S.club).n + '</div>'
+        + '<div class="fill"><div class="pgtop">'
+          + '<span class="pgcell"><span>OVR</span><b>' + ovr() + '</b></span>'
+          + '<span class="pgcell"><span>שווי</span><b style="font-size:13px">' + money(value()) + '</b></span>'
+          + '<span class="pgcell"><span>גיל</span><b>' + S.age + '</b></span>'
+        + '</div><div class="pggrid">' + grid + '</div></div>'
+        + '<span class="pmgo">לכרטיס ◂</span>')
+    + tileN("t-growth", "skills", S.sp, 'עצי כישורים',
+        '<div class="fill">'
+        + kvline("נקודות זמינות", S.sp)
+        + kvline("ארכיטיפים", S.arche.length + "/6")
+        + kvline("מצוידים", S.archeOn.length + "/3") + '</div>')
+    + tileN("t-news", "pers", 0, 'אישיות',
+        '<div class="fill">'
+        + '<div class="newsline">' + (dom ? '<b>' + PERS[dom].n + '</b> — ' + PERS[dom].d : 'עוד לא נקבעה. משחקים קובעים אותה.') + '</div>'
+        + '</div>')
+    + tileN("t-advance", "attrs", S.tp, 'פיתוח תכונות',
+        '<div class="fill">'
+        + kvline("נקודות אימון", S.tp)
+        + kvline("פוטנציאל", S.potential ? "~" + S.potential : "לא נחשף")
+        + kvline("תכונות מיוחדות", (S.traits||[]).length + "/" + TRAITS.length) + '</div>')
+    + tileN("t-train", "kpi", 0, 'דוח תפקיד',
+        '<div class="fill">' + kvline("ציון ממוצע", S.roleScores.length
+            ? Math.round(S.roleScores.reduce(function(a,b){return a+b},0)/S.roleScores.length) : "—")
+          + kvline("משחקים", S.apps) + '</div>')
+    + tileN("t-table", "stats", 0, 'סטטיסטיקה',
+        '<div class="fill">' + kvline("שערים", S.careerGoals)
+          + kvline("בישולים", S.careerAssists) + kvline("הופעות", S.careerApps) + '</div>')
+    + '</div>';
+}
+
+function bentoClub(){
+  var c = club(S.club), avg = Math.round(S.squad.reduce(function(t,x){return t+x.ovr},0)/S.squad.length);
+  var st = clubStanding(S.club);
+  return '<div class="bento">'
+    + tileN("t-play primary shot", "squad", 0, c.n,
+        tileArt("squad", c.c, c.t)
+        + '<div class="sub">' + LEAGUES[c.lg].flag + ' ' + LEAGUES[c.lg].n + '</div>'
+        + '<div class="fill"><div class="pgtop">'
+          + '<span class="pgcell"><span>מקום</span><b>' + (st ? st.place : "—") + '</b></span>'
+          + '<span class="pgcell"><span>ממוצע</span><b>' + avg + '</b></span>'
+          + '<span class="pgcell"><span>סגל</span><b>' + S.squad.length + '</b></span>'
+        + '</div></div>'
+        + '<span class="pmgo">לסגל ◂</span>')
+    + tileN("t-growth", "depth", 0, 'מעמד בסגל',
+        '<div class="fill">' + kvline("מעמד", S.status)
+          + kvline("ציון מאמן", Math.round(S.mgr)) + kvline("אמון", Math.round(S.trust)) + '</div>')
+    + tileN("t-news", "room", 0, 'חדר הלבשה',
+        '<div class="fill">' + kvline("אווירה", dressingRoom())
+          + kvline("לכידות", cohesionLabel()) + '</div>')
+    + tileN("t-advance", "tactics", 0, 'תפקיד והוראות',
+        '<div class="fill">' + kvline("תפקיד", roleNow().n)
+          + kvline("הוראות", S.tactics.instr.length + "/3")
+          + kvline("עומס משוער", "×" + tacticLoad().toFixed(2)) + '</div>')
+    + tileN("t-train", "board", 0, 'הנהלה',
+        '<div class="fill">' + kvline("מצב רוח", Math.round(S.boardMood))
+          + kvline("המאמן", S.coach ? S.coach.n.split(" ")[0] : "—") + '</div>')
+    + tileN("t-table", "nemesis", 0, 'היריב שלך',
+        '<div class="fill">' + (S.nemesis
+          ? '<div class="newsline"><b>' + S.nemesis.n + '</b><br>ראש בראש ' + S.nemesis.h2h.w + '-' + S.nemesis.h2h.d + '-' + S.nemesis.h2h.l + '</div>'
+          : '<div class="newsline" style="opacity:.6">עוד לא הוגדר.</div>') + '</div>')
+    + '</div>';
+}
+
+function bentoSeason(){
+  var T = S.tables[S.league] || {};
+  var rows = LEAGUES[S.league].clubs.map(function(c){ return {c:c, t:T[c.id] || {p:0,pts:0,gf:0,ga:0}}; })
+    .sort(function(a,b){ return b.t.pts-a.t.pts || (b.t.gf-b.t.ga)-(a.t.gf-a.t.ga); }).slice(0,6);
+  var tbl = '<table class="minitab"><thead><tr><td></td><td></td><td class="r">מש׳</td><td class="r">נק׳</td></tr></thead><tbody>'
+    + rows.map(function(r,i){
+        return '<tr' + (r.c.id===S.club?' class="me"':'') + '><td style="width:14px">'+(i+1)+'</td>'
+          + '<td><span class="sw" style="background:'+r.c.c+'"></span>'+r.c.ab+'</td>'
+          + '<td class="r">'+r.t.p+'</td><td class="r">'+r.t.pts+'</td></tr>';
+      }).join("") + '</tbody></table>';
+  return '<div class="bento">'
+    + tileN("t-play primary shot", "table", 0, LEAGUES[S.league].n,
+        tileArt("pitch", club(S.club).c, club(S.club).t)
+        + '<div class="sub">מחזור ' + S.week + ' מתוך ' + S.maxWeek + '</div>'
+        + '<div class="fill" style="max-width:62%">' + tbl + '</div>')
+    + tileN("t-growth", "calendar", 0, 'לוח העונה',
+        '<div class="fill">' + kvline("הופעות", S.apps) + kvline("דקות", S.minutes)
+          + kvline("ציון ממוצע", S.ratings.length ? avgRating().toFixed(2) : "—") + '</div>')
+    + tileN("t-news", "fixtures", 0, 'לוח משחקים',
+        '<div class="fill">' + (function(){
+            var fx = S.fixtures[S.week-1];
+            return fx ? '<div class="newsline">הבא: <b>' + club(fx.opp).n + '</b><br>'
+              + (fx.home ? "בבית" : "בחוץ") + '</div>' : '<div class="newsline">סוף העונה.</div>';
+          })() + '</div>')
+    + tileN("t-advance", "scorers", 0, 'מלך השערים',
+        '<div class="fill">' + kvline("השערים שלך", S.goals)
+          + kvline("הבישולים שלך", S.assists) + kvline("מצטיין המשחק", S.motm) + '</div>')
+    + tileN("t-train", "world", 0, 'העולם',
+        '<div class="fill">' + kvline("ליגות", LG_IDS.length)
+          + kvline("מועדונים", Object.keys(CLUBS).length) + '</div>')
+    + tileN("t-table", "nat", S.natCalled ? 1 : 0, 'נבחרת',
+        '<div class="fill">' + kvline("הופעות", S.natCaps) + kvline("שערים", S.natGoals) + '</div>')
+    + '</div>';
+}
+
+function bentoCareer(){
+  var offers = (S.offers ? S.offers.length : 0) + (S.pendingRenewal ? 1 : 0);
+  return '<div class="bento">'
+    + tileN("t-play primary shot", "contract", offers, 'חוזה והצעות',
+        tileArt("market", club(S.club).c, club(S.club).t)
+        + '<div class="sub">' + club(S.club).n + '</div>'
+        + '<div class="fill"><div class="pgtop">'
+          + '<span class="pgcell"><span>שכר</span><b style="font-size:13px">₪' + S.wage + 'k</b></span>'
+          + '<span class="pgcell"><span>שנים</span><b>' + S.contractYears + '</b></span>'
+          + '<span class="pgcell"><span>מתעניינים</span><b>' + (S.interest ? S.interest.length : 0) + '</b></span>'
+        + '</div></div>'
+        + '<span class="pmgo">' + (offers ? offers + ' הצעות ◂' : 'לחוזה ◂') + '</span>')
+    + tileN("t-growth", "agent", 0, 'הסוכן שלך',
+        '<div class="fill">' + kvline("סוכן", agentDef().n)
+          + kvline("מוניטין", agentDef().rep) + '</div>')
+    + tileN("t-news", "media", 0, 'תקשורת',
+        '<div class="fill">' + kvline("עוקבים", followersText(S.followers))
+          + kvline("דירוג אוהדים", Math.round(S.fanRating)) + '</div>')
+    + tileN("t-advance", "brand", 0, 'מיתוג וכסף',
+        '<div class="fill">' + kvline("בבנק", "₪" + Math.round(S.money) + "k")
+          + kvline("מיתוג", Math.round(S.brand||0)) + kvline("נכסים", (S.assets||[]).length) + '</div>')
+    + tileN("t-train", "history", 0, 'היסטוריה',
+        '<div class="fill">' + kvline("תארים", S.honours.length)
+          + kvline("פרסים", S.awards.length) + '</div>')
+    + tileN("t-table", "settings", 0, 'הגדרות',
+        '<div class="fill">' + kvline("קושי", diffNow().n)
+          + kvline("עונה", S.season) + '</div>')
+    + '</div>';
+}
+
+var BENTOS = {home:viewCentral, player:bentoPlayer, club:bentoClub, season:bentoSeason, career:bentoCareer};
+
+/* ── rendering ─────────────────────────────────────────────────── */
+function tabBadge(id){
+  if(id === "home")   return Math.max(0, S.inbox.length - S.seen);
+  if(id === "player") return (S.tp||0) + (S.sp||0);
+  if(id === "career") return (S.offers ? S.offers.length : 0) + (S.pendingRenewal ? 1 : 0);
+  return 0;
+}
+function renderTabs(){
+  var nav = navNow(), el = document.getElementById("tabs");
+  if(!el) return;
+  el.innerHTML = "";
+  TABS.forEach(function(t){
+    var b = document.createElement("button");
+    b.className = "tab" + (t.id === nav.tab ? " on" : "");
+    var n = tabBadge(t.id);
+    b.innerHTML = '<span>' + t.n + '</span>' + (n ? '<i class="tbadge">' + n + '</i>' : '');
+    b.onclick = function(){ goTab(t.id); };
+    el.appendChild(b);
+  });
+}
+function renderHints(){
+  var el = document.getElementById("hints");
+  if(!el || typeof S === "undefined" || !S) return;
+  var nav = navNow();
+  var note = "";
+  if(!nav.view){
+    var fx = S.fixtures[S.week-1];
+    note = isInjured() ? "בשיקום · " + Math.ceil(S.injury.left) + " שבועות"
+      : (S.susp > 0 ? suspText()
+      : (fx ? "מחזור " + S.week + " · " + (fx.home ? "בית מול " : "חוץ מול ") + club(fx.opp).n : "סוף העונה"));
+  } else {
+    note = VIEWS[nav.view].n;
+  }
+  el.innerHTML = '<span class="hintnote">' + note + '</span><span class="grow"></span>'
+    + (nav.view ? '<span class="hint1"><kbd>Esc</kbd>חזור</span>' : '')
+    + '<span class="hint1 opt"><kbd>1…5</kbd>לשוניות</span>'
+    + '<span class="hint1 opt"><kbd>Enter</kbd>שחק</span>';
+}
+function renderIdentity(){
   var c = club(S.club);
   document.documentElement.style.setProperty("--club", c.c);
-  var cr = document.getElementById("hCrest");
-  cr.textContent = c.ab; cr.style.background = c.c; cr.style.color = c.t;
-  document.getElementById("hClub").textContent = S.name + " · " + POS[S.pos].n;
-  document.getElementById("hMeta").textContent = c.n + " · " + LEAGUES[S.league].flag + " " + LEAGUES[S.league].n;
-  document.getElementById("hSeason").textContent = S.season;
-  document.getElementById("hWeek").textContent = S.week + "/" + S.maxWeek;
-  document.getElementById("hAge").textContent = S.age;
-
-  var o = ovr(), v = value();
-  document.getElementById("hOvr").textContent = o;
-  document.getElementById("hOvrFrac").style.width = Math.round(ovrFrac()*100) + "%";
-  document.getElementById("hVal").textContent = money(v);
-  var vd = document.getElementById("hValD");
-  var dv = v - S.valuePrev;
-  if(S.valuePrev && Math.abs(dv) > v*0.005){
-    vd.textContent = (dv>0?"▲ ":"▼ ") + money(Math.abs(dv));
-    vd.className = dv>0 ? "up" : "dn";
-  } else { vd.textContent = "שווי שוק"; vd.className = ""; }
-
-  document.getElementById("hMoney").textContent = "₪" + Math.round(S.money) + "k";
-  document.getElementById("hLvl").textContent = "רמה " + S.level;
-  document.getElementById("hXpTxt").textContent = Math.round(S.xp) + " / " + xpNeed(S.level) + " XP";
-  document.getElementById("hXpTxt").dir = "ltr";
-  document.getElementById("hXpFill").style.width = clamp(S.xp/xpNeed(S.level)*100, 0, 100) + "%";
-
-  renderNav();
+  var cr = document.getElementById("idCrest");
+  if(cr){ cr.textContent = c.ab; cr.style.background = c.c; cr.style.color = c.t; }
+  var nm = document.getElementById("idName");
+  if(nm) nm.textContent = S.name;
+  var sb = document.getElementById("idSub");
+  if(sb) sb.textContent = POS[S.pos].n + " · " + c.n;
+  var ov = document.getElementById("idOvr");
+  if(ov) ov.textContent = ovr();
+  /* one contextual number, chosen by where you are */
+  var ctx = document.getElementById("idCtx");
+  if(ctx){
+    var nav = navNow(), val, lab;
+    if(nav.tab === "career"){ val = "₪" + Math.round(S.money) + "k"; lab = "בבנק"; }
+    else if(nav.tab === "player"){ val = "רמה " + S.level; lab = Math.round(S.xp) + "/" + xpNeed(S.level) + " XP"; }
+    else if(nav.tab === "club"){ val = Math.round(S.mgr); lab = "ציון מאמן"; }
+    else { val = S.week + "/" + S.maxWeek; lab = "עונה " + S.season; }
+    ctx.innerHTML = '<b>' + val + '</b><span>' + lab + '</span>';
+  }
+}
+function renderShell(){
+  applyOpts();
+  renderIdentity();
+  renderTabs();
+  renderHints();
 }
 
-function renderNav(){
-  var nav = navNow();
-  var tabs = document.getElementById("tabs");
-  var subnav = document.getElementById("subnav");
-  var crumb = document.getElementById("crumb");
-  if(!tabs || !subnav) return;
-
-  tabs.innerHTML = "";
-  var active = null;
-  SECTIONS.forEach(function(sec){
-    var b = document.createElement("button");
-    b.className = "tab" + (sec.id === nav.sec ? " on" : "");
-    var badge = navBadge(sec.id);
-    b.innerHTML = '<em>' + sec.i + '</em><span>' + sec.n + '</span>'
-      + (badge ? '<i class="tbadge">' + badge + '</i>' : '');
-    b.onclick = function(){ goNav(sec.id); };
-    tabs.appendChild(b);
-    if(sec.id === nav.sec) active = b;
+function viewHtml(id){
+  var V = VIEWS[id];
+  var buf = document.createElement("div"), out = "";
+  V.src.forEach(function(k){
+    try { out += SOURCES[k](); } catch(e){ reportIssue("מקור " + k, e); }
   });
-  /* the indicator is one element that slides, not a border per tab */
-  var ink = document.createElement("i");
-  ink.className = "l1ink";
-  tabs.appendChild(ink);
-  if(active) setTimeout(function(){
-    /* physical left: offsetLeft is physical even inside an RTL flow */
-    ink.style.width = (active.offsetWidth - 22) + "px";
-    ink.style.left = (active.offsetLeft + 11) + "px";
-  }, 0);
-
-  var sec = secDef(nav.sec);
-  if(crumb) crumb.innerHTML = '<span>' + sec.n + '</span><i>›</i><b>' + subName(nav) + '</b>';
-
-  subnav.innerHTML = "";
-  sec.subs.forEach(function(sub){
-    var b = document.createElement("button");
-    b.className = "snitem" + (sub.id === nav.sub ? " on" : "");
-    var n = subBadge(sec.id, sub.id);
-    b.innerHTML = (isPinned(sec.id, sub.id) ? '<span class="pin">★</span>' : '')
-      + '<span>' + sub.n + '</span>' + (n ? '<i class="sb">' + n + '</i>' : '');
-    b.onclick = function(){ goNav(sec.id, sub.id); };
-    subnav.appendChild(b);
+  buf.innerHTML = out;
+  var kept = [];
+  V.keys.forEach(function(key){
+    Array.prototype.forEach.call(buf.querySelectorAll('[data-panel="' + key + '"]'), function(el){ kept.push(el); });
   });
-  var on = subnav.querySelector(".snitem.on");
-  if(on && on.scrollIntoView) try { on.scrollIntoView({block:"nearest", inline:"center"}); } catch(e){}
+  return kept;
 }
-
-/* a count on the section itself, so you can see where the work is without
-   opening the category */
-function subBadge(secId, subId){
-  var k = secId + "/" + subId;
-  if(k === "home/inbox")      return Math.max(0, S.inbox.length - S.seen);
-  if(k === "home/objectives") return (S.objectives||[]).filter(function(o){ return !o.done; }).length;
-  if(k === "player/attrs")    return S.tp || 0;
-  if(k === "player/skills")   return S.sp || 0;
-  if(k === "market/offers")   return (S.offers ? S.offers.length : 0) + (S.pendingRenewal ? 1 : 0);
-  if(k === "market/interest") return (S.interest ? S.interest.length : 0);
-  if(k === "market/watch")    return (S.watch ? S.watch.length : 0);
-  return 0;
-}
-
-/* ── the Switcher ────────────────────────────────────────────────────
-   FIFA 26 added a menu that jumps straight to any destination and lets
-   you pin the ones you use. Tab opens it; a click on the star pins. */
-function pinKey(sec, sub){ return sec + "/" + sub; }
-function isPinned(sec, sub){ return (S.pins || []).indexOf(pinKey(sec, sub)) >= 0; }
-function togglePin(sec, sub){
-  if(!S.pins) S.pins = [];
-  var k = pinKey(sec, sub), i = S.pins.indexOf(k);
-  if(i >= 0) S.pins.splice(i, 1);
-  else if(S.pins.length < 8) S.pins.push(k);
-  saveGame();
-}
-function openSwitcher(){
-  if(document.getElementById("swLayer")) return;
-  var nav = navNow(), cells = [], pinned = [];
-  SECTIONS.forEach(function(sec){
-    sec.subs.forEach(function(sub){
-      var k = pinKey(sec.id, sub.id);
-      var html = '<button class="swcell' + (isPinned(sec.id, sub.id) ? " pinned" : "")
-        + (k === pinKey(nav.sec, nav.sub) ? " on" : "") + '" data-go="' + k + '">'
-        + '<span>' + sec.n + '</span><b>' + sub.n + '</b>'
-        + '<i class="star" data-pin="' + k + '">★</i></button>';
-      (isPinned(sec.id, sub.id) ? pinned : cells).push(html);
-    });
-  });
-  var recent = (S.recent || []).slice(1, 5).map(function(k){
-    var q = k.split("/"), sc = secDef(q[0]);
-    var nm = "";
-    sc.subs.forEach(function(x){ if(x.id === q[1]) nm = x.n; });
-    if(!nm) return "";
-    return '<button class="swcell" data-go="' + k + '"><span>' + sc.n + '</span><b>' + nm + '</b></button>';
-  }).filter(Boolean);
-
-  var body = (pinned.length
-      ? '<div class="p" style="margin-bottom:10px"><h3>מוצמדים <span class="r">' + pinned.length + '/8</span></h3>'
-        + '<div class="pb"><div class="swgrid">' + pinned.join("") + '</div></div></div>'
-      : '')
-    + (recent.length
-      ? '<div class="p" style="margin-bottom:10px"><h3>לאחרונה</h3>'
-        + '<div class="pb"><div class="swgrid">' + recent.join("") + '</div></div></div>'
-      : '')
-    + '<div class="p"><h3>כל המסכים <span class="r">' + cells.length + '</span></h3>'
-    + '<div class="pb"><div class="swgrid">' + cells.join("") + '</div></div></div>';
-  var el = openSheet("swLayer", "מעבר מהיר", body, "לחיצה על ★ מצמידה מסך לראש הרשימה · Tab לסגירה");
-  el.addEventListener("click", function(ev){
-    var pin = ev.target.closest("[data-pin]");
-    if(pin){ ev.stopPropagation(); var q = pin.getAttribute("data-pin").split("/");
-      togglePin(q[0], q[1]); el.remove(); openSwitcher(); renderNav(); return; }
-    var go = ev.target.closest("[data-go]");
-    if(go){ var t = go.getAttribute("data-go").split("/"); el.remove(); goNav(t[0], t[1]); }
-  });
-}
-
-/* one modal shape reused by every sheet in the game */
-function openSheet(id, title, bodyHtml, footNote){
-  var old = document.getElementById(id); if(old) old.remove();
-  var el = document.createElement("div");
-  el.className = "moment sheet"; el.id = id;
-  el.innerHTML = '<div class="shbox">'
-    + '<div class="shhead"><h3>' + title + '</h3>'
-    + '<button class="dbx" data-close="1">✕</button></div>'
-    + '<div class="shbody">' + bodyHtml + '</div>'
-    + (footNote ? '<div class="shfoot">' + footNote + '</div>' : '')
-    + '</div>';
-  document.getElementById("layers").appendChild(el);
-  el.addEventListener("click", function(ev){
-    if(ev.target === el || ev.target.closest("[data-close]")) el.remove();
-  });
-  return el;
-}
-
-/* cycling the level-1 tabs, the way the shoulder buttons do */
-function cycleTab(dir){
-  var nav = navNow(), i = 0;
-  for(var k=0;k<SECTIONS.length;k++) if(SECTIONS[k].id === nav.sec) i = k;
-  var n = (i + dir + SECTIONS.length) % SECTIONS.length;
-  goNav(SECTIONS[n].id);
-}
-function cycleSub(dir){
-  var nav = navNow(), sec = secDef(nav.sec), i = 0;
-  for(var k=0;k<sec.subs.length;k++) if(sec.subs[k].id === nav.sub) i = k;
-  var n = (i + dir + sec.subs.length) % sec.subs.length;
-  goNav(sec.id, sec.subs[n].id);
-}
-
-
-/* Which of the old screen builders a category needs. Panels are tagged, so
-   a category simply renders its sources and keeps what belongs to it. */
-/* Screens whose panels need room. The packer spreads panels over three
-   columns by default; a grid of six skill trees inside a 330px column is
-   unreadable, so those screens ask for fewer, wider columns. */
-/* Central lays itself out; the packer would take the bento apart and
-   stack the tiles in a column. */
-var SEC_FULL = {"home/central": 1};
-var SEC_COLS = {
-  "player/skills": 2,
-  "player/pers":   2,
-  "club/squad":    1,
-  "comp/table":    1,
-  "comp/calendar": 2,
-  "player/stats":  2,
-  "life/settings": 2,
-  "market/search": 1
-};
-var SEC_SOURCES = {
-  home:   ["central", "training", "hub", "world"],
-  player: ["player", "career", "growth", "pers", "stats"],
-  club:   ["squad", "tactics", "board"],
-  comp:   ["league", "world", "calendar"],
-  market: ["career", "world", "agent", "loans"],
-  life:   ["career", "world", "media", "records", "settings"]
-};
-function sourceHtmlFor(sec){
-  var VIEWS = {central:viewCentral, training:viewTraining, hub:viewHub, player:viewPlayer, squad:viewSquad,
-               league:viewLeague, world:viewWorld, career:viewCareer,
-               growth:viewGrowth, pers:viewPersonality, media:viewMedia,
-               tactics:viewTactics, board:viewBoard, agent:viewAgent, loans:viewLoans,
-               calendar:viewCalendar, records:viewRecords,
-               stats:viewStats, settings:viewSettings};
-  var out = "";
-  (SEC_SOURCES[sec] || ["hub"]).forEach(function(v){
-    try { out += VIEWS[v](); } catch(e){ reportIssue("מקור " + v, e); }
-  });
-  return out;
-}
-function subName(nav){
-  var sec = secDef(nav.sec);
-  for(var i=0;i<sec.subs.length;i++) if(sec.subs[i].id === nav.sub) return sec.subs[i].n;
-  return sec.n;
-}
-function emptyLine(nav){
-  var k = nav.sec + "/" + nav.sub;
+function emptyFor(id){
   var L = {
-    "home/inbox":      "אין הודעות חדשות. הן מגיעות מהמאמן, מהסוכן ומהמועדון.",
-    "home/news":       "העולם עוד לא התחיל לזוז. שחק מחזור.",
-    "market/offers":   "אין הצעות על השולחן. דקות, ציונים ודוחות תפקיד הם מה שפותח את השוק.",
-    "market/interest": "אף מועדון לא מסתכל עדיין.",
-    "market/watch":    "לא עקבת אחרי אף אחד. פתח מועדון מהטבלה ולחץ על שחקן.",
-    "life/nemesis":    "עוד לא הוגדר לך יריב.",
-    "player/matches":  "עוד לא שיחקת. הדוחות יופיעו כאן.",
-    "comp/talents":    "רשימת הכישרונות תיפתח אחרי המחזור הראשון."
+    inbox:"אין הודעות חדשות. הן מגיעות מהמאמן, מהסוכן ומהמועדון.",
+    news:"העולם עוד לא התחיל לזוז. שחק מחזור.",
+    contract:"אין הצעות על השולחן. דקות, ציונים ודוחות תפקיד הם מה שפותח את השוק.",
+    nemesis:"עוד לא הוגדר לך יריב.",
+    moves:"מהלכי חתימה נפתחים באימונים.",
+    history:"עוד לא הרמת כלום. זה יגיע.",
+    market:"לא עקבת אחרי אף אחד. פתח מועדון מהטבלה ולחץ על שחקן."
   };
-  return L[k] || "אין כאן מידע עדיין.";
+  return L[id] || "אין כאן מידע עדיין.";
 }
 
 function render(){
-  try { renderShell(); } catch(e){ reportIssue("HUD", e); }
+  try { renderShell(); } catch(e){ reportIssue("כותרת", e); }
   var nav = navNow();
+  var stage = document.getElementById("stage");
   try {
     stage.innerHTML = "";
-    var buf = document.createElement("div");
-    buf.innerHTML = sourceHtmlFor(nav.sec);
-    var want = nav.sec + "/" + nav.sub;
-    var picked = buf.querySelectorAll('[data-panel="' + want + '"]');
-
-    if(!picked.length){
-      stage.innerHTML = '<div class="p"><h3>' + subName(nav) + '</h3><div class="pb">'
-        + '<div class="empty">' + emptyLine(nav) + '</div></div></div>';
+    if(!nav.view){
+      stage.className = "stage full";
+      stage.innerHTML = (BENTOS[nav.tab] || BENTOS.home)();
     } else {
-      Array.prototype.forEach.call(picked, function(pl){ stage.appendChild(pl); });
+      var V = VIEWS[nav.view];
+      stage.className = "stage view";
+      var head = document.createElement("div");
+      head.className = "vhead";
+      head.innerHTML = '<button class="vback" id="vBack">‹</button><h2>' + V.n + '</h2>';
+      var body = document.createElement("div");
+      body.className = "vbody"; body.id = "vbody";
+      var panels = viewHtml(nav.view);
+      if(!panels.length){
+        body.innerHTML = '<div class="p"><h3>' + V.n + '</h3><div class="pb">'
+          + '<div class="empty">' + emptyFor(nav.view) + '</div></div></div>';
+      } else {
+        panels.forEach(function(pl){ body.appendChild(pl); });
+      }
+      stage.appendChild(head);
+      stage.appendChild(body);
     }
   } catch(e){
-    reportIssue("מסך " + nav.sec + "/" + nav.sub, e);
+    reportIssue("מסך " + (nav.view || nav.tab), e);
     stage.innerHTML = '<div class="p"><h3>שגיאה במסך הזה</h3><div class="pb">'
       + '<p style="margin:0 0 8px;font-size:13px;line-height:1.5">משהו נשבר בציור המסך. '
-      + 'שאר המשחק ממשיך לעבוד — נסה מסך אחר מהתפריט.</p>'
+      + 'שאר המשחק ממשיך לעבוד — נסה מסך אחר.</p>'
       + '<code style="font-size:11px;color:var(--bad-ink);word-break:break-word">'
       + String(e && e.message ? e.message : e) + '</code></div></div>';
   }
@@ -5685,6 +5599,9 @@ function bind(){
   Array.prototype.forEach.call(stage.querySelectorAll("[data-cb]"), function(b){
     b.onclick = function(){ S.opts.cb = b.getAttribute("data-cb"); applyOpts(); saveGame(); render(); };
   });
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-read]"), function(b){
+    b.onclick = function(){ S.readMode = b.getAttribute("data-read"); saveGame(); render(); };
+  });
   var ex = document.getElementById("expSave");   if(ex) ex.onclick = exportSave;
   var im = document.getElementById("impSave");   if(im) im.onclick = importSave;
   var wp = document.getElementById("wipeSave2");
@@ -5694,16 +5611,17 @@ function bind(){
     wp.textContent = "בטוח? לחץ שוב";
   };
 
-  Array.prototype.forEach.call(stage.querySelectorAll(".tile[data-go]"), function(b){
+  Array.prototype.forEach.call(stage.querySelectorAll(".tile[data-view]"), function(b){
     b.onclick = function(){
-      var t = b.getAttribute("data-go").split("/");
-      /* the primary tile plays the round when the week is already planned */
-      if(b.classList.contains("primary") && S.picked.length && !isInjured() && S.susp <= 0){
-        startWeek(); return;
-      }
-      goNav(t[0], t[1]);
+      var v = b.getAttribute("data-view");
+      /* on Central the big tile plays the round once the week is planned */
+      if(v === "training" && b.classList.contains("primary")
+         && S.picked.length && !isInjured() && S.susp <= 0){ startWeek(); return; }
+      openView(v);
     };
   });
+  var vb = document.getElementById("vBack");
+  if(vb) vb.onclick = goBack;
 
   var pb2 = document.getElementById("pressBtn");
   if(pb2) pb2.onclick = openPress;
@@ -5803,16 +5721,11 @@ function bind(){
 }
 
 function flashOvr(){
-  var el = document.getElementById("hOvr").parentNode;
-  el.classList.remove("up"); void el.offsetWidth; el.classList.add("up");
+  var el = document.getElementById("idOvr");
+  if(!el) return;
+  el.parentNode.classList.remove("up"); void el.offsetWidth; el.parentNode.classList.add("up");
 }
-
-document.getElementById("hRead").onclick = function(){
-  var modes = ["normal","long","off"];
-  var names = {normal:"זמן קריאה: רגיל", long:"זמן קריאה: ארוך (×1.8)", off:"זמן קריאה: ללא הגבלה"};
-  S.readMode = modes[(modes.indexOf(S.readMode)+1) % modes.length];
-  toast(names[S.readMode]);
-};
+var READ_MODES = {normal:"רגיל", long:"ארוך (×1.8)", off:"ללא הגבלה"};
 
 document.getElementById("hTheme").onclick = function(){
   var cur = document.documentElement.getAttribute("data-theme");
@@ -6903,32 +6816,27 @@ function markScroll(col, fade){
 function layoutBoards(){
   var stage = document.getElementById("stage");
   if(!stage) return;
-  var backup = stage.innerHTML;
+  var nav = navNow();
+  if(!nav.view){ paintArt(stage); renderHints(); return; }   /* a bento lays itself out */
+  var body = document.getElementById("vbody");
+  if(!body) return;
+  var backup = body.innerHTML;
   try {
-    var key = navNow().sec + "/" + navNow().sub;
-    if(SEC_FULL[key]){
-      stage.classList.remove("nopack");
-      stage.classList.add("full");
-      paintArt(stage);
-      renderActionBar();
-      return;
-    }
-    stage.classList.remove("nopack");
-    stage.classList.remove("full");
-    BOARD = packBoards(stage, null, SEC_COLS[key] || 0, BOARD);
+    BOARD = packBoards(body, null, VIEWS[nav.view].cols || 0, BOARD);
     var shown = 0;
-    Array.prototype.forEach.call(stage.querySelectorAll(".p"), function(pl){
+    Array.prototype.forEach.call(body.querySelectorAll(".p"), function(pl){
       if(pl.getBoundingClientRect().height > 4) shown++;
     });
-    if(!shown) throw new Error("board packed to nothing (h=" + stage.clientHeight + ")");
-    paintArt(stage);
+    if(!shown) throw new Error("board packed to nothing (h=" + body.clientHeight + ")");
+    paintArt(body);
   } catch(err){
-    stage.innerHTML = backup;
-    stage.classList.add("nopack");
+    body.innerHTML = backup;
+    body.classList.add("nopack");
     reportIssue("פריסה", err);
   }
-  renderActionBar();
+  renderHints();
 }
+
 
 /* an overlay uses the same columns */
 function packOverlay(bodyEl, cols){
@@ -6960,47 +6868,7 @@ function reportIssue(where, err){
 }
 
 /* ── the action bar: the one control that is always reachable ───── */
-function renderActionBar(){
-  var bar = document.getElementById("actbar");
-  if(!bar || typeof S === "undefined" || !S) return;
 
-  var fx = S.fixtures[S.week-1] || S.fixtures[S.fixtures.length-1];
-  var opp = fx ? club(fx.opp) : null;
-  var hurt = isInjured();
-  var exp = expectedMinutes();
-  var ready = S.picked.length > 0;
-
-  var label = hurt ? "סיים שבוע שיקום ▸" : "שחק את המחזור ▸";
-  var title = hurt
-    ? S.injury.n + " · עוד " + Math.ceil(S.injury.left) + " שבועות"
-    : (opp ? (fx.home ? "בית מול " : "חוץ מול ") + opp.n : "מחזור " + S.week);
-  var sub = hurt
-    ? "בחר תוכנית שיקום לשבוע"
-    : (ready ? exp.label + " · " + S.picked.length + "/" + S.slots + " אימונים"
-             : "בחר לפחות אימון אחד במסך היום");
-
-  bar.innerHTML = ''
-    + '<button class="btn pri big" id="abPlay">' + (ready ? label : "לבחור אימונים ▸") + '</button>'
-    + '<div class="abinfo"><b>' + title + '</b><span>' + sub + '</span></div>'
-    + '<div class="abchips">'
-      + '<span class="tag' + (S.load>72?" b":(S.load>52?" w":"")) + '">עומס ' + Math.round(S.load) + '%</span>'
-      + '<span class="tag">כשירות ' + Math.round(S.fit) + '%</span>'
-      + '<span class="tag' + (S.mgr>=55?" ok":" w") + '">ציון מאמן ' + Math.round(S.mgr||S.trust) + '</span>'
-    + '</div>'
-    /* the console habit of naming the buttons at the foot of the screen */
-    + '<div class="hints">'
-      + '<span class="hint1"><kbd>Q</kbd><kbd>E</kbd>לשונית</span>'
-      + '<span class="hint1"><kbd>←</kbd><kbd>→</kbd>מסך</span>'
-      + '<span class="hint1"><kbd>Tab</kbd>מעבר מהיר</span>'
-      + '<span class="hint1"><kbd>Enter</kbd>שחק</span>'
-    + '</div>';
-
-  var b = document.getElementById("abPlay");
-  if(b) b.onclick = function(){
-    if(!S.picked.length){ goNav("home","training"); return; }
-    startWeek();
-  };
-}
 
 function paintPagerFor(st){}
 function goPage(st, n){}
@@ -7022,31 +6890,18 @@ function bindShell(){
   }, {passive:true});
 
   document.addEventListener("keydown", function(e){
-    if(e.key === "Tab" && !e.ctrlKey && !e.altKey){
-      e.preventDefault();
-      var sw = document.getElementById("swLayer");
-      if(sw) sw.remove(); else if(typeof S !== "undefined" && S) openSwitcher();
-      return;
-    }
-    if(document.querySelector("#layers > *")){                /* an overlay owns the keys */
+    if(document.querySelector("#layers > *")){
       if(e.key === "Escape") document.querySelector("#layers > *:last-child").remove();
       return;
     }
     if(typeof S === "undefined" || !S) return;
-    /* the shoulder buttons cycle level 1, the arrows walk level 2 */
-    if(e.key === "q" || e.key === "Q" || e.key === "/"){ cycleTab(-1); return; }
-    if(e.key === "e" || e.key === "E" || e.key === "'"){ cycleTab(1); return; }
-    if(e.key === "ArrowLeft")  { cycleSub(1);  return; }
-    if(e.key === "ArrowRight") { cycleSub(-1); return; }
-    if(e.key === "Escape"){ goNav("home", "central"); return; }
-    if(e.key === "Enter"){ var b = document.getElementById("abPlay"); if(b) b.click(); }
+    if(e.key >= "1" && e.key <= "5"){ goTab(TABS[+e.key - 1].id); return; }
+    if(e.key === "Escape" || e.key === "Backspace"){ e.preventDefault(); goBack(); return; }
+    if(e.key === "Enter"){
+      if(!isInjured() && S.susp <= 0 && S.picked.length) startWeek();
+      else goTab("home");
+    }
   });
-
-  var lp = document.getElementById("l1prev"), ln = document.getElementById("l1next");
-  if(lp) lp.onclick = function(){ cycleTab(-1); };
-  if(ln) ln.onclick = function(){ cycleTab(1); };
-  var so = document.getElementById("swOpen");
-  if(so) so.onclick = function(){ openSwitcher(); };
 
   var rs = document.getElementById("rotSkip");
   if(rs) rs.onclick = function(){ ROT_SKIP = true; fitStage(); };
