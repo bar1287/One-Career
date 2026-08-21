@@ -6313,6 +6313,13 @@ function initPitch(){
     + '<rect x="16" y="236" width="50" height="148"/><rect x="934" y="236" width="50" height="148"/>'
     + '</g><circle cx="500" cy="310" r="5" fill="var(--turf-line)"/>'
     + '<polyline id="pTrail" fill="none" stroke="#FFFFFF" stroke-opacity=".38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'
+    /* the pitch is meant to read as 2.5D, not a flat plan: everyone
+       standing on it casts a shadow, and the ball's shadow is what
+       tells you it just left the ground — the reference offsets every
+       shadow the same way, as if one light source sits up and to the
+       left, so a lofted ball visibly separates from its shadow */
+    + '<g id="pShadows"></g>'
+    + '<ellipse id="pBallSh" cx="500" cy="310" rx="10" ry="4.4" fill="#06210F" opacity=".40"/>'
     + '<g id="pPlayers"></g>'
     + '<circle id="pBall" cx="500" cy="310" r="8.5" fill="#fff" stroke="#17150F" stroke-width="2.5"/>'
     + '</svg>';
@@ -6320,7 +6327,8 @@ function initPitch(){
   var g = document.getElementById("pPlayers");
   var myIdx = POS[S.pos].slot;
   var NUMS = [1,2,4,5,3,6,8,10,7,9,11];
-  P = {ball:{x:50,y:50}, bt:{x:50,y:50}, poss:"h", men:[], possH:50, t:0, trail:[]};
+  P = {ball:{x:50,y:50}, bt:{x:50,y:50}, poss:"h", men:[], possH:50, t:0, trail:[],
+       kickT:0, kickDur:34, kickPeak:0};
 
   for(var side=0; side<2; side++){
     for(var i=0;i<11;i++){
@@ -6329,6 +6337,11 @@ function initPitch(){
       var by = side===0 ? f.y : 100-f.y;
       var team = side===0 ? M.home : M.away;
       var isMe = (side === (M.home===M.me ? 0 : 1)) && i===myIdx;
+
+      var psh = document.createElementNS("http://www.w3.org/2000/svg","ellipse");
+      psh.setAttribute("rx", isMe ? 15 : 11.5); psh.setAttribute("ry", isMe ? 6 : 4.6);
+      psh.setAttribute("fill", "#06210F"); psh.setAttribute("opacity", ".40");
+      document.getElementById("pShadows").appendChild(psh);
 
       if(isMe){
         var halo = document.createElementNS("http://www.w3.org/2000/svg","circle");
@@ -6353,7 +6366,7 @@ function initPitch(){
       lbl.textContent = isMe ? S.pos : NUMS[i];
       g.appendChild(lbl);
 
-      P.men.push({bx:bx, by:by, x:bx, y:by, el:el, lbl:lbl, halo:isMe?halo:null,
+      P.men.push({bx:bx, by:by, x:bx, y:by, el:el, lbl:lbl, halo:isMe?halo:null, sh:psh,
                   side:side, me:isMe, gk:i===0});
     }
   }
@@ -6369,6 +6382,11 @@ function pickBallTarget(){
   P.bt.x = clamp(50 + bias*(10 + rnd()*36) + (rnd()-0.5)*14, 8, 92);
   P.bt.y = clamp(15 + rnd()*70, 8, 92);
   P.possH = clamp(P.possH + (P.poss==="h" ? 0.6 : -0.6), 28, 72);
+  /* most balls stay on the grass — a short pass, a dribble; some are
+     lofted — a cross, a long ball over the top — and those are the ones
+     that show the shadow gap */
+  P.kickT = 0;
+  P.kickPeak = rnd() < 0.6 ? 0 : (5 + rnd()*11);
 }
 
 function pitchFrame(){
@@ -6378,10 +6396,29 @@ function pitchFrame(){
 
   P.ball.x += (P.bt.x - P.ball.x) * 0.055;
   P.ball.y += (P.bt.y - P.ball.y) * 0.055;
+  P.kickT++;
 
   var bx = 16 + P.ball.x*9.68, by = 16 + P.ball.y*5.88;
+  /* the arc: up on a sine from the moment a target is picked, grounded
+     again by the time the ball would realistically have landed */
+  var prog = clamp(P.kickT / P.kickDur, 0, 1);
+  var bh = P.kickPeak * Math.sin(prog * Math.PI) * 6;
   var b = document.getElementById("pBall");
-  if(b){ b.setAttribute("cx", bx); b.setAttribute("cy", by); }
+  if(b){
+    b.setAttribute("cx", bx); b.setAttribute("cy", by - bh);
+    b.setAttribute("r", 8.5 + bh*0.16);
+  }
+  var bsh = document.getElementById("pBallSh");
+  if(bsh){
+    /* the shadow's JOB here is to stay put on the grass while the ball
+       climbs away from it — that gap is the entire height cue, so the
+       shadow itself must not fade or shrink into it, or the cue
+       disappears exactly when the ball is highest and the cue matters
+       most */
+    bsh.setAttribute("cx", bx); bsh.setAttribute("cy", by + 2);
+    bsh.setAttribute("rx", 10); bsh.setAttribute("ry", 4.4);
+    bsh.setAttribute("opacity", ".42");
+  }
 
   /* ball trail */
   P.trail.push([bx,by]);
@@ -6405,6 +6442,7 @@ function pitchFrame(){
     m.y += (clamp(ty,5,95) - m.y) * 0.045;
     var px = 16 + m.x*9.68, py = 16 + m.y*5.88;
     m.el.setAttribute("cx", px); m.el.setAttribute("cy", py);
+    if(m.sh){ m.sh.setAttribute("cx", px + 2); m.sh.setAttribute("cy", py + 6); }
     if(m.lbl){ m.lbl.setAttribute("x", px); m.lbl.setAttribute("y", py + (m.me?4:3.2)); }
     if(m.halo){
       m.halo.setAttribute("cx", px); m.halo.setAttribute("cy", py);
