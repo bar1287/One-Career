@@ -289,6 +289,8 @@ th{font-size:9.5px !important}
   font-size:12.5px;font-weight:900;letter-spacing:.04em;white-space:nowrap;
   transition:background .15s,color .15s,border-color .15s;
 }
+.tab em{font-style:normal;font-size:13px;line-height:1;opacity:.8}
+.tab.on em{opacity:1}
 .tab:hover{color:var(--ink2);background:var(--hover)}
 .tab.on{
   background:var(--ink);color:var(--paper);border-color:var(--ink);
@@ -1002,6 +1004,22 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
   border:1px solid rgba(0,0,0,.18);position:relative;box-shadow:inset 0 2px 14px rgba(0,0,0,.18);
 }
 .pitch svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* the one-line stakes banner, glowing the way the reference does it —
+   an outlined, backlit line that hangs over the pitch and fades */
+.stakesban{
+  position:absolute;inset-inline:6%;top:40%;z-index:8;text-align:center;
+  font-size:clamp(13px,3.4vw,18px);font-weight:900;color:#fff;letter-spacing:.01em;
+  text-shadow:0 0 10px rgba(255,255,255,.85), 0 0 22px rgba(255,255,255,.5), 0 2px 3px rgba(0,0,0,.5);
+  -webkit-text-stroke:.6px rgba(0,0,0,.25);
+  animation:stakesin .45s cubic-bezier(.2,0,.1,1);pointer-events:none;
+}
+.stakesban.gold{color:#FFE9A8;text-shadow:0 0 10px rgba(255,214,110,.95), 0 0 26px rgba(255,180,40,.6), 0 2px 3px rgba(0,0,0,.5)}
+.stakesban.bad{color:#FFD3CC;text-shadow:0 0 10px rgba(255,120,100,.9), 0 0 26px rgba(220,60,40,.55), 0 2px 3px rgba(0,0,0,.5)}
+.stakesban.accent{color:#D8F5E6;text-shadow:0 0 10px rgba(120,230,180,.9), 0 0 26px rgba(31,111,67,.55), 0 2px 3px rgba(0,0,0,.5)}
+.stakesban.out{animation:stakesout .5s ease forwards}
+@keyframes stakesin{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes stakesout{to{opacity:0;transform:translateY(-6px)}}
 .feed{background:var(--surface);padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;min-height:0}
 .ev{
   display:flex;gap:9px;align-items:flex-start;font-size:12.5px;padding:7px 9px;
@@ -1371,7 +1389,13 @@ tr.rel{box-shadow:inset 3px 0 0 var(--bad)}
   30%,50%,70%{transform:translateX(-7px)} 40%,60%{transform:translateX(7px)}
 }
 /* screen transition */
-.stage{animation:stagein .22s cubic-bezier(.2,0,.1,1)}
+/* the animation lives on the content, not the stage shell — .bento and
+   .vbody are freshly built elements on every render() (innerHTML is
+   cleared first), so the animation replays on every navigation without
+   any class-toggling trickery to force it */
+.bento{animation:stagein .22s cubic-bezier(.2,0,.1,1)}
+.vbody{animation:stagein .20s cubic-bezier(.2,0,.1,1) .02s both}
+.vhead{animation:stagein .18s cubic-bezier(.2,0,.1,1) both}
 @keyframes stagein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 .toast{
@@ -1981,6 +2005,7 @@ function fillDefaults(s){
   def("awards", []); def("records", {});
   def("statsAll", blankStats());
   def("seasonsPlayed", 0); def("peakOvr", 0);
+  def("trialWeek", 0); def("trialStreak", 0); def("trialBest", 0);
   def("difficulty", "normal");
   def("opts", {textScale:1, motion:"full", cb:"off"});
   def("retired", false); def("legacy", 0);
@@ -4445,11 +4470,11 @@ function viewTraining(){
    to it and which tab it hangs under.
    ════════════════════════════════════════════════════════════════ */
 var TABS = [
-  {id:"home",   n:"מרכז"},
-  {id:"player", n:"השחקן"},
-  {id:"club",   n:"המועדון"},
-  {id:"season", n:"העונה"},
-  {id:"career", n:"קריירה"}
+  {id:"home",   n:"מרכז",    i:"⌂"},
+  {id:"player", n:"השחקן",   i:"◉"},
+  {id:"club",   n:"המועדון", i:"▤"},
+  {id:"season", n:"העונה",   i:"≡"},
+  {id:"career", n:"קריירה",  i:"✦"}
 ];
 
 /* id → {title, tab, panels it collects, sources that build them, columns} */
@@ -4533,10 +4558,22 @@ function goNav(a, b){
 /* ── the tiles ─────────────────────────────────────────────────────
    Each tab is a grid. A tile is a title, one or two numbers, and a
    door. Nothing on a tile needs reading twice. */
+/* one icon per destination, keyed off the view id so no call site needs
+   to carry one — the same visual shorthand FIFA and NSS both lean on to
+   make a grid of tiles scannable at a glance */
+var TILE_ICON = {
+  training:"📋", skills:"🌳", objectives:"🎯", inbox:"✉", news:"📰",
+  card:"🪪", attrs:"📈", pers:"🎭", moves:"✨", kpi:"📊", stats:"🧮",
+  squad:"👥", depth:"📐", room:"🛋", tactics:"🧭", board:"🏛",
+  calendar:"📅", table:"🏆", fixtures:"🗓", scorers:"👟", world:"🌍",
+  contract:"📄", agent:"🤝", market:"🛒", media:"📣", brand:"💼",
+  history:"🏅", nemesis:"🔥", nat:"🇮🇱", settings:"⚙"
+};
 function tileN(cls, view, badge, head, body){
+  var ic = TILE_ICON[view];
   return '<button class="tile ' + cls + '" data-view="' + view + '"'
     + (badge ? '><i class="tbadge2">' + badge + '</i>' : '>')
-    + '<h4>' + head + '</h4>' + body + '</button>';
+    + '<h4>' + (ic ? '<em>' + ic + '</em>' : '') + head + '</h4>' + body + '</button>';
 }
 function kvline(a, b){
   return '<div class="kv" style="padding:3px 0"><span>' + a + '</span><b class="n">' + b + '</b></div>';
@@ -4698,7 +4735,7 @@ function renderTabs(){
     var b = document.createElement("button");
     b.className = "tab" + (t.id === nav.tab ? " on" : "");
     var n = tabBadge(t.id);
-    b.innerHTML = '<span>' + t.n + '</span>' + (n ? '<i class="tbadge">' + n + '</i>' : '');
+    b.innerHTML = '<em>' + t.i + '</em><span>' + t.n + '</span>' + (n ? '<i class="tbadge">' + n + '</i>' : '');
     b.onclick = function(){ goTab(t.id); };
     el.appendChild(b);
   });
@@ -5053,6 +5090,15 @@ function viewPlayer(){
       + '<span class="r">נקודות אימון: <b class="n" style="color:var(--gold)">'+S.tp+'</b></span></h3>'
       + '<div class="pb"><div class="grps">'+groups+'</div>'
       + '<p class="hint" style="margin:12px 0 0">★ = תכונת מפתח לעמדה שלך; היא מזיזה את ה-OVR הכי הרבה. הקו האנכי בפס הוא הפוטנציאל המשוער שלך — אפשר לעבור אותו, אבל זה נהיה יקר.</p>'
+      + '</div></div>'
+
+    + '<div class="p" data-panel="player/attrs"><h3>מבחן טכניקה '
+      + '<span class="r">רצף '+S.trialStreak+' · שיא '+S.trialBest+'</span></h3><div class="pb">'
+      + '<p style="margin:0 0 11px;font-size:13px;line-height:1.55">עקוף את המכשול, עבור בין המוטות — עם רוח שאתה לא שולט בה. '
+      + (S.trialWeek === S.week
+          ? 'כבר מיצית את הבונוס השבועי, אבל אפשר לתרגל.'
+          : 'ניסיון ראשון השבוע נותן XP ותכונה — אחר כך זה על הכיף.')
+      + '</p><button class="btn pri" id="trialBtn">מבחן טכניקה ▸</button>'
       + '</div></div>'
 
   + '</div>'
@@ -5627,6 +5673,8 @@ function bind(){
 
   var pb2 = document.getElementById("pressBtn");
   if(pb2) pb2.onclick = openPress;
+  var tb = document.getElementById("trialBtn");
+  if(tb) tb.onclick = openSkillTrial;
   var rs2 = document.getElementById("respec");
   if(rs2) rs2.onclick = function(){
     if(respecTree()){ toast("העץ אופס. הנקודות חזרו."); render(); }
@@ -6111,6 +6159,41 @@ function servingBan(){
    ════════════════════════════════════════════════════════════════ */
 var M = null;
 
+/* ── the stakes banner ────────────────────────────────────────────
+   New Star Soccer frames the big moments in one glowing line over the
+   pitch — "88th minute to win the ECL final". Not every match deserves
+   one; most weeks are just a fixture. This reads the table, the calendar
+   and the rivalry to decide whether THIS week is one of the weeks that
+   gets remembered, and writes the line the way the game would. */
+function matchStakes(fx){
+  if(!fx) return null;
+  var st = clubStanding(S.club);
+  if(!st) return null;
+  var last = S.week >= S.maxWeek;
+  var opp = club(fx.opp);
+
+  if(S.nemesis && fx.opp === S.nemesis.club)
+    return {t:"הדרבי שלך מול " + S.nemesis.n, tier:"accent"};
+
+  if(last && st.pos === 1)
+    return {t:"מחזור אחרון — נצחו והרימו את האליפות", tier:"gold"};
+  if(last && st.of - st.pos <= 2)
+    return {t:"מחזור אחרון — הישרדות בליגה תלויה בו", tier:"bad"};
+  if(last && st.pos <= 3)
+    return {t:"מחזור אחרון להעפלה לאירופה", tier:"gold"};
+
+  if(!last && st.pos === 1 && S.week === S.maxWeek - 1)
+    return {t:"נצחו הערב וכמעט נגעתם באליפות", tier:"gold"};
+  if(!last && st.of - st.pos <= 3 && S.week >= S.maxWeek - 2)
+    return {t:"קרב הישרדות — כל נקודה קובעת", tier:"bad"};
+  if(!last && st.pos <= 4 && opp.rep >= 46 && S.week >= S.maxWeek - 3)
+    return {t:"קרב על מקום באירופה", tier:"gold"};
+
+  if(opp.rep - club(S.club).rep >= 14)
+    return {t:"מול ענק מהליגה — אף אחד לא מצפה שתנצחו", tier:"accent"};
+  return null;
+}
+
 function openMatch(){
   var fx = S.fixtures[S.week-1] || S.fixtures[S.fixtures.length-1];
   var opp = club(fx.opp);
@@ -6134,6 +6217,7 @@ function openMatch(){
 
   buildMatchObjectives();
   M.moments = buildMoments(exp);
+  M.stakes = matchStakes(fx);
 
   var el = document.createElement("div");
   el.className = "match"; el.id = "matchLayer";
@@ -6142,6 +6226,19 @@ function openMatch(){
   paintPitch();
   document.getElementById("mStart").onclick = runClock;
   document.getElementById("mSkip").onclick = skipToEnd;
+  if(M.stakes) flashStakes(M.stakes);
+}
+
+/* the glowing banner itself, over the pitch, the way the reference shows it */
+function flashStakes(st){
+  var host = document.getElementById("mPitch");
+  if(!host) return;
+  var b = document.createElement("div");
+  b.className = "stakesban " + st.tier;
+  b.textContent = st.t;
+  host.appendChild(b);
+  setTimeout(function(){ b.classList.add("out"); }, 2600);
+  setTimeout(function(){ b.remove(); }, 3100);
 }
 
 function buildMoments(exp){
@@ -6502,6 +6599,16 @@ function tickMatch(){
 
   /* halftime: the one moment in the match that is not about the ball */
   if(M.min === 45 && !M.htDone && M.playing && M.onPitch) return openHalftime();
+
+  /* the reference footage frames its biggest moments with a single line
+     late in the game — "88th minute to win the ECL final" — so a stakes
+     match gets a second, sharper banner once the clock is actually
+     tight, not only at kick-off */
+  if(M.min === 86 && M.stakes && !M.stakes.late){
+    M.stakes.late = true;
+    var score = (M.me===M.home ? M.hg+"–"+M.ag : M.ag+"–"+M.hg);
+    flashStakes({t:"דקה " + M.min + " · " + score + " · " + M.stakes.t, tier:M.stakes.tier});
+  }
 
   /* momentum bleeds back to level — nothing holds for ninety minutes */
   if(M.mom) { M.mom *= 0.985; if(Math.abs(M.mom) < 1) M.mom = 0; paintMom(); }
@@ -9408,10 +9515,31 @@ var MINI = (function(){
     /* the wind is the same wind the match is being played in */
     sc.wind = c.wind || {s:0, a:0};
 
+    /* the technique trial: two poles mark a gate to thread, a lone
+       obstacle marks a line you must bend around — no keeper, nobody
+       else on the pitch, just you, the wind, and the target */
+    if(c.mode === "trial"){
+      var gy = sc.goalPos.y + 40;
+      var g1 = c.gate.x1, g2 = c.gate.x2;
+      var pg = sc.add.graphics();
+      pg.lineStyle(4, 0xFFFFFF, 0.95);
+      pg.lineBetween(g1, gy - 30, g1, gy + 4);
+      pg.lineBetween(g2, gy - 30, g2, gy + 4);
+      pg.fillStyle(0xFFFFFF, 0.16); pg.fillRect(g1, gy - 30, g2 - g1, 34);
+      sc.trialGateY = gy; sc.trialGateX1 = g1; sc.trialGateX2 = g2;
+      sc.obstacle = sc.add.container(c.obstacle.x, c.obstacle.y);
+      var ox = sc.add.graphics();
+      ox.lineStyle(4, 0xE74C3C, 0.96);
+      ox.lineBetween(-8, -8, 8, 8); ox.lineBetween(8, -8, -8, 8);
+      sc.obstacle.add(ox);
+      sc.obstacle.r = 15;
+    }
+
     /* eleven shapes on a pitch: the keeper, a handful of each side, you */
     var oppK = c.oppKit || 0xC0392B;
     var clash = ((oppK >> 16) & 255) > 190 && ((oppK >> 8) & 255) > 160 && (oppK & 255) < 120;
-    sc.keeper = PITCH.keeper(sc, sc.goalPos.x + (c.keeperOff || 0), sc.goalPos.y + 8, clash);
+    if(c.mode !== "trial")
+      sc.keeper = PITCH.keeper(sc, sc.goalPos.x + (c.keeperOff || 0), sc.goalPos.y + 8, clash);
     sc.mates = []; sc.foes = [];
     (c.mates || []).forEach(function(m){
       var g = PITCH.man(sc, m.x, m.y, c.myKit || 0x1B4F9C, 0x0E2A55);
@@ -9600,15 +9728,10 @@ var MINI = (function(){
         gg.fillRect(0, 185 + i2*((H-185)/5), W, (H-185)/5);
       }
       lay.add(gg);
-      /* the right half is the read-out; the ball lives on the left */
-      var panel = sc.add.graphics();
-      panel.fillStyle(0x0B1018, 0.90); panel.fillRoundedRect(216, 8, W-228, H-16, 10);
-      panel.lineStyle(1, 0xFFFFFF, 0.16); panel.strokeRoundedRect(216, 8, W-228, H-16, 10);
-      lay.add(panel);
 
-      /* the ball itself, big, with a shadow on the grass */
-      var BR = 46, BX = 104, BY = 150;
-      var bs = sc.add.ellipse(BX + 4, BY + 40, 96, 19, 0x000000, 0.28);
+      /* the ball, big and centred, exactly where the reference puts it */
+      var BR = 62, BX = W/2, BY = H/2 + 6;
+      var bs = sc.add.ellipse(BX + 4, BY + BR - 8, BR*2.05, BR*0.44, 0x000000, 0.28);
       var big = sc.add.circle(BX, BY, BR, 0xFFFFFF);
       big.setStrokeStyle(2, 0x17150F, 0.30);
       /* a football is pentagons, not dots */
@@ -9627,64 +9750,33 @@ var MINI = (function(){
         var ang = -Math.PI/2 + q*(2*Math.PI/5);
         pent(BX + Math.cos(ang)*BR*0.66, BY + Math.sin(ang)*BR*0.66, BR*0.21, ang + Math.PI/5);
       }
-      /* a little shading so it reads as a sphere */
       var shade = sc.add.graphics();
       shade.fillStyle(0x000000, 0.13);
-      shade.fillCircle(BX + 9, BY + 10, BR - 4);
+      shade.fillCircle(BX + 12, BY + 13, BR - 5);
       shade.setMask(new Phaser.Display.Masks.GeometryMask(sc,
         sc.make.graphics().fillCircle(BX, BY, BR).fillStyle(0xffffff)));
-      lay.add([bs, big, pan]);
+      lay.add([bs, big, pan, shade]);
       sc.strikeBall = {x:BX, y:BY, r:BR};
-      var lbl = sc.add.text(322, 20, "היכן לפגוע בכדור?", {fontFamily:"sans-serif",
+
+      var plate = sc.add.graphics();
+      plate.fillStyle(0x0B1018, 0.72); plate.fillRoundedRect(W/2-98, 16, 196, 24, 12);
+      var lbl = sc.add.text(W/2, 21, "היכן לפגוע בכדור?", {fontFamily:"sans-serif",
         fontSize:"13px", color:"#FFFFFF", fontStyle:"bold"}).setOrigin(0.5, 0);
-      lay.add(lbl);
-      MINI.stage("גרור על הכדור: נמוך מרים אותו · בצד מסובב אותו");
+      lay.add([plate, lbl]);
+      MINI.stage("גרור על הכדור — נמוך מרים, בצד מסובב");
 
-      /* Two gauges beside the ball. Dragging low on the ball lifts it —
-         that is the height, and it is a drag, not a tap. Dragging to the
-         side puts swerve on it. The marker and the ball both follow the
-         finger, exactly as they do in the game. */
-      var gauge = sc.add.graphics(); lay.add(gauge);
-      var mark  = sc.add.graphics(); lay.add(mark);
-      var hLbl = sc.add.text(252, 44, "גובה", {fontFamily:"sans-serif", fontSize:"9.5px",
-        color:"#FFFFFF", fontStyle:"bold"}).setOrigin(0.5, 0); lay.add(hLbl);
-      var cLbl = sc.add.text(348, 128, "סיבוב", {fontFamily:"sans-serif", fontSize:"9.5px",
-        color:"#FFFFFF", fontStyle:"bold"}).setOrigin(0.5, 0); lay.add(cLbl);
-      var hint = sc.add.text(322, 196, "", {fontFamily:"sans-serif", fontSize:"11px",
-        color:"#FFFFFF", fontStyle:"bold", align:"center"}).setOrigin(0.5); lay.add(hint);
-      var hNum = sc.add.text(252, 214, "0%", {fontFamily:"sans-serif", fontSize:"10px",
-        color:"#9FE8C4", fontStyle:"bold"}).setOrigin(0.5); lay.add(hNum);
-
+      /* the reference shows nothing but a small marker riding the finger
+         and a burst on release — no bars, no numbers. The read stays in
+         your thumb, not on a gauge. */
+      var mark = sc.add.graphics(); lay.add(mark);
       var B = sc.strikeBall;
       var live = false, done2 = false, sx = 0, sy = 0;
 
-      function bars(){
-        var lift = Math.max(0, sy), curl = Math.abs(sx);
-        gauge.clear();
-        /* height, rising up the panel */
-        gauge.fillStyle(0x1A2430, 0.95); gauge.fillRoundedRect(243, 60, 18, 148, 9);
-        gauge.fillStyle(0x3FB37F, 0.96);
-        gauge.fillRoundedRect(246, 205 - lift*142, 12, Math.max(5, lift*142), 6);
-        for(var t2=1;t2<4;t2++){
-          gauge.fillStyle(0xFFFFFF, 0.22);
-          gauge.fillRect(243, 60 + t2*37, 18, 1);
-        }
-        /* swerve, left and right of centre */
-        gauge.fillStyle(0x1A2430, 0.95); gauge.fillRoundedRect(286, 144, 124, 14, 7);
-        var cw = curl*58;
-        gauge.fillStyle(0xE8C766, 0.96);
-        if(sx < 0) gauge.fillRoundedRect(348 - cw, 147, cw, 8, 4);
-        else       gauge.fillRoundedRect(348, 147, cw, 8, 4);
-        gauge.fillStyle(0xFFFFFF, 0.7); gauge.fillRect(347, 142, 2, 18);
-        hNum.setText(Math.round(lift*100) + "%");
-      }
       function marker(){
         mark.clear();
-        var mx = B.x + sx*(B.r-7), my = B.y + sy*(B.r-7);
-        mark.lineStyle(2.5, 0xEB6834, 0.95); mark.strokeCircle(mx, my, 9);
-        mark.fillStyle(0xEB6834, 0.9); mark.fillCircle(mx, my, 3.2);
-        hint.setText((sy > 0.30 ? "בעיטה מורמת" : (sy > 0.08 ? "מורם קלות" : (sy < -0.25 ? "נמוך ונגוע" : "ישר")))
-          + "\n" + (Math.abs(sx) < 0.2 ? "בלי סיבוב" : (sx < 0 ? "מסתובב ימינה" : "מסתובב שמאלה")));
+        var mx = B.x + sx*(B.r-9), my = B.y + sy*(B.r-9);
+        mark.lineStyle(2.5, 0xEB6834, 0.95); mark.strokeCircle(mx, my, 10);
+        mark.fillStyle(0xEB6834, 0.85); mark.fillCircle(mx, my, 3.4);
       }
       function set(p){
         var dx = p.x - B.x, dy = p.y - B.y;
@@ -9692,10 +9784,11 @@ var MINI = (function(){
         var k = Math.min(1, d / B.r);
         sx = Phaser.Math.Clamp((dx/d)*k, -1, 1);
         sy = Phaser.Math.Clamp((dy/d)*k, -1, 1);
-        /* the ball leans away from the point you are pressing */
-        big.x = B.x - sx*5; big.y = B.y - sy*3;
-        pan.x = -sx*5;      pan.y = -sy*3;
-        marker(); bars();
+        /* the ball leans away from the point you are pressing, the way a
+           ball does when a boot meets it off-centre */
+        big.x = B.x - sx*6; big.y = B.y - sy*4;
+        pan.x = -sx*6;      pan.y = -sy*4;
+        marker();
       }
       set({x:B.x, y:B.y + B.r*0.5});
 
@@ -9704,10 +9797,10 @@ var MINI = (function(){
       function release(){
         if(!live || done2) return;
         live = false; done2 = true;
-        var bxp = B.x + sx*(B.r-6), byp = B.y + sy*(B.r-6);
+        var bxp = B.x + sx*(B.r-8), byp = B.y + sy*(B.r-8);
         var burst = sc.add.graphics();
         for(var k=0;k<10;k++){
-          var an = k*Math.PI/5, rr = k%2 ? 7 : 17;
+          var an = k*Math.PI/5, rr = k%2 ? 8 : 19;
           burst.fillStyle(k%2 ? 0xF2C500 : 0xEB6834, 1);
           burst.fillTriangle(bxp, byp,
             bxp + Math.cos(an)*rr, byp + Math.sin(an)*rr,
@@ -9755,6 +9848,7 @@ var MINI = (function(){
         });
       }
       sc.flightEnd = {x:tx, y:ty, lift:lift, curve:curve, sx:sx, sy:sy};
+      sc.flightPts = pts;
 
       var t = {i:0};
       sc.tweens.add({targets:t, i:pts.length-1, duration:620 + (1-sc.aim.power)*260,
@@ -9790,6 +9884,18 @@ var MINI = (function(){
       sc.done = true;
       var f = sc.flightEnd, G = sc.goalPos;
       var forced, grade;
+      if(c.mode === "trial"){
+        var hitObstacle = (sc.flightPts || []).some(function(pt){
+          return Phaser.Math.Distance.Between(pt.x, pt.y - pt.h, sc.obstacle.x, sc.obstacle.y) < sc.obstacle.r;
+        });
+        var throughGate = !hitObstacle && f.x > sc.trialGateX1 && f.x < sc.trialGateX2 && f.lift < 0.7;
+        forced = {trial:true, made:throughGate, onTarget:throughGate, hitObstacle:hitObstacle};
+        grade = throughGate ? "great" : "fail";
+        PITCH_flash(sc, throughGate ? 0x1baf7a : 0xC0392B);
+        MINI.msg(throughGate ? "עברת בדיוק!" : (hitObstacle ? "פגעת במכשול" : "פספסת את השער"), throughGate);
+        Base.finish(sc, {grade:grade, forced:forced, power:sc.aim.power});
+        return;
+      }
       if(c.mode === "pass"){
         var best = null, bd = 1e9;
         sc.mates.forEach(function(m){
@@ -9950,7 +10056,8 @@ function miniHtml(type){
     shot:     "גרור מהכדור לכיוון השער — ואז בחר איפה לפגוע בו",
     pass:     "גרור מהכדור אל מי שקורא לך",
     dribble:  "גרור לצד שאליו אתה רוצה לפרוץ",
-    freekick: "גרור מעל החומה או סביבה — ואז תן לו סיבוב"
+    freekick: "גרור מעל החומה או סביבה — ואז תן לו סיבוב",
+    trial:    "גרור מהכדור אל השער, סביב המכשול — ואז תן לו סיבוב"
   };
   return '<div class="mini" id="miniBox">'
     + '<span class="ministage" id="miniStage">' + (TIP[type]||"") + '</span>'
@@ -9962,6 +10069,75 @@ function miniHtml(type){
 /* The same pitch every time; only where the ball starts, who is standing
    around it and what counts as success change. That is how New Star
    Soccer does it too — one view, four questions. */
+/* ── the technique trial ──────────────────────────────────────────
+   Confirmed straight from the reference footage: a free-standing skill
+   test — bend the ball through two poles, round an obstacle, wind you
+   do not control — separate from any match, playable whenever. Harder
+   as your technique grows, so it never stops being a real test. */
+function trialCfg(){
+  var tech = clamp(((S.a.crs||45) + (S.a.lng||45) + (S.a.cmp||45)) / 3, 20, 99);
+  var gateW = clamp(150 - tech*0.85, 55, 130);
+  var W = 430, H = 250;
+  var r = streamFrom(hashOf(S.week + "trial" + S.trialStreak));
+  var cx = W/2 + (r()-0.5)*70;
+  return {
+    mode:"trial", myKit: parseInt(club(S.club).c.replace("#",""),16),
+    home:"אתה", away:"המבחן", hg:0, ag:0, keeper:false,
+    night: r() < 0.4,
+    wind: {s: 1.5 + r()*4, a: r()*Math.PI*2},
+    skill: tech/100,
+    bx: W/2, by: 205, maxDrag: 150, curveGain: 30 + tech*0.4, travel: 190,
+    gate: {x1: cx - gateW/2, x2: cx + gateW/2},
+    obstacle: {x: W/2 + (cx > W/2 ? -1 : 1) * (26 + r()*24), y: 110 + r()*30}
+  };
+}
+function openSkillTrial(){
+  if(document.getElementById("trialLayer")) return;
+  var fresh = S.trialWeek !== S.week;
+  var el = document.createElement("div");
+  el.className = "moment"; el.id = "trialLayer";
+  el.innerHTML = '<div class="mcard" style="max-width:520px">'
+    + '<div class="mhd"><div><div class="t">מבחן טכניקה</div>'
+      + '<div class="s">' + (fresh ? "בונוס פעיל השבוע" : "תרגול — בלי בונוס נוסף") + '</div></div>'
+      + '<div class="grow" style="flex:1"></div>'
+      + '<span class="tag' + (fresh ? " g" : "") + '">' + (fresh ? "★" : "↻") + '</span>'
+    + '</div>'
+    + '<div class="pb" id="trialExec">' + miniHtml("trial") + '</div>'
+    + '<div class="pb" id="trialInfo"></div>'
+  + '</div>';
+  document.getElementById("layers").appendChild(el);
+  MINI.msg("");
+  MINI.play("trial", trialCfg(), function(res){
+    var info = document.getElementById("trialInfo");
+    var made = res && res.forced && res.forced.made;
+    if(made){
+      S.trialStreak++;
+      if(S.trialStreak > S.trialBest) S.trialBest = S.trialStreak;
+    } else S.trialStreak = 0;
+    var reward = "";
+    if(fresh){
+      S.trialWeek = S.week;
+      if(made){
+        addXp(90);
+        var g = grow(["crs","lng","cmp"], 0.5);
+        reward = "+90 XP" + (g.length ? " · " + g.map(function(x){ return ATTR[x.k].n; }).join(", ") + " עלו" : "");
+      } else {
+        addXp(30);
+        reward = "+30 XP על הניסיון";
+      }
+    }
+    if(info) info.innerHTML = '<div class="tpline">' + (made ? "✔ עברת!" : "✘ לא הפעם") + '</div>'
+      + (reward ? '<p class="hint" style="margin:8px 0 0">' + reward + '</p>' : "")
+      + '<button class="btn pri" id="trialAgain" style="margin-top:10px">שוב</button>'
+      + '<button class="btn" id="trialClose" style="margin-top:10px">סגור</button>';
+    var again = document.getElementById("trialAgain");
+    if(again) again.onclick = function(){ el.remove(); openSkillTrial(); };
+    var close = document.getElementById("trialClose");
+    if(close) close.onclick = function(){ el.remove(); render(); };
+    saveGame();
+  });
+}
+
 function miniCfg(type, choice){
   var me = club(S.club), opp = M ? M.opp : {rep:55, c:"#8a8a8a", ab:"OPP"};
   var W = 430, H = 250;
