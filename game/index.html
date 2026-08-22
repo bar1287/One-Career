@@ -6326,9 +6326,35 @@ function initPitch(){
 
   var g = document.getElementById("pPlayers");
   var myIdx = POS[S.pos].slot;
-  var NUMS = [1,2,4,5,3,6,8,10,7,9,11];
   P = {ball:{x:50,y:50}, bt:{x:50,y:50}, poss:"h", men:[], possH:50, t:0, trail:[],
        kickT:0, kickDur:34, kickPeak:0};
+
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs){
+    var e = document.createElementNS(NS, tag);
+    for(var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  /* a small kit-coloured figure — head, jersey, shorts, boots — the same
+     silhouette PITCH.man draws for the mini-game, scaled down to stand on
+     a full pitch instead of a close-up one. The reference never shows a
+     flat dot with a shirt number on the tactical view; it shows this. */
+  function svgMan(kit, gk, isMe){
+    var scale = isMe ? 1.28 : 1;
+    var wrap = el("g", {});
+    var body = el("g", {transform:"scale(" + scale + ")"});
+    var shorts = gk ? "#F2C500" : "#F7F5F1";
+    body.appendChild(el("rect", {x:-2.6, y:6, width:2, height:6, rx:1, fill:"#17150F"}));
+    body.appendChild(el("rect", {x:0.6, y:6, width:2, height:6, rx:1, fill:"#17150F"}));
+    body.appendChild(el("rect", {x:-4, y:0.5, width:8, height:6, rx:1.6, fill:shorts}));
+    body.appendChild(el("rect", {x:-4.6, y:-8, width:9.2, height:9.2, rx:2.2, fill:kit}));
+    body.appendChild(el("circle", {cx:0, cy:-11, r:3.1, fill:"#E8B784"}));
+    if(isMe) body.appendChild(el("circle", {cx:0, cy:-8.4, r:6.4, fill:"none",
+      stroke:"#FFE27A", "stroke-width":1.4, "stroke-opacity":".9"}));
+    wrap.appendChild(body);
+    g.appendChild(wrap);
+    return wrap;
+  }
 
   for(var side=0; side<2; side++){
     for(var i=0;i<11;i++){
@@ -6337,37 +6363,41 @@ function initPitch(){
       var by = side===0 ? f.y : 100-f.y;
       var team = side===0 ? M.home : M.away;
       var isMe = (side === (M.home===M.me ? 0 : 1)) && i===myIdx;
+      var isGk = i===0;
 
-      var psh = document.createElementNS("http://www.w3.org/2000/svg","ellipse");
-      psh.setAttribute("rx", isMe ? 15 : 11.5); psh.setAttribute("ry", isMe ? 6 : 4.6);
-      psh.setAttribute("fill", "#06210F"); psh.setAttribute("opacity", ".40");
+      var psh = document.createElementNS(NS,"ellipse");
+      psh.setAttribute("rx", isMe ? 8.5 : 6.6); psh.setAttribute("ry", isMe ? 3.6 : 2.8);
+      psh.setAttribute("fill", "#06210F"); psh.setAttribute("opacity", ".38");
       document.getElementById("pShadows").appendChild(psh);
 
       if(isMe){
-        var halo = document.createElementNS("http://www.w3.org/2000/svg","circle");
-        halo.setAttribute("r", 20); halo.setAttribute("fill", "none");
-        halo.setAttribute("stroke", "#FFE27A"); halo.setAttribute("stroke-width", 3);
-        halo.setAttribute("stroke-opacity", ".85");
+        var halo = document.createElementNS(NS,"circle");
+        halo.setAttribute("r", 16); halo.setAttribute("fill", "none");
+        halo.setAttribute("stroke", "#FFE27A"); halo.setAttribute("stroke-width", 2.4);
+        halo.setAttribute("stroke-opacity", ".7");
         g.appendChild(halo);
       }
-      var el = document.createElementNS("http://www.w3.org/2000/svg","circle");
-      el.setAttribute("r", isMe ? 13 : 10);
-      el.setAttribute("fill", team.c);
-      el.setAttribute("stroke", isMe ? "#17150F" : "rgba(255,255,255,.9)");
-      el.setAttribute("stroke-width", isMe ? 3.5 : 2);
-      g.appendChild(el);
+      /* keepers wear yellow, same convention as the mini-game — but not
+         over a side that is itself wearing yellow */
+      var tc = String(team.c).replace("#","");
+      var trr = parseInt(tc.substr(0,2),16)||0, tgg = parseInt(tc.substr(2,2),16)||0, tbb = parseInt(tc.substr(4,2),16)||0;
+      var clash = trr > 190 && tgg > 160 && tbb < 120;
+      var man = svgMan(isGk ? (clash ? "#18A85C" : "#F2C500") : team.c, isGk, isMe);
 
-      var lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
-      lbl.setAttribute("text-anchor","middle");
-      lbl.setAttribute("font-size", isMe ? "11" : "9");
-      lbl.setAttribute("font-weight","900");
-      lbl.setAttribute("fill", team.t);
-      lbl.setAttribute("pointer-events","none");
-      lbl.textContent = isMe ? S.pos : NUMS[i];
-      g.appendChild(lbl);
+      var lbl = null;
+      if(isMe){
+        lbl = document.createElementNS(NS,"text");
+        lbl.setAttribute("text-anchor","middle");
+        lbl.setAttribute("font-size","9");
+        lbl.setAttribute("font-weight","900");
+        lbl.setAttribute("fill","#FFE27A");
+        lbl.setAttribute("pointer-events","none");
+        lbl.textContent = S.pos;
+        g.appendChild(lbl);
+      }
 
-      P.men.push({bx:bx, by:by, x:bx, y:by, el:el, lbl:lbl, halo:isMe?halo:null, sh:psh,
-                  side:side, me:isMe, gk:i===0});
+      P.men.push({bx:bx, by:by, x:bx, y:by, el:man, lbl:lbl, halo:isMe?halo:null, sh:psh,
+                  side:side, me:isMe, gk:isGk});
     }
   }
   pitchFrame();
@@ -6441,12 +6471,12 @@ function pitchFrame(){
     m.x += (clamp(tx,3,97) - m.x) * 0.045;
     m.y += (clamp(ty,5,95) - m.y) * 0.045;
     var px = 16 + m.x*9.68, py = 16 + m.y*5.88;
-    m.el.setAttribute("cx", px); m.el.setAttribute("cy", py);
-    if(m.sh){ m.sh.setAttribute("cx", px + 2); m.sh.setAttribute("cy", py + 6); }
-    if(m.lbl){ m.lbl.setAttribute("x", px); m.lbl.setAttribute("y", py + (m.me?4:3.2)); }
+    m.el.setAttribute("transform", "translate(" + px.toFixed(1) + "," + py.toFixed(1) + ")");
+    if(m.sh){ m.sh.setAttribute("cx", px + 1.4); m.sh.setAttribute("cy", py + 5); }
+    if(m.lbl){ m.lbl.setAttribute("x", px); m.lbl.setAttribute("y", py - 17); }
     if(m.halo){
-      m.halo.setAttribute("cx", px); m.halo.setAttribute("cy", py);
-      m.halo.setAttribute("r", 18 + Math.sin(P.t/12)*3);
+      m.halo.setAttribute("cx", px); m.halo.setAttribute("cy", py - 6);
+      m.halo.setAttribute("r", 14 + Math.sin(P.t/12)*2.4);
     }
   }
 
