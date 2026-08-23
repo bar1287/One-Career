@@ -6305,6 +6305,89 @@ var FORM = [
 function initPitch(){
   var p = document.getElementById("mPitch");
   if(!p) return;
+  AMBIENT.destroy();
+
+  var myIdx = POS[S.pos].slot;
+  P = {ball:{x:50,y:50}, bt:{x:50,y:50}, poss:"h", men:[], possH:50, t:0, trail:[],
+       kickT:0, kickDur:34, kickPeak:0, mode:null};
+  for(var side=0; side<2; side++){
+    for(var i=0;i<11;i++){
+      var f = FORM[i];
+      var bx = side===0 ? f.x : 100-f.x;
+      var by = side===0 ? f.y : 100-f.y;
+      var isMe = (side === (M.home===M.me ? 0 : 1)) && i===myIdx;
+      P.men.push({bx:bx, by:by, x:bx, y:by, side:side, me:isMe, gk:i===0});
+    }
+  }
+
+  if(AMBIENT.ok()){
+    P.mode = "phaser";
+    p.innerHTML = "";
+    AMBIENT.boot(p);
+  } else {
+    P.mode = "svg";
+    initPitchSVG(p);
+  }
+}
+
+/* ── shared movement — the only thing that decides where the ball and the
+   22 players actually are. It never touches the DOM or a renderer; the
+   SVG loop and the Phaser scene both call this once a frame and then just
+   draw whatever it left in P, so a fix here can never drift between the
+   two ways of drawing it. */
+function advancePitch(){
+  /* a match can end (M goes null) between one queued animation frame and
+     the next — Phaser's own loop, unlike the SVG fallback's hand-rolled
+     rAF, doesn't check the DOM before ticking, so this has to be the one
+     place that keeps every frame safe regardless of which renderer, and
+     regardless of exactly when the engine gets around to calling it */
+  if(!M) return;
+  P.t++;
+  if(P.t % 34 === 0) pickBallTarget();
+
+  P.ball.x += (P.bt.x - P.ball.x) * 0.055;
+  P.ball.y += (P.bt.y - P.ball.y) * 0.055;
+  P.kickT++;
+
+  P.trail.push({x:P.ball.x, y:P.ball.y});
+  if(P.trail.length > 14) P.trail.shift();
+
+  var shift = (P.ball.x - 50) * 0.30;
+  for(var i=0;i<P.men.length;i++){
+    var m = P.men[i];
+    var tx = m.gk ? m.bx + shift*0.12 : m.bx + shift;
+    var ty = m.gk ? 50 + (P.ball.y-50)*0.16 : m.by + (P.ball.y - 50) * 0.20;
+    /* the closest outfielder on the possessing side steps toward the ball */
+    if(!m.gk && ((P.poss==="h") === (m.side===0))){
+      var d = Math.abs(m.x - P.ball.x) + Math.abs(m.y - P.ball.y);
+      if(d < 22){ tx = tx + (P.ball.x - tx)*0.55; ty = ty + (P.ball.y - ty)*0.55; }
+    }
+    m.x += (clamp(tx,3,97) - m.x) * 0.045;
+    m.y += (clamp(ty,5,95) - m.y) * 0.045;
+  }
+
+  var pv = document.getElementById("mPoss");
+  if(pv) pv.textContent = "החזקה " + Math.round(M.me===M.home ? P.possH : 100-P.possH) + "%";
+}
+
+function pickBallTarget(){
+  // possession drifts toward the stronger side; ball roams toward that goal
+  var hs = M.home.rep + (M.home===M.me ? 5 : 0);
+  var as = M.away.rep + (M.away===M.me ? 5 : 0);
+  if(rnd() < 0.35) P.poss = rnd() < hs/(hs+as) ? "h" : "a";
+  var bias = P.poss==="h" ? 1 : -1;
+  P.bt.x = clamp(50 + bias*(10 + rnd()*36) + (rnd()-0.5)*14, 8, 92);
+  P.bt.y = clamp(15 + rnd()*70, 8, 92);
+  P.possH = clamp(P.possH + (P.poss==="h" ? 0.6 : -0.6), 28, 72);
+  /* most balls stay on the grass — a short pass, a dribble; some are
+     lofted — a cross, a long ball over the top — and those are the ones
+     that show the shadow gap */
+  P.kickT = 0;
+  P.kickPeak = rnd() < 0.6 ? 0 : (5 + rnd()*11);
+}
+
+/* ══ renderer 1: SVG/DOM — the always-available fallback ═══════════ */
+function initPitchSVG(p){
   p.innerHTML = '<svg viewBox="0 0 1000 620" preserveAspectRatio="none" id="pSvg">'
     + '<g fill="none" stroke="var(--turf-line)" stroke-width="3">'
     + '<rect x="16" y="16" width="968" height="588" rx="4"/>'
@@ -6325,10 +6408,6 @@ function initPitch(){
     + '</svg>';
 
   var g = document.getElementById("pPlayers");
-  var myIdx = POS[S.pos].slot;
-  P = {ball:{x:50,y:50}, bt:{x:50,y:50}, poss:"h", men:[], possH:50, t:0, trail:[],
-       kickT:0, kickDur:34, kickPeak:0};
-
   var NS = "http://www.w3.org/2000/svg";
   function el(tag, attrs){
     var e = document.createElementNS(NS, tag);
@@ -6356,77 +6435,50 @@ function initPitch(){
     return wrap;
   }
 
-  for(var side=0; side<2; side++){
-    for(var i=0;i<11;i++){
-      var f = FORM[i];
-      var bx = side===0 ? f.x : 100-f.x;
-      var by = side===0 ? f.y : 100-f.y;
-      var team = side===0 ? M.home : M.away;
-      var isMe = (side === (M.home===M.me ? 0 : 1)) && i===myIdx;
-      var isGk = i===0;
+  for(var idx=0; idx<P.men.length; idx++){
+    var m = P.men[idx];
+    var team = m.side===0 ? M.home : M.away;
 
-      var psh = document.createElementNS(NS,"ellipse");
-      psh.setAttribute("rx", isMe ? 8.5 : 6.6); psh.setAttribute("ry", isMe ? 3.6 : 2.8);
-      psh.setAttribute("fill", "#06210F"); psh.setAttribute("opacity", ".38");
-      document.getElementById("pShadows").appendChild(psh);
+    var psh = document.createElementNS(NS,"ellipse");
+    psh.setAttribute("rx", m.me ? 8.5 : 6.6); psh.setAttribute("ry", m.me ? 3.6 : 2.8);
+    psh.setAttribute("fill", "#06210F"); psh.setAttribute("opacity", ".38");
+    document.getElementById("pShadows").appendChild(psh);
 
-      if(isMe){
-        var halo = document.createElementNS(NS,"circle");
-        halo.setAttribute("r", 16); halo.setAttribute("fill", "none");
-        halo.setAttribute("stroke", "#FFE27A"); halo.setAttribute("stroke-width", 2.4);
-        halo.setAttribute("stroke-opacity", ".7");
-        g.appendChild(halo);
-      }
-      /* keepers wear yellow, same convention as the mini-game — but not
-         over a side that is itself wearing yellow */
-      var tc = String(team.c).replace("#","");
-      var trr = parseInt(tc.substr(0,2),16)||0, tgg = parseInt(tc.substr(2,2),16)||0, tbb = parseInt(tc.substr(4,2),16)||0;
-      var clash = trr > 190 && tgg > 160 && tbb < 120;
-      var man = svgMan(isGk ? (clash ? "#18A85C" : "#F2C500") : team.c, isGk, isMe);
-
-      var lbl = null;
-      if(isMe){
-        lbl = document.createElementNS(NS,"text");
-        lbl.setAttribute("text-anchor","middle");
-        lbl.setAttribute("font-size","9");
-        lbl.setAttribute("font-weight","900");
-        lbl.setAttribute("fill","#FFE27A");
-        lbl.setAttribute("pointer-events","none");
-        lbl.textContent = S.pos;
-        g.appendChild(lbl);
-      }
-
-      P.men.push({bx:bx, by:by, x:bx, y:by, el:man, lbl:lbl, halo:isMe?halo:null, sh:psh,
-                  side:side, me:isMe, gk:isGk});
+    var halo = null;
+    if(m.me){
+      halo = document.createElementNS(NS,"circle");
+      halo.setAttribute("r", 16); halo.setAttribute("fill", "none");
+      halo.setAttribute("stroke", "#FFE27A"); halo.setAttribute("stroke-width", 2.4);
+      halo.setAttribute("stroke-opacity", ".7");
+      g.appendChild(halo);
     }
+    /* keepers wear yellow, same convention as the mini-game — but not
+       over a side that is itself wearing yellow */
+    var tc = String(team.c).replace("#","");
+    var trr = parseInt(tc.substr(0,2),16)||0, tgg = parseInt(tc.substr(2,2),16)||0, tbb = parseInt(tc.substr(4,2),16)||0;
+    var clash = trr > 190 && tgg > 160 && tbb < 120;
+    var man = svgMan(m.gk ? (clash ? "#18A85C" : "#F2C500") : team.c, m.gk, m.me);
+
+    var lbl = null;
+    if(m.me){
+      lbl = document.createElementNS(NS,"text");
+      lbl.setAttribute("text-anchor","middle");
+      lbl.setAttribute("font-size","9");
+      lbl.setAttribute("font-weight","900");
+      lbl.setAttribute("fill","#FFE27A");
+      lbl.setAttribute("pointer-events","none");
+      lbl.textContent = S.pos;
+      g.appendChild(lbl);
+    }
+
+    m.el = man; m.lbl = lbl; m.halo = halo; m.sh = psh;
   }
-  pitchFrame();
+  svgPitchFrame();
 }
 
-function pickBallTarget(){
-  // possession drifts toward the stronger side; ball roams toward that goal
-  var hs = M.home.rep + (M.home===M.me ? 5 : 0);
-  var as = M.away.rep + (M.away===M.me ? 5 : 0);
-  if(rnd() < 0.35) P.poss = rnd() < hs/(hs+as) ? "h" : "a";
-  var bias = P.poss==="h" ? 1 : -1;
-  P.bt.x = clamp(50 + bias*(10 + rnd()*36) + (rnd()-0.5)*14, 8, 92);
-  P.bt.y = clamp(15 + rnd()*70, 8, 92);
-  P.possH = clamp(P.possH + (P.poss==="h" ? 0.6 : -0.6), 28, 72);
-  /* most balls stay on the grass — a short pass, a dribble; some are
-     lofted — a cross, a long ball over the top — and those are the ones
-     that show the shadow gap */
-  P.kickT = 0;
-  P.kickPeak = rnd() < 0.6 ? 0 : (5 + rnd()*11);
-}
-
-function pitchFrame(){
-  if(!P || !document.getElementById("pSvg")) return;
-  P.t++;
-  if(P.t % 34 === 0) pickBallTarget();
-
-  P.ball.x += (P.bt.x - P.ball.x) * 0.055;
-  P.ball.y += (P.bt.y - P.ball.y) * 0.055;
-  P.kickT++;
+function svgPitchFrame(){
+  if(!P || P.mode !== "svg" || !document.getElementById("pSvg")) return;
+  advancePitch();
 
   var bx = 16 + P.ball.x*9.68, by = 16 + P.ball.y*5.88;
   /* the arc: up on a sine from the moment a target is picked, grounded
@@ -6450,26 +6502,15 @@ function pitchFrame(){
     bsh.setAttribute("opacity", ".42");
   }
 
-  /* ball trail */
-  P.trail.push([bx,by]);
-  if(P.trail.length > 14) P.trail.shift();
   var tr = document.getElementById("pTrail");
   if(tr && P.t % 2 === 0){
-    tr.setAttribute("points", P.trail.map(function(q){return q[0].toFixed(0)+","+q[1].toFixed(0)}).join(" "));
+    tr.setAttribute("points", P.trail.map(function(q){
+      return (16+q.x*9.68).toFixed(0)+","+(16+q.y*5.88).toFixed(0);
+    }).join(" "));
   }
 
-  var shift = (P.ball.x - 50) * 0.30;
   for(var i=0;i<P.men.length;i++){
     var m = P.men[i];
-    var tx = m.gk ? m.bx + shift*0.12 : m.bx + shift;
-    var ty = m.gk ? 50 + (P.ball.y-50)*0.16 : m.by + (P.ball.y - 50) * 0.20;
-    /* the closest outfielder on the possessing side steps toward the ball */
-    if(!m.gk && ((P.poss==="h") === (m.side===0))){
-      var d = Math.abs(m.x - P.ball.x) + Math.abs(m.y - P.ball.y);
-      if(d < 22){ tx = tx + (P.ball.x - tx)*0.55; ty = ty + (P.ball.y - ty)*0.55; }
-    }
-    m.x += (clamp(tx,3,97) - m.x) * 0.045;
-    m.y += (clamp(ty,5,95) - m.y) * 0.045;
     var px = 16 + m.x*9.68, py = 16 + m.y*5.88;
     m.el.setAttribute("transform", "translate(" + px.toFixed(1) + "," + py.toFixed(1) + ")");
     if(m.sh){ m.sh.setAttribute("cx", px + 1.4); m.sh.setAttribute("cy", py + 5); }
@@ -6480,13 +6521,194 @@ function pitchFrame(){
     }
   }
 
-  var pv = document.getElementById("mPoss");
-  if(pv) pv.textContent = "החזקה " + Math.round(M.me===M.home ? P.possH : 100-P.possH) + "%";
-
-  P.raf = requestAnimationFrame(pitchFrame);
+  P.raf = requestAnimationFrame(svgPitchFrame);
 }
 
-function stopPitch(){ if(P && P.raf) cancelAnimationFrame(P.raf); }
+/* ══ renderer 2: Phaser — the same engine the mini-games already run on,
+   so a match plays out on one consistent renderer instead of switching
+   between canvas close-ups and flat SVG dots for the wide shot. Kit
+   textures are baked once per match with Graphics.generateTexture and
+   then just repositioned every frame — cheap, and shaded with a soft
+   highlight band instead of the flat rects the SVG figure is stuck with.
+   The pitch itself is a wide letterbox strip, not a square, so the
+   canvas is told to RESIZE to fill it exactly (same non-uniform stretch
+   the old SVG got for free from preserveAspectRatio="none") instead of
+   Phaser's usual aspect-locked FIT, which would letterbox and leave half
+   the strip empty. */
+function ptX(x, W){ var m = W*0.016; return m + x*(W-2*m)/100; }
+function ptY(y, H){ var m = H*0.026; return m + y*(H-2*m)/100; }
+
+var AMBIENT = (function(){
+  var game = null;
+  function ok(){ return typeof Phaser !== "undefined" && !!Phaser.Game; }
+  function boot(el){
+    destroy();
+    var w = Math.max(200, el.clientWidth || 500), h = Math.max(120, el.clientHeight || 310);
+    game = new Phaser.Game({
+      type: Phaser.AUTO, parent: el, width: w, height: h,
+      transparent:true, banner:false, audio:{noAudio:true},
+      scale:{mode: Phaser.Scale.RESIZE, width:w, height:h},
+      scene: [PitchScene],
+      render:{antialias:true, powerPreference:"low-power"}
+    });
+    /* the pitch's own size comes from a flex layout, not a fixed box —
+       the same settle-and-refresh the mini-game uses, since reading the
+       container's size the instant the canvas mounts can catch it before
+       that layout has actually resolved */
+    var refresh = function(){ try { game.scale.refresh(); } catch(e){} };
+    refresh(); setTimeout(refresh, 50); setTimeout(refresh, 220);
+    return game;
+  }
+  function destroy(){
+    if(game){ try { game.destroy(true); } catch(e){} game = null; }
+  }
+  return {ok:ok, boot:boot, destroy:destroy};
+})();
+
+function PitchScene(){ Phaser.Scene.call(this, {key:"pitch"}); }
+PitchScene.prototype = Object.create(Phaser.Scene.prototype);
+
+function pitchKitTexture(sc, key, kitColor, gkColor){
+  var isGk = kitColor === null;
+  var kit = isGk ? gkColor : kitColor;
+  var shorts = isGk ? 0xF2C500 : 0xF7F5F1;
+  var g = sc.make.graphics({x:0, y:0, add:false});
+  g.fillStyle(0x17150F,1);
+  g.fillRoundedRect(3.4, 22, 2, 6, 1); g.fillRoundedRect(6.6, 22, 2, 6, 1);
+  g.fillStyle(shorts,1); g.fillRoundedRect(1.5, 16, 9, 7, 1.6);
+  g.fillStyle(kit,1); g.fillRoundedRect(0.9, 6, 10.2, 10.4, 2.2);
+  g.fillStyle(0xFFFFFF, 0.16); g.fillRoundedRect(0.9, 6, 3.6, 10.4, 2.2);
+  g.fillStyle(0xE8B784,1); g.fillCircle(6, 3, 3.1);
+  g.generateTexture(key, 12, 30);
+  g.destroy();
+}
+function pitchBallTexture(sc){
+  var g = sc.make.graphics({x:0, y:0, add:false});
+  g.fillStyle(0xFFFFFF,1); g.fillCircle(8,8,7);
+  g.fillStyle(0x17150F,0.55);
+  g.fillCircle(8,8,1.7); g.fillCircle(4.6,10.4,1); g.fillCircle(11.4,10.4,1);
+  g.lineStyle(1.6, 0x17150F, 1); g.strokeCircle(8,8,7);
+  g.generateTexture("ball", 16, 16);
+  g.destroy();
+}
+function pitchShadowTexture(sc){
+  var g = sc.make.graphics({x:0, y:0, add:false});
+  g.fillStyle(0x06210F,1); g.fillEllipse(11,4,22,8,24);
+  g.generateTexture("shadow", 22, 8);
+  g.destroy();
+}
+
+/* redrawn whenever the canvas size changes, not just once — the lines
+   are the one thing on this pitch with no per-frame position to nudge,
+   so a resize has to repaint them by hand */
+function drawPitchLines(sc){
+  var W = sc.scale.width, H = sc.scale.height;
+  var ln = sc.lineG; ln.clear();
+  ln.lineStyle(1.4, 0xFFFFFF, 0.42);
+  var mx = W*0.016, my = H*0.026;
+  ln.strokeRoundedRect(mx, my, W-2*mx, H-2*my, 2);
+  ln.beginPath(); ln.moveTo(W/2, my); ln.lineTo(W/2, H-my); ln.strokePath();
+  ln.strokeCircle(W/2, H/2, W*0.08);
+  var bw = W*0.132, bh = H*0.497, by0 = (H-bh)/2;
+  ln.strokeRect(mx, by0, bw, bh); ln.strokeRect(W-mx-bw, by0, bw, bh);
+  var sw = W*0.05, sh = H*0.239, sy0 = (H-sh)/2;
+  ln.strokeRect(mx, sy0, sw, sh); ln.strokeRect(W-mx-sw, sy0, sw, sh);
+  ln.fillStyle(0xFFFFFF, 0.5); ln.fillCircle(W/2, H/2, W*0.0048);
+}
+
+PitchScene.prototype.create = function(){
+  var sc = this;
+  /* Phaser's own boot is a beat behind the synchronous rest of the game —
+     a match fast-forwarded and finished in that beat would leave M null
+     by the time this actually runs */
+  if(!M || !P) return;
+  sc.lineG = sc.add.graphics();
+  drawPitchLines(sc);
+  sc.scale.on("resize", function(){ drawPitchLines(sc); });
+
+  sc.trailG = sc.add.graphics();
+  sc.shadowG = sc.add.graphics();
+  sc.haloG = sc.add.graphics();
+
+  function clashOf(team){
+    var tc = String(team.c).replace("#","");
+    var trr=parseInt(tc.substr(0,2),16)||0, tgg=parseInt(tc.substr(2,2),16)||0, tbb=parseInt(tc.substr(4,2),16)||0;
+    return trr>190 && tgg>160 && tbb<120;
+  }
+  var homeC = Phaser.Display.Color.HexStringToColor(String(M.home.c)).color;
+  var awayC = Phaser.Display.Color.HexStringToColor(String(M.away.c)).color;
+  pitchKitTexture(sc, "kit0", homeC, null);
+  pitchKitTexture(sc, "kit1", awayC, null);
+  pitchKitTexture(sc, "gk0", null, clashOf(M.home) ? 0x18A85C : 0xF2C500);
+  pitchKitTexture(sc, "gk1", null, clashOf(M.away) ? 0x18A85C : 0xF2C500);
+  pitchBallTexture(sc);
+  pitchShadowTexture(sc);
+
+  var W = sc.scale.width, H = sc.scale.height;
+  sc.players = [];
+  sc.meIdx = -1;
+  for(var i=0;i<P.men.length;i++){
+    var m = P.men[i];
+    var key = m.gk ? ("gk"+m.side) : ("kit"+m.side);
+    var spr = sc.add.image(ptX(m.x,W), ptY(m.y,H), key).setOrigin(0.5, 0.93);
+    spr.setScale((m.me ? 1.3 : 1.02) * (H/310));
+    sc.players.push(spr);
+    if(m.me) sc.meIdx = i;
+  }
+  if(sc.meIdx >= 0){
+    sc.meLbl = sc.add.text(0, 0, S.pos, {fontFamily:"Heebo, Arial, sans-serif",
+      fontSize:"10px", fontStyle:"900", color:"#FFE27A"}).setOrigin(0.5);
+  }
+
+  sc.ballShadow = sc.add.image(ptX(50,W), ptY(50,H), "shadow").setAlpha(0.42);
+  sc.ball = sc.add.image(ptX(50,W), ptY(50,H), "ball");
+};
+
+PitchScene.prototype.update = function(){
+  if(!M || !P || P.mode !== "phaser" || !this.ball) return;
+  advancePitch();
+
+  var W = this.scale.width, H = this.scale.height, K = H/310;
+  var bx = ptX(P.ball.x,W), by = ptY(P.ball.y,H);
+  var prog = clamp(P.kickT / P.kickDur, 0, 1);
+  var bh = P.kickPeak * Math.sin(prog * Math.PI) * H * 0.00968;
+  this.ball.setPosition(bx, by - bh);
+  this.ball.setScale((1 + bh*0.02) * K);
+  this.ballShadow.setPosition(bx, by + 1);
+  this.ballShadow.setScale(K);
+
+  this.trailG.clear();
+  if(P.trail.length > 1){
+    this.trailG.lineStyle(1.5, 0xFFFFFF, 0.36);
+    this.trailG.beginPath();
+    for(var k=0;k<P.trail.length;k++){
+      var q = P.trail[k], qx = ptX(q.x,W), qy = ptY(q.y,H);
+      if(k===0) this.trailG.moveTo(qx,qy); else this.trailG.lineTo(qx,qy);
+    }
+    this.trailG.strokePath();
+  }
+
+  this.shadowG.clear();
+  this.haloG.clear();
+  for(var i=0;i<P.men.length;i++){
+    var m = P.men[i];
+    var px = ptX(m.x,W), py = ptY(m.y,H);
+    this.players[i].setPosition(px, py);
+    this.players[i].setScale((m.me ? 1.3 : 1.02) * K);
+    this.shadowG.fillStyle(0x06210F, 0.36);
+    this.shadowG.fillEllipse(px+0.7*K, py+2.4*K, (m.me?17:13.2)*K, (m.me?7.2:5.6)*K, 20);
+    if(m.me){
+      this.haloG.lineStyle(1.6, 0xFFE27A, 0.78);
+      this.haloG.strokeCircle(px, py-25*K, (10 + Math.sin(P.t/12)*1.6)*K);
+      if(this.meLbl) this.meLbl.setPosition(px, py-40*K);
+    }
+  }
+};
+
+function stopPitch(){
+  if(P && P.raf) cancelAnimationFrame(P.raf);
+  AMBIENT.destroy();
+}
 
 function paintPitch(){ initPitch(); }
 
