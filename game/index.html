@@ -10127,12 +10127,17 @@ var MINI = (function(){
       var nx = -(ty - sc.ball.y)/len, ny = (tx - sc.ball.x)/len;
       var cxp = mx + nx*curve, cyp = my + ny*curve;
       var pts = [];
+      /* the close-up canvas is small, so a lofted ball needs a big, blunt
+         cue to read at all in 600ms — the ambient pitch taught us the
+         gap between ball and shadow is what sells height, not the shadow
+         fading away right when it would matter most (see §54) */
+      var LIFT_PX = 54;
       for(var i=0;i<=40;i++){
         var s2 = i/40;
         pts.push({
           x:(1-s2)*(1-s2)*sc.ball.x + 2*(1-s2)*s2*cxp + s2*s2*tx,
           y:(1-s2)*(1-s2)*sc.ball.y + 2*(1-s2)*s2*cyp + s2*s2*ty,
-          h: Math.sin(s2*Math.PI) * lift * 16
+          h: Math.sin(s2*Math.PI) * lift * LIFT_PX
         });
       }
       sc.flightEnd = {x:tx, y:ty, lift:lift, curve:curve, sx:sx, sy:sy};
@@ -10145,10 +10150,13 @@ var MINI = (function(){
           var p = pts[Math.round(t.i)];
           if(!p) return;
           sc.ball.x = p.x; sc.ball.y = p.y - p.h;
-          sc.ball.orb.setScale(1 + p.h/70);
+          /* the orb swells as it climbs — coming up off the grass toward
+             the camera — while the shadow it left behind on the ground
+             holds its own size and darkness; only the growing gap between
+             the two says "this is in the air" */
+          sc.ball.orb.setScale(1 + p.h/34);
           sc.ball.shadow.y = 6 + p.h;
-          sc.ball.shadow.setAlpha(0.3 - p.h/160);
-          var d = sc.add.circle(p.x, p.y - p.h, 2.6, 0xFFFFFF, 0.4);
+          var d = sc.add.circle(p.x, p.y - p.h, 2.2 + p.h*0.05, 0xFFFFFF, 0.4);
           sc.tweens.add({targets:d, alpha:0, duration:240, onComplete:function(){ d.destroy(); }});
         },
         onComplete:function(){ judge(); }});
