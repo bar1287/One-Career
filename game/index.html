@@ -10128,10 +10128,16 @@ var MINI = (function(){
       var cxp = mx + nx*curve, cyp = my + ny*curve;
       var pts = [];
       /* the close-up canvas is small, so a lofted ball needs a big, blunt
-         cue to read at all in 600ms — the ambient pitch taught us the
-         gap between ball and shadow is what sells height, not the shadow
-         fading away right when it would matter most (see §54) */
-      var LIFT_PX = 54;
+         cue to read at all in well under a second — the ambient pitch
+         taught us the gap between ball and shadow is what sells height,
+         not the shadow fading away right when it would matter most (see
+         §54). First pass at this (§58) doubled it from the original 16px
+         to 54px and it was still called too subtle — so this pass goes
+         well past "realistic" into "unmistakable": a near-full-screen
+         apex, a ball that swells toward the camera, and a one-time flare
+         right at the peak so the eye has a moment to register how high
+         "high" actually is. */
+      var LIFT_PX = 108;
       for(var i=0;i<=40;i++){
         var s2 = i/40;
         pts.push({
@@ -10143,21 +10149,39 @@ var MINI = (function(){
       sc.flightEnd = {x:tx, y:ty, lift:lift, curve:curve, sx:sx, sy:sy};
       sc.flightPts = pts;
 
+      var apexFired = false;
       var t = {i:0};
-      sc.tweens.add({targets:t, i:pts.length-1, duration:620 + (1-sc.aim.power)*260,
+      sc.tweens.add({targets:t, i:pts.length-1, duration:700 + (1-sc.aim.power)*280,
         ease:"Sine.easeOut",
         onUpdate:function(){
           var p = pts[Math.round(t.i)];
           if(!p) return;
-          sc.ball.x = p.x; sc.ball.y = p.y - p.h;
+          /* a chip aimed at the top corner already sits high on this small
+             canvas before any lift is added — so the visible rise is
+             capped by whatever headroom is actually left above it, not by
+             the raw height number, or a big lofted shot into the top
+             corner would fly the ball straight off the top of the screen */
+          var hh = Math.min(p.h, Math.max(0, p.y - 38));
+          sc.ball.x = p.x; sc.ball.y = p.y - hh;
           /* the orb swells as it climbs — coming up off the grass toward
              the camera — while the shadow it left behind on the ground
              holds its own size and darkness; only the growing gap between
              the two says "this is in the air" */
-          sc.ball.orb.setScale(1 + p.h/34);
-          sc.ball.shadow.y = 6 + p.h;
-          var d = sc.add.circle(p.x, p.y - p.h, 2.2 + p.h*0.05, 0xFFFFFF, 0.4);
-          sc.tweens.add({targets:d, alpha:0, duration:240, onComplete:function(){ d.destroy(); }});
+          sc.ball.orb.setScale(Math.min(3.1, 1 + hh/34));
+          sc.ball.shadow.y = 6 + hh;
+          var d = sc.add.circle(p.x, p.y - hh, 2.6 + hh*0.09, 0xFFFFFF, 0.45);
+          sc.tweens.add({targets:d, alpha:0, scale:{from:1,to:0.3}, duration:320,
+            onComplete:function(){ d.destroy(); }});
+          /* one flash right at the top of a genuinely lofted ball — the
+             single frame that most needs to register as "high" */
+          if(!apexFired && lift > 0.3 && t.i/(pts.length-1) > 0.47 && t.i/(pts.length-1) < 0.53){
+            apexFired = true;
+            var ring = sc.add.graphics().setPosition(p.x, p.y - hh);
+            ring.lineStyle(2.4, 0xFFFFFF, 0.9);
+            ring.strokeCircle(0, 0, 8);
+            sc.tweens.add({targets:ring, scale:{from:1, to:2.6}, alpha:0, duration:360,
+              onComplete:function(){ ring.destroy(); }});
+          }
         },
         onComplete:function(){ judge(); }});
 
