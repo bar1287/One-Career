@@ -10,19 +10,22 @@ import io, os, sys, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "game", "index.html")
-VENDOR = os.path.join(ROOT, "game", "vendor", "phaser.min.js")
 OUT = os.path.join(ROOT, "game", "one-career.html")
+ENGINES = [
+    ("vendor/phaser.min.js", "Phaser 3.80.1 — https://phaser.io — MIT"),
+    ("vendor/three.min.js", "three.js r128 — https://threejs.org — MIT"),
+]
 
 def main():
     html = io.open(SRC, encoding="utf-8").read()
-    tag = '<script src="vendor/phaser.min.js"></script>'
-    if tag not in html:
-        sys.exit("build: the vendor script tag is not in game/index.html")
-    engine = io.open(VENDOR, encoding="utf-8").read()
-    # </script> inside the engine would close our tag early
-    engine = engine.replace("</script>", "<\\/script>")
-    html = html.replace(tag, "<script>\n/* Phaser 3.80.1 — https://phaser.io — MIT */\n"
-                        + engine + "\n</script>")
+    for rel, label in ENGINES:
+        tag = '<script src="%s"></script>' % rel
+        if tag not in html:
+            sys.exit("build: the vendor script tag for %s is not in game/index.html" % rel)
+        engine = io.open(os.path.join(ROOT, "game", rel), encoding="utf-8").read()
+        # </script> inside the engine would close our tag early
+        engine = engine.replace("</script>", "<\\/script>")
+        html = html.replace(tag, "<script>\n/* %s */\n" % label + engine + "\n</script>")
     # the manifest and icon live next to index.html; a standalone file has neither
     html = re.sub(r'\n\s*<link rel="manifest"[^>]*>', "", html)
     io.open(OUT, "w", encoding="utf-8").write(html)

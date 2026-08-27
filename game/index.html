@@ -376,6 +376,10 @@ body{
   touch-action:none;background:#1F6F43}
 #miniHost canvas{display:block}
 #miniHost .minimsg{z-index:2}
+/* the flight cam: a real perspective camera looking down the pitch, laid
+   directly over the 2D canvas and only shown while the ball is actually
+   in the air — see FLY3D */
+#miniHost #fly3dCanvas{position:absolute;inset:0;width:100%;height:100%;display:none;z-index:1;pointer-events:none}
 
 /* portrait gate */
 #rotate{
@@ -1668,11 +1672,12 @@ html[data-cb="trit"] {--accent:#1E7A56; --accent-ink:#13583C; --bad:#B02A5B; --b
 
   <div class="hintbar" id="hints"></div>
   <div id="layers"></div>
-  <div id="miniHost"><div class="minimsg" id="miniMsg"></div></div>
+  <div id="miniHost"><canvas id="fly3dCanvas"></canvas><div class="minimsg" id="miniMsg"></div></div>
 </div>
 </div>
 
 <script src="vendor/phaser.min.js"></script>
+<script src="vendor/three.min.js"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════
@@ -9826,6 +9831,7 @@ var MINI = (function(){
     /* eleven shapes on a pitch: the keeper, a handful of each side, you */
     var oppK = c.oppKit || 0xC0392B;
     var clash = ((oppK >> 16) & 255) > 190 && ((oppK >> 8) & 255) > 160 && (oppK & 255) < 120;
+    sc.kClash = clash;
     if(c.mode !== "trial")
       sc.keeper = PITCH.keeper(sc, sc.goalPos.x + (c.keeperOff || 0), sc.goalPos.y + 8, clash);
     sc.mates = []; sc.foes = [];
@@ -10149,6 +10155,20 @@ var MINI = (function(){
       sc.flightEnd = {x:tx, y:ty, lift:lift, curve:curve, sx:sx, sy:sy};
       sc.flightPts = pts;
 
+      /* the real camera, when it's there to use: same pts, same timing,
+         just laid over the 2D canvas and shown for exactly as long as
+         the ball is in the air. The 2D animation below keeps running
+         underneath either way — it's still what judge() reads from — a
+         missing WebGL context just means it stays the visible one too. */
+      var fly3dEl = document.getElementById("fly3dCanvas");
+      var use3d = false;
+      if(FLY3D.ok() && c.mode !== "trial" && fly3dEl){
+        fly3dEl.style.display = "block";
+        use3d = FLY3D.begin(fly3dEl, {ox:sc.ball.x, oy:sc.ball.y, gx:sc.goalPos.x, gy:sc.goalPos.y,
+             ghw:sc.goalPos.hw, night:!!c.night, keeper:c.keeper!==false, clash:!!sc.kClash});
+        if(!use3d) fly3dEl.style.display = "none";
+      }
+
       var apexFired = false;
       var t = {i:0};
       sc.tweens.add({targets:t, i:pts.length-1, duration:700 + (1-sc.aim.power)*280,
@@ -10182,8 +10202,12 @@ var MINI = (function(){
             sc.tweens.add({targets:ring, scale:{from:1, to:2.6}, alpha:0, duration:360,
               onComplete:function(){ ring.destroy(); }});
           }
+          if(use3d) FLY3D.frame(p.x, p.y, p.h);
         },
-        onComplete:function(){ judge(); }});
+        onComplete:function(){
+          if(use3d){ fly3dEl.style.display = "none"; FLY3D.end(); }
+          judge();
+        }});
 
       /* the keeper commits, and gets it wrong as often as he gets it right */
       if(c.keeper !== false){
@@ -10347,10 +10371,143 @@ var MINI = (function(){
       cb = null;
       var h = host(); if(h) h.style.display = "none";
       if(game){ try { game.destroy(true); } catch(e){} game = null; }
+      var f3 = document.getElementById("fly3dCanvas");
+      if(f3) f3.style.display = "none";
+      FLY3D.end();
     }
   };
 })();
 
+/* ══════════════════════════════════════════════════════════════════
+   THE FLIGHT CAM — a real perspective camera, not a 2D fake
+   No amount of pixel-tuning a flat canvas gives a ball actual depth:
+   scaling and a shadow offset are a guess at what a camera would show,
+   never the thing itself. A real 3D camera doesn't need the guess —
+   a ball further away and higher up IS smaller and higher on screen,
+   for free, because that's what perspective projection is. This runs
+   on three.js, laid directly over the 2D mini-game canvas and shown
+   only for the few hundred milliseconds the ball is actually in the
+   air; the 2D scene underneath keeps animating exactly as before
+   (still driving every decision — the goal check, the keeper save,
+   the trial gate) so nothing about how a shot is judged changes, only
+   how the flight looks while it happens. If three.js didn't load, or
+   a WebGL context can't be made, FLY3D.ok() is false and fly() falls
+   straight back to the 2D flight this replaces. */
+var FLY3D = (function(){
+  var XZ = 1/22, YS = 0.035;             // 2D-px → 3D-world unit scales
+  var renderer=null, scene=null, camera=null, ball=null, shadow=null, ox=0, oy=0, live=false;
+
+  function ok(){ return typeof THREE !== "undefined"; }
+
+  function ballTexture(){
+    var cv = document.createElement("canvas"); cv.width = 128; cv.height = 128;
+    var g = cv.getContext("2d");
+    g.fillStyle = "#FFFFFF"; g.fillRect(0,0,128,128);
+    g.fillStyle = "#17150F";
+    [[64,20,15],[24,52,13],[104,52,13],[40,96,13],[88,96,13]].forEach(function(p){
+      g.beginPath();
+      for(var k=0;k<5;k++){
+        var a = -Math.PI/2 + k*Math.PI*2/5;
+        var px = p[0]+Math.cos(a)*p[2], py = p[1]+Math.sin(a)*p[2];
+        k ? g.lineTo(px,py) : g.moveTo(px,py);
+      }
+      g.closePath(); g.fill();
+    });
+    return new THREE.CanvasTexture(cv);
+  }
+  function stripeTexture(night){
+    var cv = document.createElement("canvas"); cv.width = 16; cv.height = 16;
+    var g = cv.getContext("2d");
+    g.fillStyle = night ? "#1A5A38" : "#2E8B57"; g.fillRect(0,0,16,16);
+    g.fillStyle = night ? "#1D6540" : "#33935F"; g.fillRect(0,0,8,16);
+    var t = new THREE.CanvasTexture(cv);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(20, 22);
+    return t;
+  }
+
+  function begin(canvas, cfg){
+    if(!ok()) return false;
+    try {
+      renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:false});
+      renderer.setPixelRatio(1);
+      renderer.setSize(canvas.clientWidth || 430, canvas.clientHeight || 250, false);
+      renderer.setClearColor(cfg.night ? 0x0B2A1C : 0x6FB7E0, 1);
+    } catch(e){ renderer = null; return false; }
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(52, (canvas.clientWidth||430)/(canvas.clientHeight||250), 0.05, 80);
+    camera.position.set(0, 1.55, -2.3);
+    camera.lookAt(0, 1.0, 16);
+
+    /* wide enough that its side edges fall well outside the frustum — a
+       narrow plane this close to the camera would show its own corners
+       rising into frame, reading as a hill instead of a flat pitch */
+    var pitch = new THREE.Mesh(new THREE.PlaneGeometry(140, 60),
+      new THREE.MeshBasicMaterial({map: stripeTexture(cfg.night)}));
+    pitch.rotation.x = -Math.PI/2; pitch.position.z = 22;
+    scene.add(pitch);
+
+    /* the goal — three plain cylinders, no lighting needed to read as posts */
+    var gx = (cfg.gx - cfg.ox) * XZ, gz = (cfg.oy - cfg.gy) * XZ;
+    var ghw = Math.max(1.6, cfg.ghw * XZ), gh = 2.15;
+    var postMat = new THREE.MeshBasicMaterial({color:0xF7F5F1});
+    [-ghw, ghw].forEach(function(off){
+      var post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, gh, 8), postMat);
+      post.position.set(gx+off, gh/2, gz);
+      scene.add(post);
+    });
+    var bar = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, ghw*2, 8), postMat);
+    bar.rotation.z = Math.PI/2; bar.position.set(gx, gh, gz);
+    scene.add(bar);
+    var net = new THREE.Mesh(new THREE.PlaneGeometry(ghw*2, gh),
+      new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.14, side:THREE.DoubleSide}));
+    net.position.set(gx, gh/2, gz+0.12);
+    scene.add(net);
+
+    if(cfg.keeper){
+      var kc = cfg.clash ? 0x18A85C : 0xF2C500;
+      var kpr = new THREE.Group();
+      kpr.add(new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.82, 0.26), new THREE.MeshBasicMaterial({color:kc})));
+      var head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), new THREE.MeshBasicMaterial({color:0xE8B784}));
+      head.position.y = 0.56; kpr.add(head);
+      kpr.position.set(gx, gh*0.42, gz-0.1);
+      scene.add(kpr);
+    }
+
+    shadow = new THREE.Mesh(new THREE.CircleGeometry(0.26, 20),
+      new THREE.MeshBasicMaterial({color:0x06210F, transparent:true, opacity:0.4}));
+    shadow.rotation.x = -Math.PI/2; shadow.position.y = 0.015;
+    scene.add(shadow);
+
+    ball = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12),
+      new THREE.MeshBasicMaterial({map: ballTexture()}));
+    scene.add(ball);
+
+    ox = cfg.ox; oy = cfg.oy;
+    live = true;
+    return true;
+  }
+
+  /* called every tick the 2D flight tween already runs — same timing,
+     same physics, just projected through a real camera instead of a
+     hand-tuned pixel offset */
+  function frame(px, py, h){
+    if(!live || !renderer) return;
+    var wx = (px - ox) * XZ, wz = (oy - py) * XZ, wy = Math.max(0, h) * YS;
+    ball.position.set(wx, wy + 0.13, wz);
+    ball.rotation.x += 0.25; ball.rotation.z += 0.12;
+    shadow.position.set(wx, 0.015, wz);
+    try { renderer.render(scene, camera); } catch(e){}
+  }
+
+  function end(){
+    live = false;
+    if(renderer){ try { renderer.dispose(); } catch(e){} renderer = null; }
+    scene = null; camera = null; ball = null; shadow = null;
+  }
+
+  return {ok:ok, begin:begin, frame:frame, end:end, live:function(){ return live; }};
+})();
 
 /* ══════════════════════════════════════════════════════════════════
    WHICH MINI-GAME A CHOICE OPENS
