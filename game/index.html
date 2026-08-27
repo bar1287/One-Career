@@ -10424,6 +10424,36 @@ var FLY3D = (function(){
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(20, 22);
     return t;
   }
+  /* the goal, drawn flat — a real 3D goal built from round posts reads as
+     "some other, generic 3D game"; a single sprite with the same thin
+     white outline the 2D pitch already draws stays in the same visual
+     language, it just now sits at a real depth instead of a fixed one */
+  function goalTexture(){
+    var cv = document.createElement("canvas"); cv.width = 256; cv.height = 96;
+    var g = cv.getContext("2d");
+    g.strokeStyle = "#F7F5F1"; g.lineWidth = 7; g.lineJoin = "round";
+    g.strokeRect(4, 4, 248, 88);
+    g.fillStyle = "rgba(255,255,255,.12)";
+    for(var x=4; x<252; x+=14){ g.fillRect(x, 4, 2, 88); }
+    for(var y=4; y<92; y+=14){ g.fillRect(4, y, 248, 2); }
+    return new THREE.CanvasTexture(cv);
+  }
+  /* the keeper — the same head/jersey/shorts/legs figure the ambient
+     pitch and the strike screen already use, drawn once onto a sprite
+     that always faces the fixed camera. A modelled 3D body was the
+     single biggest thing making the flight cam look like a different
+     game; a flat figure keeps it the same game, just seen with real depth */
+  function keeperTexture(kit){
+    var cv = document.createElement("canvas"); cv.width = 64; cv.height = 128;
+    var g = cv.getContext("2d");
+    g.fillStyle = "#17150F";
+    g.fillRect(20, 84, 8, 30); g.fillRect(36, 84, 8, 30);
+    g.fillStyle = "#1B1B1B"; g.fillRect(16, 62, 32, 26);
+    g.fillStyle = kit; g.fillRect(12, 26, 40, 40);
+    g.fillStyle = "rgba(255,255,255,.18)"; g.fillRect(12, 26, 14, 40);
+    g.fillStyle = "#E8B784"; g.beginPath(); g.arc(32, 15, 13, 0, Math.PI*2); g.fill();
+    return new THREE.CanvasTexture(cv);
+  }
 
   function begin(canvas, cfg){
     if(!ok()) return false;
@@ -10431,7 +10461,7 @@ var FLY3D = (function(){
       renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:false});
       renderer.setPixelRatio(1);
       renderer.setSize(canvas.clientWidth || 430, canvas.clientHeight || 250, false);
-      renderer.setClearColor(cfg.night ? 0x0B2A1C : 0x6FB7E0, 1);
+      renderer.setClearColor(cfg.night ? 0x14332A : 0xAED9E4, 1);
     } catch(e){ renderer = null; return false; }
 
     scene = new THREE.Scene();
@@ -10447,30 +10477,21 @@ var FLY3D = (function(){
     pitch.rotation.x = -Math.PI/2; pitch.position.z = 22;
     scene.add(pitch);
 
-    /* the goal — three plain cylinders, no lighting needed to read as posts */
+    /* the goal — one flat sprite, not a modelled frame */
     var gx = (cfg.gx - cfg.ox) * XZ, gz = (cfg.oy - cfg.gy) * XZ;
     var ghw = Math.max(1.6, cfg.ghw * XZ), gh = 2.15;
-    var postMat = new THREE.MeshBasicMaterial({color:0xF7F5F1});
-    [-ghw, ghw].forEach(function(off){
-      var post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, gh, 8), postMat);
-      post.position.set(gx+off, gh/2, gz);
-      scene.add(post);
-    });
-    var bar = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, ghw*2, 8), postMat);
-    bar.rotation.z = Math.PI/2; bar.position.set(gx, gh, gz);
-    scene.add(bar);
-    var net = new THREE.Mesh(new THREE.PlaneGeometry(ghw*2, gh),
-      new THREE.MeshBasicMaterial({color:0xFFFFFF, transparent:true, opacity:0.14, side:THREE.DoubleSide}));
-    net.position.set(gx, gh/2, gz+0.12);
-    scene.add(net);
+    var goal = new THREE.Sprite(new THREE.SpriteMaterial({map: goalTexture(), transparent:true}));
+    goal.center.set(0.5, 0);
+    goal.scale.set(ghw*2 + 0.24, gh + 0.14, 1);
+    goal.position.set(gx, 0, gz);
+    scene.add(goal);
 
     if(cfg.keeper){
-      var kc = cfg.clash ? 0x18A85C : 0xF2C500;
-      var kpr = new THREE.Group();
-      kpr.add(new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.82, 0.26), new THREE.MeshBasicMaterial({color:kc})));
-      var head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), new THREE.MeshBasicMaterial({color:0xE8B784}));
-      head.position.y = 0.56; kpr.add(head);
-      kpr.position.set(gx, gh*0.42, gz-0.1);
+      var kc = cfg.clash ? "#18A85C" : "#F2C500";
+      var kpr = new THREE.Sprite(new THREE.SpriteMaterial({map: keeperTexture(kc), transparent:true}));
+      kpr.center.set(0.5, 0);
+      kpr.scale.set(0.72, 1.44, 1);
+      kpr.position.set(gx, 0, gz - 0.12);
       scene.add(kpr);
     }
 
